@@ -507,11 +507,15 @@ internal static class Delegate
 #else
                     var func = (Func<TTarget, TReturn>)method.CreateDelegate(typeof(Func<TTarget, TReturn>));
 #endif
+#if NULLER
                     return (target) => func(target)!;
+#else
+                    return (target) => func(target);
+#endif
                 }
-                #endregion
+#endregion
 
-                #region Action
+                    #region Action
                 static readonly MethodInfo CreateActionMethodInfo = typeof(Delegate).GetStaticMethod(nameof(CreateAction));
                 static readonly ConcurrentCache<Type, Action<SerialStream, object>> ActionDelegateCache = new ConcurrentCache<Type, Action<SerialStream, object>>();
 
@@ -539,11 +543,11 @@ internal static class Delegate
 #endif
                     return (target, param) => action(target, (TParam)param);
                 }
-                #endregion
+                    #endregion
             }
 #endif
 
-            static bool ShouldSerializeField(FieldInfo field)
+                    static bool ShouldSerializeField(FieldInfo field)
             {
                 if (field.IsDefined(typeof(CyxorIgnoreAttribute), inherit: false))
                     return false;
@@ -1468,7 +1472,12 @@ internal static class Delegate
                     while (objectSerialization != null)
                     {
                         objectSerialization.Step(this, size);
+
+#if NULLER
                         objectSerialization = objectSerialization.Previous!;
+#else
+                        objectSerialization = objectSerialization.Previous;
+#endif
                     }
                 }
         }
@@ -1560,7 +1569,7 @@ internal static class Delegate
         }
 #endif
 
-#nullable disable
+//#nullable disable
         public T ToObject<T>(T value)
             => (T)InternalToObject<T>(value, serializer: null);
 
@@ -1572,13 +1581,13 @@ internal static class Delegate
 
         public T ToObject<T>(IBackingSerializer serializer)
             => (T)InternalToObject<T>(value: null, serializer: serializer);
-#nullable enable
+//#nullable enable
 
-        #endregion ToConversions
+#endregion ToConversions
 
-        #region Serialize
+#region Serialize
 
-        #region SerializeNumeric
+#region SerializeNumeric
 
 #if DEBUG && !NET40 && !NET35 && !NET20
         void SerializeNumeric(ValueType value, int size, bool unsigned, bool floatingPoint = false, bool nullable = false, [CallerMemberName] string callerName = "")
@@ -1967,10 +1976,18 @@ internal static class Delegate
                 return;
 
             if (value == value1)
+#if NULLER
                 foreach (var item in value1!)
+#else
+                foreach (var item in value1)
+#endif
                     TypeSerializeObject(typeof(T), item, raw: false);
             else
+#if NULLER
                 foreach (var item in value2!)
+#else
+                foreach (var item in value2)
+#endif
                 {
                     TypeSerializeObject(typeof(T), item.Key, raw: false);
                     TypeSerializeObject(typeof(TValue), item.Value, raw: false);
@@ -3388,9 +3405,9 @@ internal static class Delegate
             var array = new T[count];
 
             for (var i = 0; i < count; i++)
-#nullable disable
+//#nullable disable
                 array[i] = (T)DeserializeObject(typeof(T));
-#nullable enable
+//#nullable enable
 
             return array;
         }
@@ -3409,9 +3426,9 @@ internal static class Delegate
             var list = new List<T>(capacity: count);
 
             for (var i = 0; i < count; i++)
-#nullable disable
+//#nullable disable
                 list.Add((T)DeserializeObject(typeof(T)));
-#nullable enable
+//#nullable enable
 
             return list;
         }
@@ -3430,9 +3447,9 @@ internal static class Delegate
             var dictionary = new Dictionary<TKey, TValue>(capacity: count);
 
             for (var i = 0; i < count; i++)
-#nullable disable
+//#nullable disable
                 dictionary.Add((TKey)DeserializeObject(typeof(TKey)), (TValue)DeserializeObject(typeof(TValue)));
-#nullable enable
+//#nullable enable
 
             return dictionary;
         }
@@ -3512,7 +3529,11 @@ internal static class Delegate
                 if (raw && length == 0)
                     return default(T);
 
+#if NULLER
                 return value = TypeDeserializeObject((nullable ? nullableType : type)!, raw);
+#else
+                return value = TypeDeserializeObject((nullable ? nullableType : type), raw);
+#endif
             }
 
             if (nullable)
@@ -3632,9 +3653,9 @@ internal static class Delegate
             => TypeDeserializeObject(type, raw: false);
 
         public T DeserializeObject<T>()
-#nullable disable
+//#nullable disable
             => (T)InternalDeserializeObject<T>(value: null, raw: AutoRaw);
-#nullable enable
+//#nullable enable
 
 #if NULLER
         public T? DeserializeObject<T>(T? value) where T : class
@@ -3645,9 +3666,9 @@ internal static class Delegate
 #endif
 
         public T DeserializeObject<T>(IBackingSerializer serializer)
-#nullable disable
+//#nullable disable
             => (T)InternalDeserializeObject<T>(value: null, raw: false, serializer: serializer);
-#nullable enable
+//#nullable enable
 
 #if NULLER
         public T? DeserializeObject<T>(T value, IBackingSerializer serializer) where T : class
@@ -3665,9 +3686,9 @@ internal static class Delegate
             => TypeDeserializeObject(type, raw: true);
 
         public T DeserializeRawObject<T>()
-#nullable disable
+//#nullable disable
             => (T)InternalDeserializeObject<T>(value: null, raw: true);
-#nullable enable
+//#nullable enable
 
 #if NULLER
         public T? DeserializeRawObject<T>(T value) where T : class
@@ -3678,9 +3699,9 @@ internal static class Delegate
 #endif
 
         public T DeserializeRawObject<T>(IBackingSerializer serializer)
-#nullable disable
+//#nullable disable
             => (T)InternalDeserializeObject<T>(value: null, raw: true, serializer: serializer);
-#nullable enable
+//#nullable enable
 
 #if NULLER
         public T? DeserializeRawObject<T>(T value, IBackingSerializer serializer) where T : class
