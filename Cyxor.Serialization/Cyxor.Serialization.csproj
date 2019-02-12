@@ -6,7 +6,7 @@
     <RootNamespace>.</RootNamespace>
     <Authors>Yandy Zaldivar</Authors>
     <VersionPrefix>0.1.0</VersionPrefix>
-    <!--<VersionSuffix>alpha-3</VersionSuffix>-->
+    <VersionSuffix>preview</VersionSuffix>
     <Copyright>@ Yandy Zaldivar</Copyright>
     <AssemblyName>Cyxor.Serialization</AssemblyName>
     <AssemblyTitle>Cyxor.Serialization</AssemblyTitle>
