@@ -1,3 +1,5 @@
+[![cyxor-dev MyGet Build Status](https://www.myget.org/BuildSource/Badge/cyxor-dev?identifier=2c22776d-5b7e-4070-86e7-cbfceb2ced5b)](https://www.myget.org/)
+
 # Cyxor.Serialization
 
 #### Effective binary object serialization class library for low-overhead network transmissions
