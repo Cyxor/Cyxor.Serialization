@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Cyxor.Serialization
 {
-    public class Utilities
+    class Utilities
     {
         protected Utilities() { }
 
