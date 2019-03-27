@@ -6,9 +6,9 @@ using System.Collections.Generic;
 
 namespace Cyxor.Extensions
 {
-    public static class StreamExtensions
+    static class StreamExtensions
     {
-#if NET35
+#if NET20 || NET35
         public static void CopyTo(this System.IO.Stream input, System.IO.Stream output)
         {
             int bytesRead;
@@ -19,7 +19,7 @@ namespace Cyxor.Extensions
         }
 #endif
 
-#if NET35 || NET40 || NETSTANDARD1_0
+#if NET20 || NET35 || NET40 || NETSTANDARD1_0
         public static bool TryGetBuffer(this MemoryStream value, out ArraySegment<byte> arraySegment)
         {
             var buffer = value.GetBuffer();
@@ -41,7 +41,7 @@ namespace Cyxor.Extensions
 #endif
     }
 
-    public static class ReflectionExtensions
+    static class ReflectionExtensions
     {
 #if NET20 || NET35 || NET40
         public static Type GetTypeInfo(this Type type) => type;
