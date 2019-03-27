@@ -1,4 +1,4 @@
-[![cyxor-dev MyGet Build Status](https://www.myget.org/BuildSource/Badge/cyxor-dev?identifier=2c22776d-5b7e-4070-86e7-cbfceb2ced5b)](https://www.myget.org/)
+[![cyxor-dev MyGet Build Status](https://www.myget.org/BuildSource/Badge/cyxor-dev?identifier=2c22776d-5b7e-4070-86e7-cbfceb2ced5b)](https://www.myget.org/) &nbsp; [![Build status](https://ci.appveyor.com/api/projects/status/f7rdfvsjj69bsk9x/branch/master?svg=true)](https://ci.appveyor.com/project/YandyZaldivar/cyxor-serialization/branch/master)
 
 # Cyxor.Serialization
 
