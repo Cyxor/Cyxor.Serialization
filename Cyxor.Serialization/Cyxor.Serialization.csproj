@@ -3,10 +3,10 @@
   <PropertyGroup>
 
     <LangVersion>7.3</LangVersion>
-    <RootNamespace>.</RootNamespace>
+    <RootNamespace></RootNamespace>
     <Authors>Yandy Zaldivar</Authors>
     <VersionPrefix>0.1.0</VersionPrefix>
-    <VersionSuffix>preview</VersionSuffix>
+    <!--<VersionSuffix>preview</VersionSuffix>-->
     <Copyright>@ Yandy Zaldivar</Copyright>
     <AssemblyName>Cyxor.Serialization</AssemblyName>
     <AssemblyTitle>Cyxor.Serialization</AssemblyTitle>
@@ -14,14 +14,13 @@
     <TargetFrameworks>net20;net35;net40;net45;netstandard1.0;netstandard1.3;netstandard2.0</TargetFrameworks>
     <Description>Effective binary object serialization class library for low-overhead network transmissions</Description>
 
-    <Determinstic>true</Determinstic>
-    <UserSecretsId>xyz123</UserSecretsId>
+    <Deterministic>true</Deterministic>
     <NeutralLanguage>en-US</NeutralLanguage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/YandyZaldivar/Cyxor</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Cyxor/Cyxor.Serialization</RepositoryUrl>
 
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
@@ -36,10 +35,10 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageLicense>https://www.apache.org/licenses/LICENSE-2.0</PackageLicense>
-    <PackageIconUrl>https://raw.githubusercontent.com/YandyZaldivar/Cyxor/img/cyxor.png</PackageIconUrl>
-    <PackageProjectUrl>https://github.com/YandyZaldivar</PackageProjectUrl>
-    <PackageTags>Cyxor;.NET Standard;.NET Core;Server;Framework;Serialization;Deserialization;Serializer;Buffer;Binary</PackageTags>
-    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageIconUrl>https://raw.githubusercontent.com/Cyxor/Cyxor.github.io/master/images/package.png</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/Cyxor/Cyxor.Serialization</PackageProjectUrl>
+    <PackageTags>Cyxor;Binary;Stream;Serialization;Deserialization;Serializer;Framework;.NET Core</PackageTags>
+    <PackageReleaseNotes>Initial release</PackageReleaseNotes>
   </PropertyGroup>
 
   <!--<PropertyGroup Condition="'$(Configuration)' == 'Debug' OR '$(Configuration)' == 'Release'">
