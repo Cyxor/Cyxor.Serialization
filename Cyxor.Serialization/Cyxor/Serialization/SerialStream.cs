@@ -672,11 +672,15 @@ internal static class Delegate
                     {
                         var typeName = method.Name.Substring(operationName.Length);
 
+                        if (typeof(IGrouping<,>).Name.StartsWith(typeName))
+                            typeName = typeof(IGrouping<,>).Name;
+
                         if (string.IsNullOrEmpty(typeName))
                             continue;
 
                         if (serializeTypeName != typeName)
                             if (serializeTypeName != typeName.Substring(0, typeName.Length - 1) + "[]")
+                                // TODO: Range
                                 //if (serializeTypeName != typeName[0..^1] + "[]")
                                 if (!(serializeTypeName == nameof(IDictionary) && typeName == nameof(IEnumerable)))
                                     continue;
@@ -733,6 +737,8 @@ internal static class Delegate
                                     else if (method.GetGenericArguments().Length == 2)
                                         keyType = typeof(IDictionary);
                                 }
+                                else if (keyType.Name.StartsWith(typeof(IGrouping<,>).Name))
+                                    keyType = typeof(IGrouping<,>);
                             }
                             else if (keyType.IsGenericParameter && keyType.Name == "T")
                                 keyType = typeof(object);
@@ -918,7 +924,10 @@ internal static class Delegate
                     if (genericArgumentsType.Length == 1)
                         suitableType = typeof(IEnumerable);
                     else if (genericArgumentsType.Length == 2)
-                        suitableType = typeof(IDictionary);
+                        if (type.Name == typeof(IGrouping<,>).Name)
+                            suitableType = typeof(IGrouping<,>);
+                        else
+                            suitableType = typeof(IDictionary);
                 }
             }
 
@@ -1999,6 +2008,12 @@ internal static class Delegate
 
         public void Serialize<T>(IEnumerable<T> value)
             => InternalSerialize<T, T>(value, null);
+
+        public void Serialize<TKey, TElement>(IGrouping<TKey, TElement> value)
+        {
+            Serialize(value.Key);
+            InternalSerialize<TElement, TElement>(value, null);
+        }
 
         public void Serialize<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> value)
             => InternalSerialize<TKey, TValue>(null, value);
@@ -3454,6 +3469,17 @@ internal static class Delegate
             return dictionary;
         }
 
+#if NULLER
+        public IGrouping<TKey, TElement>? DeserializeIGrouping<TKey, TElement>()
+#else
+        public IGrouping<TKey, TElement> DeserializeIGrouping<TKey, TElement>()
+#endif
+        {
+            var key = DeserializeObject<TKey>();
+            var elements = DeserializeIEnumerable<TElement>();
+            return elements.GroupBy(p => { return key; }).Single();
+        }
+
         // TODO: If result is null this shouldn't return null instead of using Activator?
 #if NULLER
         public T? DeserializeCollection<T>() where T : class, ICollection
@@ -3478,9 +3504,9 @@ internal static class Delegate
             return Activator.CreateInstance(type, result) as T;
         }
 
-#endregion DeserializeEnumerable
+        #endregion DeserializeEnumerable
 
-#region Object
+        #region Object
 
         static InvalidOperationException DataException() =>
             new InvalidOperationException(string.Format(Utilities.ResourceStrings.ExceptionFormat, nameof(SerialStream),
