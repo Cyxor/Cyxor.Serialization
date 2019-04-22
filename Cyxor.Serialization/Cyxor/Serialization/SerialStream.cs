@@ -513,9 +513,9 @@ internal static class Delegate
                     return (target) => func(target);
 #endif
                 }
-#endregion
+                #endregion
 
-                    #region Action
+                #region Action
                 static readonly MethodInfo CreateActionMethodInfo = typeof(Delegate).GetStaticMethod(nameof(CreateAction));
                 static readonly ConcurrentCache<Type, Action<SerialStream, object>> ActionDelegateCache = new ConcurrentCache<Type, Action<SerialStream, object>>();
 
@@ -543,11 +543,11 @@ internal static class Delegate
 #endif
                     return (target, param) => action(target, (TParam)param);
                 }
-                    #endregion
+                #endregion
             }
 #endif
 
-                    static bool ShouldSerializeField(FieldInfo field)
+            static bool ShouldSerializeField(FieldInfo field)
             {
                 if (field.IsDefined(typeof(CyxorIgnoreAttribute), inherit: false))
                     return false;
@@ -948,9 +948,9 @@ internal static class Delegate
             return method;
         }
 
-#endregion Reflector
+        #endregion Reflector
 
-#region Core
+        #region Core
 
         public SerialStream() { }
 
@@ -975,7 +975,7 @@ internal static class Delegate
         public SerialStream(object value, IBackingSerializer backingSerializer)
             => SerializeRaw(value, backingSerializer);
 
-#region Public properties
+        #region Public properties
 
         /// <summary>
         /// Represents the empty Serializer. This field is readonly.
@@ -1135,11 +1135,11 @@ internal static class Delegate
             }
         }
 
-#endregion
+        #endregion
 
         public event EventHandler MemoryDisposed;
 
-#region Public
+        #region Public
 
         public static bool IsNullOrEmpty(SerialStream serializer)
         {
@@ -1411,9 +1411,9 @@ internal static class Delegate
             return value;
         }
 
-#endregion Public
+        #endregion Public
 
-#region Private
+        #region Private
 
         public void EnsureCapacity(int size)
             => EnsureCapacity(size, SerializerOperation.Serialize);
@@ -1491,11 +1491,11 @@ internal static class Delegate
                 }
         }
 
-#endregion Private
+        #endregion Private
 
-#endregion Core
+        #endregion Core
 
-#region ToConversions
+        #region ToConversions
 
 #if NETSTANDARD1_0
         public MemoryStream ToMemoryStream()
@@ -1578,7 +1578,7 @@ internal static class Delegate
         }
 #endif
 
-//#nullable disable
+        //#nullable disable
         public T ToObject<T>(T value)
             => (T)InternalToObject<T>(value, serializer: null);
 
@@ -1590,13 +1590,13 @@ internal static class Delegate
 
         public T ToObject<T>(IBackingSerializer serializer)
             => (T)InternalToObject<T>(value: null, serializer: serializer);
-//#nullable enable
+        //#nullable enable
 
-#endregion ToConversions
+        #endregion ToConversions
 
-#region Serialize
+        #region Serialize
 
-#region SerializeNumeric
+        #region SerializeNumeric
 
 #if DEBUG && !NET40 && !NET35 && !NET20
         void SerializeNumeric(ValueType value, int size, bool unsigned, bool floatingPoint = false, bool nullable = false, [CallerMemberName] string callerName = "")
@@ -1738,7 +1738,7 @@ internal static class Delegate
         public void Serialize(Enum value)
             => Serialize(Convert.ToInt64(value));
 
-#region Nullable
+        #region Nullable
 
         delegate void SerializeSignature<T>(T value) where T : struct;
 
@@ -1825,9 +1825,9 @@ internal static class Delegate
             }
         }
 
-#endregion Nullable
+        #endregion Nullable
 
-#region CompressedInt
+        #region CompressedInt
 
         public void SerializeCompressedInt(short value)
             => SerializeCompressedInt((ulong)((value << 1) ^ (value >> 15)));
@@ -1855,11 +1855,11 @@ internal static class Delegate
             Serialize((byte)value);
         }
 
-#endregion CompressedInt
+        #endregion CompressedInt
 
-#endregion SerializeNumeric
+        #endregion SerializeNumeric
 
-#region Uri
+        #region Uri
 
 #if NULLER
         public void Serialize(Uri? value)
@@ -1871,9 +1871,9 @@ internal static class Delegate
         public void SerializeRaw(Uri value)
             => SerializeRaw(value.ToString());
 
-#endregion Uri
+        #endregion Uri
 
-#region string
+        #region string
 
 #if NULLER
         void InternalSerialize(string? value, bool raw)
@@ -1917,9 +1917,9 @@ internal static class Delegate
             => InternalSerialize(value, raw: true);
 #endif
 
-#endregion
+        #endregion
 
-#region Serializer
+        #region Serializer
 
         // TODO: Add support for SerialStream? (nullable reference)
         void InternalSerialize(SerialStream value, bool raw)
@@ -1936,9 +1936,9 @@ internal static class Delegate
         public void SerializeRaw(SerialStream value)
             => InternalSerialize(value, raw: true);
 
-#endregion
+        #endregion
 
-#region MemoryStream
+        #region MemoryStream
 
         // TODO: Add support for MemoryStream? (nullable reference)
         void InternalSerialize(MemoryStream value, bool raw)
@@ -1960,9 +1960,9 @@ internal static class Delegate
         public void SerializeRaw(MemoryStream value)
             => InternalSerialize(value, raw: true);
 
-#endregion
+        #endregion
 
-#region SerializeEnumerable
+        #region SerializeEnumerable
 
 #if NULLER
         void InternalSerialize<T, TValue>(IEnumerable<T>? value1, IEnumerable<KeyValuePair<T, TValue>>? value2)
@@ -2018,9 +2018,9 @@ internal static class Delegate
         public void Serialize<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> value)
             => InternalSerialize<TKey, TValue>(null, value);
 
-#endregion SerializeEnumerable
+        #endregion SerializeEnumerable
 
-#region Object / Serializable
+        #region Object / Serializable
 
 #if NULLER
         void TypeSerializeObject(Type type, object? value, bool raw)
@@ -2303,9 +2303,9 @@ internal static class Delegate
         public void SerializeRaw<T>(T value, IBackingSerializer serializer)
             => InternalSerializeObject(value, raw: true, serializer: serializer);
 
-#endregion Object / Serializable
+        #endregion Object / Serializable
 
-#region byte[]*
+        #region byte[]*
 
         public void Serialize(byte[] value)
             => InternalSerialize(value, 0, value?.Length ?? 0, raw: AutoRaw);
@@ -2394,9 +2394,9 @@ internal static class Delegate
             position += count;
         }
 
-#endregion byte[]*
+        #endregion byte[]*
 
-#region char[]*
+        #region char[]*
 
         public void Serialize(char[] value)
             => InternalSerialize(value, 0, value?.Length ?? 0, wide: false, raw: AutoRaw);
@@ -2539,13 +2539,13 @@ internal static class Delegate
                 length = position;
         }
 
-#endregion char[]*
+        #endregion char[]*
 
-#endregion Serialize
+        #endregion Serialize
 
-#region Deserialize
+        #region Deserialize
 
-#region DeserializeNumeric
+        #region DeserializeNumeric
 
 #if DEBUG && !NET40 && !NET35 && !NET20
         T DeserializeNumeric<T>(int size, bool unsigned, bool floatingPoint = false, [CallerMemberName] string callerName = "") where T : struct
@@ -2591,7 +2591,7 @@ internal static class Delegate
                                 else
                                     return (T)(value = swap ? Utilities.ByteOrder.Swap(*(int*)ptr) : *(int*)ptr);
                             }
-                            
+
                             case sizeof(long):
                             {
                                 if (floatingPoint)
@@ -2677,7 +2677,7 @@ internal static class Delegate
         public T DeserializeEnum<T>() where T : struct
             => (T)Enum.Parse(typeof(T), DeserializeInt64().ToString());
 
-#region Nullable
+        #region Nullable
 
         delegate T DeserializeSignature<T>();
 
@@ -2753,9 +2753,9 @@ internal static class Delegate
             return DeserializeNullableNumeric(DeserializeObject<T>);
         }
 
-#endregion Nullable
+        #endregion Nullable
 
-#region Native Types TryDeserialize
+        #region Native Types TryDeserialize
 
         bool TryDeserializeNumeric<T>(out T value, int size, bool unsigned, bool floatingPoint = false) where T : struct
         {
@@ -3011,7 +3011,7 @@ internal static class Delegate
             return true;
         }
 
-#region Nullable
+        #region Nullable
 
         delegate bool TryDeserializeSignature<T>(out T value);
 
@@ -3021,7 +3021,7 @@ internal static class Delegate
         {
             bool result;
             value = default;
-            
+
             if (result = TryDeserializeBoolean(out var notNull))
                 if (notNull)
                     if (result = TryDeserialize(out var nonNullableValue))
@@ -3087,11 +3087,11 @@ internal static class Delegate
         public bool TryDeserializeNullableEnum<T>(out T? value) where T : struct
             => TryDeserializeNullableNumeric(out value, TryDeserializeEnum);
 
-#endregion
+        #endregion
 
-#endregion Native Types Try
+        #endregion Native Types Try
 
-#region DeserializeCompressedInt
+        #region DeserializeCompressedInt
 
         public ulong DeserializeCompressedInt(int size, bool signed)
         {
@@ -3139,9 +3139,9 @@ internal static class Delegate
         public ulong DeserializeCompressedUInt64()
             => DeserializeCompressedInt(sizeof(ulong), signed: false);
 
-#endregion DeserializeCompressedInt
+        #endregion DeserializeCompressedInt
 
-#region TryDeserializeCompressedInt
+        #region TryDeserializeCompressedInt
 
         bool TryDeserializeCompressedInt<T>(out T value, int size, bool signed) where T : struct
         {
@@ -3208,11 +3208,11 @@ internal static class Delegate
         public bool TryDeserializeCompressedInt64(out long value)
             => TryDeserializeCompressedInt(out value, sizeof(long), signed: true);
 
-#endregion TryDeserializeCompressedInt
+        #endregion TryDeserializeCompressedInt
 
-#endregion DeserializeNumeric
+        #endregion DeserializeNumeric
 
-#region Uri
+        #region Uri
 
 #if NULLER
         public Uri? DeserializeUri()
@@ -3246,9 +3246,9 @@ internal static class Delegate
             return true;
         }
 
-#endregion Uri
+        #endregion Uri
 
-#region DeserializeString
+        #region DeserializeString
 
         /// <summary>
         /// Deserialize a string from the specified number of bytes
@@ -3359,9 +3359,9 @@ internal static class Delegate
             return true;
         }
 
-#endregion DeserializeString
+        #endregion DeserializeString
 
-#region DeserializeSerialStream
+        #region DeserializeSerialStream
 
 #if NULLER
         public SerialStream? DeserializeSerialStream()
@@ -3381,30 +3381,27 @@ internal static class Delegate
 
             unsafe
             {
-                fixed (byte* ptr = buffer)
-                {
-                    var serializer = new SerialStream();
-                    serializer.SetLength(count);
+                var serializer = new SerialStream();
+                serializer.SetLength(count);
 
-                    fixed (byte* src = buffer, dest = serializer.buffer)
-                        Utilities.Memory.Memcpy(src + position, dest, count);
+                fixed (byte* src = buffer, dest = serializer.buffer)
+                    Utilities.Memory.Memcpy(src + position, dest, count);
 
-                    position += count;
-                    return serializer;
-                }
+                position += count;
+                return serializer;
             }
         }
 
-#endregion DeserializeSerializer
+        #endregion DeserializeSerializer
 
-#region DeserializeMemoryString
+        #region DeserializeMemoryString
 
         public MemoryStream DeserializeMemoryStream()
             => new MemoryStream(DeserializeBytes());
 
-#endregion DeserializeMemoryString
+        #endregion DeserializeMemoryString
 
-#region DeserializeEnumerable
+        #region DeserializeEnumerable
 
 #if NULLER
         public T[]? DeserializeArray<T>()
@@ -3420,9 +3417,9 @@ internal static class Delegate
             var array = new T[count];
 
             for (var i = 0; i < count; i++)
-//#nullable disable
+                //#nullable disable
                 array[i] = (T)DeserializeObject(typeof(T));
-//#nullable enable
+            //#nullable enable
 
             return array;
         }
@@ -3441,9 +3438,9 @@ internal static class Delegate
             var list = new List<T>(capacity: count);
 
             for (var i = 0; i < count; i++)
-//#nullable disable
+                //#nullable disable
                 list.Add((T)DeserializeObject(typeof(T)));
-//#nullable enable
+            //#nullable enable
 
             return list;
         }
@@ -3462,9 +3459,9 @@ internal static class Delegate
             var dictionary = new Dictionary<TKey, TValue>(capacity: count);
 
             for (var i = 0; i < count; i++)
-//#nullable disable
+                //#nullable disable
                 dictionary.Add((TKey)DeserializeObject(typeof(TKey)), (TValue)DeserializeObject(typeof(TValue)));
-//#nullable enable
+            //#nullable enable
 
             return dictionary;
         }
@@ -3679,9 +3676,9 @@ internal static class Delegate
             => TypeDeserializeObject(type, raw: false);
 
         public T DeserializeObject<T>()
-//#nullable disable
+            //#nullable disable
             => (T)InternalDeserializeObject<T>(value: null, raw: AutoRaw);
-//#nullable enable
+        //#nullable enable
 
 #if NULLER
         public T? DeserializeObject<T>(T? value) where T : class
@@ -3692,9 +3689,9 @@ internal static class Delegate
 #endif
 
         public T DeserializeObject<T>(IBackingSerializer serializer)
-//#nullable disable
+            //#nullable disable
             => (T)InternalDeserializeObject<T>(value: null, raw: false, serializer: serializer);
-//#nullable enable
+        //#nullable enable
 
 #if NULLER
         public T? DeserializeObject<T>(T value, IBackingSerializer serializer) where T : class
@@ -3712,9 +3709,9 @@ internal static class Delegate
             => TypeDeserializeObject(type, raw: true);
 
         public T DeserializeRawObject<T>()
-//#nullable disable
+            //#nullable disable
             => (T)InternalDeserializeObject<T>(value: null, raw: true);
-//#nullable enable
+        //#nullable enable
 
 #if NULLER
         public T? DeserializeRawObject<T>(T value) where T : class
@@ -3725,9 +3722,9 @@ internal static class Delegate
 #endif
 
         public T DeserializeRawObject<T>(IBackingSerializer serializer)
-//#nullable disable
+            //#nullable disable
             => (T)InternalDeserializeObject<T>(value: null, raw: true, serializer: serializer);
-//#nullable enable
+        //#nullable enable
 
 #if NULLER
         public T? DeserializeRawObject<T>(T value, IBackingSerializer serializer) where T : class
@@ -3737,9 +3734,9 @@ internal static class Delegate
             => (T)InternalDeserializeObject<T>(value, raw: true, serializer: serializer);
 #endif
 
-#endregion Object
+        #endregion Object
 
-#region chars
+        #region chars
 
 #if NULLER
         public char[]? DeserializeChars()
@@ -3822,12 +3819,13 @@ internal static class Delegate
             return result;
         }
 
-        public void DeserializeEncodedChars(int charCount)
-            => throw new NotImplementedException();
+        // TODO: Review this
+        //public void DeserializeEncodedChars(int charCount)
+        //    => throw new NotImplementedException();
 
-#endregion chars
+        #endregion chars
 
-#region bytes
+        #region bytes
 
 #if NULLER
         public byte[]? DeserializeBytes() => AutoRaw ? DeserializeBytesRaw() : DeserializeBytes(0);
@@ -3900,8 +3898,8 @@ internal static class Delegate
             position += bytesToCopy;
         }
 
-#endregion bytes
+        #endregion bytes
 
-#endregion Deserialize
+        #endregion Deserialize
     }
 }
