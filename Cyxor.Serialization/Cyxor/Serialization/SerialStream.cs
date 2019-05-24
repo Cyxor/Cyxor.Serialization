@@ -422,8 +422,29 @@ namespace Cyxor.Serialization
 #if NULLER
 internal static class Delegate
             {
-            #region Func
-                static readonly MethodInfo CreateFuncMethodInfo = typeof(Delegate).GetStaticMethod(nameof(CreateFunc));
+                static Delegate()
+                {
+                    #region Func
+                    var createFuncMethodInfo = typeof(Delegate).GetStaticMethod(nameof(CreateFunc));
+
+                    if (createFuncMethodInfo != null)
+                        CreateFuncMethodInfo = createFuncMethodInfo;
+                    else
+                        throw new NullReferenceException();
+                    #endregion
+
+                    #region Action
+                    var createActionMethodInfo = typeof(Delegate).GetStaticMethod(nameof(CreateAction));
+
+                    if (createActionMethodInfo != null)
+                        CreateActionMethodInfo = createActionMethodInfo;
+                    else
+                        throw new NullReferenceException();
+                    #endregion
+                }
+
+                #region Func
+                static readonly MethodInfo CreateFuncMethodInfo;
                 static readonly ConcurrentCache<Type, Func<SerialStream, object?>> FuncDelegateCache = new ConcurrentCache<Type, Func<SerialStream, object?>>();
 
                 public static Func<SerialStream, object?> GetFunc(Type type)
@@ -448,10 +469,10 @@ internal static class Delegate
 #endif
                     return (target) => func(target)!;
                 }
-            #endregion
+                #endregion
 
-            #region Action
-                static readonly MethodInfo CreateActionMethodInfo = typeof(Delegate).GetStaticMethod(nameof(CreateAction));
+                #region Action
+                static readonly MethodInfo CreateActionMethodInfo;
                 static readonly ConcurrentCache<Type, Action<SerialStream, object?>> ActionDelegateCache = new ConcurrentCache<Type, Action<SerialStream, object?>>();
 
                 public static Action<SerialStream, object?> GetAction(Type type)
@@ -900,9 +921,9 @@ internal static class Delegate
             var suitableType = type;
             var genericArgumentsType = default(Type[]);
 
-            if (type.IsInterfaceImplemented(typeof(ISerializable)))
+            if (type.IsInterfaceImplemented(typeof(IPopulable)))
             {
-                suitableType = typeof(ISerializable);
+                suitableType = typeof(IPopulable);
                 genericArgumentsType = new Type[] { type };
             }
             else if (type.GetTypeInfo().IsEnum)
@@ -3524,6 +3545,15 @@ internal static class Delegate
             return obj;
         }
 
+        // TODO: Consider move this method inside InternalDeserializeObject when update to C# 8 with suppor
+        //       for static nested methods
+        static readonly Action<SerialStream, object> DeserializeSetup
+            = new Action<SerialStream, object>((ss, value) =>
+            {
+                if (ss.CircularReferencesActive)
+                    ss.CircularReferencesIndexDictionary.Add(ss.CircularReferencesIndex, value);
+            });
+
 #if NULLER
         object? InternalDeserializeObject<T>(object? value, bool raw, IBackingSerializer? serializer = default)
 #else
@@ -3586,8 +3616,6 @@ internal static class Delegate
             else if (length == 0)
                 return default(T);
 
-            value = value ?? Activator.CreateInstance(type);
-
             var firstObject = false;
 
             if (CircularReferencesActive)
@@ -3595,16 +3623,36 @@ internal static class Delegate
                 if (CircularReferencesIndex == 0)
                     firstObject = true;
 
-                var index = CircularReferencesIndex++;
-                CircularReferencesIndexDictionary.Add(index, value);
+                CircularReferencesIndex++;
             }
 
             try
             {
                 var currentPosition = position;
+                var isSerializable = type.IsInterfaceImplemented<ISerializable>();
 
-                if (value is ISerializable)
-                    ((ISerializable)value).Deserialize(this);
+                if (value == default)
+                {
+                    try
+                    {
+                        if (isSerializable)
+                            value = Activator.CreateInstance(type, this, DeserializeSetup);
+                        else
+                            value = Activator.CreateInstance(type);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new TypeInitializationException(type.FullName, ex);
+                    }
+                }
+
+                if (!isSerializable)
+                    DeserializeSetup(this, value);
+
+                if (isSerializable)
+                    { }
+                else if (value is IPopulable)
+                    ((IPopulable)value).Deserialize(this);
                 else
                 {
                     var typeData = default(Reflector.TypeData);
@@ -3653,7 +3701,7 @@ internal static class Delegate
 
                 return value;
             }
-            catch (Exception ex) when (!(ex is BufferOverflowException))
+            catch (Exception ex) when (!(ex is BufferOverflowException) && !(ex is TypeInitializationException))
             {
                 throw DataException();
             }

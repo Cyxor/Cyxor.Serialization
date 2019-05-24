@@ -11,6 +11,11 @@ namespace Cyxor.Serialization
     public interface ISerializable
     {
         void Serialize(SerialStream serializer);
+    }
+
+    public interface IPopulable
+    {
+        void Serialize(SerialStream serializer);
         void Deserialize(SerialStream serializer);
     }
 

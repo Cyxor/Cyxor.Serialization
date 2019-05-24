@@ -402,12 +402,20 @@ namespace Cyxor.Serialization
                 => type.GetTypeInfo().GenericTypeArguments;
 #endif
 
-            public static ConstructorInfo GetConstructor(Type type, Type[] parameters)
+            public static ConstructorInfo GetConstructor(Type type, params Type[] parameters)
 #if NET40 || NET35 || NET20
                 => type.GetConstructor(parameters);
 #else
                 => type.GetTypeInfo().DeclaredConstructors.FirstOrDefault(c =>
                     c.GetParameters().Select(p => p.ParameterType).SequenceEqual(parameters));
+#endif
+
+            public static bool HasConstructor(Type type, params Type[] parameters)
+#if NET40 || NET35 || NET20
+                => type.GetConstructor(parameters) != default;
+#else
+                => type.GetTypeInfo().DeclaredConstructors.FirstOrDefault(c =>
+                    c.GetParameters().Select(p => p.ParameterType).SequenceEqual(parameters)) != default;
 #endif
 
             public static PropertyInfo GetAnyDeclaredProperty(Type type, string name)
