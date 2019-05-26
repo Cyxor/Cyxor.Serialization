@@ -5,13 +5,11 @@ namespace Cyxor.Serialization
     public struct BitSerializer : IComparable, IComparable<BitSerializer>, IEquatable<BitSerializer>
     {
         long Bits;
-        static readonly long[] Mask;
         public const int Capacity = 64;
+        static readonly long[] Mask = new long[Capacity];
 
         static BitSerializer()
         {
-            Mask = new long[Capacity];
-
             Mask[0] = 1;
 
             for (var i = 0; i < Capacity - 1; i++)
@@ -23,25 +21,49 @@ namespace Cyxor.Serialization
         public static implicit operator long(BitSerializer value)
             => value.Bits;
 
+        public long ToInt64()
+            => Bits;
+
         public static implicit operator int(BitSerializer value)
             => (int)value.Bits;
+
+        public int ToInt32()
+            => (int)Bits;
 
         public static implicit operator byte(BitSerializer value)
             => (byte)value.Bits;
 
+        public byte ToByte()
+            => (byte)Bits;
+
         public static implicit operator short(BitSerializer value)
             => (short)value.Bits;
 
+        public int ToInt16()
+            => (short)Bits;
+
         public static implicit operator BitSerializer(int value)
+            => new BitSerializer(value);
+
+        public static BitSerializer FromInt32(int value)
             => new BitSerializer(value);
 
         public static implicit operator BitSerializer(byte value)
             => new BitSerializer(value);
 
+        public static BitSerializer FromByte(byte value)
+            => new BitSerializer(value);
+
         public static implicit operator BitSerializer(long value)
             => new BitSerializer(value);
 
+        public static BitSerializer FromInt64(long value)
+            => new BitSerializer(value);
+
         public static implicit operator BitSerializer(short value)
+            => new BitSerializer(value);
+
+        public static BitSerializer FromInt16(short value)
             => new BitSerializer(value);
 
         public override int GetHashCode()
@@ -59,15 +81,10 @@ namespace Cyxor.Serialization
         public int CompareTo(BitSerializer value)
             => Bits.CompareTo(value.Bits);
 
-        public override bool Equals(object obj)
-        {
-            if (!(obj is BitSerializer))
-                return false;
+        public override bool Equals(object? obj)
+            => !(obj is BitSerializer) ? false : Bits == ((BitSerializer)obj).Bits;
 
-            return Bits == ((BitSerializer)obj).Bits;
-        }
-
-        public int CompareTo(object value)
+        public int CompareTo(object? value)
         {
             if (value == null)
                 return 1;
@@ -145,5 +162,17 @@ namespace Cyxor.Serialization
 
             return $"{Bits} [{bitCount}{bitString}] {{{Convert.ToString(Bits, 2)}}}";
         }
+
+        public static bool operator <(BitSerializer left, BitSerializer right)
+            => left.CompareTo(right) < 0;
+
+        public static bool operator <=(BitSerializer left, BitSerializer right)
+            => left.CompareTo(right) <= 0;
+
+        public static bool operator >(BitSerializer left, BitSerializer right)
+            => left.CompareTo(right) > 0;
+
+        public static bool operator >=(BitSerializer left, BitSerializer right)
+            => left.CompareTo(right) >= 0;
     }
 }

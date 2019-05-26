@@ -5,9 +5,17 @@ using System.Collections.Generic;
 
 namespace Cyxor.Serialization
 {
-    class Utilities
+    static partial class Utilities
     {
-        protected Utilities() { }
+        public static class Array
+        {
+            public static T[] Empty<T>()
+#if NET20 || NET35 || NET40 || NET45 || NETSTANDARD1_0
+                => new T[0];
+#else
+                => System.Array.Empty<T>();
+#endif
+        }
 
         public static class Bits
         {
@@ -53,12 +61,12 @@ namespace Cyxor.Serialization
 
                 switch (size)
                 {
-                    case sizeof(byte): while ((*(byte*)value >>= 1) != 0) count++; break;
+                    case sizeof(byte): while ((*value >>= 1) != 0) count++; break;
                     case sizeof(short): while ((*(ushort*)value >>= 1) != 0) count++; break;
                     case sizeof(int): while ((*(uint*)value >>= 1) != 0) count++; break;
                     case sizeof(long): while ((*(ulong*)value >>= 1) != 0) count++; break;
 
-                    default: throw new ArgumentOutOfRangeException("bits", "Unsupported bits count");
+                    default: throw new ArgumentOutOfRangeException(nameof(size), "Unsupported bits count");
                 }
 
                 return count;
@@ -67,17 +75,23 @@ namespace Cyxor.Serialization
 
         public static class Enum
         {
-            public static TEnum GetConstantOrDefault<TEnum>() where TEnum : struct
-                => GetConstantOrDefault<TEnum>(nameOrId: null);
+            //public static TEnum GetConstantOrDefault<TEnum>() where TEnum : struct, System.Enum
+            //    => GetConstantOrDefault<TEnum>(value: default);
 
-#if NULLER
-            public static TEnum GetConstantOrDefault<TEnum>(string? nameOrId) where TEnum : struct
-#else
-            public static TEnum GetConstantOrDefault<TEnum>(string nameOrId) where TEnum : struct
+            public static TEnum ParseOrDefault<TEnum>(string? value = default) where TEnum : struct, System.Enum
+            {
+                if (value == default)
+                    return default;
+
+#if !NET20 && !NET35
+                if (System.Enum.TryParse<TEnum>(value, ignoreCase: true, out var result))
+                    return result;
 #endif
-                => nameOrId == null ? System.Enum.GetValues(typeof(TEnum)).Length == 0 ? default :
-                (TEnum)System.Enum.GetValues(typeof(TEnum)).GetValue(0) :
-                (TEnum)System.Enum.Parse(typeof(TEnum), nameOrId, ignoreCase: true);
+                var enumValues = System.Enum.GetValues(typeof(TEnum));
+
+                //return enumValues.Length == 0 ? (default) : System.Enum.Parse<TEnum>(value, ignoreCase: true);
+                return enumValues.Length == 0 ? (default) : (TEnum)System.Enum.Parse(typeof(TEnum), value, ignoreCase: true);
+            }
         }
 
         public static class Memory
@@ -196,7 +210,7 @@ namespace Cyxor.Serialization
             {
                 var bytePtr = ptr;
 
-                while ((int)*bytePtr != 0)
+                while (*bytePtr != 0)
                     ++bytePtr;
 
                 return (int)(bytePtr - ptr);
@@ -206,15 +220,15 @@ namespace Cyxor.Serialization
             {
                 var chPtr = ptr;
 
-                while (((int)(uint)chPtr & 3) != 0 && (int)*chPtr != 0)
-                    ++chPtr;
+                while (((uint)chPtr & 3) != 0 && *chPtr != 0)
+                    chPtr++;
 
-                if ((int)*chPtr != 0)
-                    while (((int)*chPtr & (int)chPtr[1]) != 0 || (int)*chPtr != 0 && (int)chPtr[1] != 0)
+                if (*chPtr != 0)
+                    while ((chPtr[0] & chPtr[1]) != 0 || chPtr[0] != 0 && chPtr[1] != 0)
                         chPtr += 2;
 
-                while ((int)*chPtr != 0)
-                    ++chPtr;
+                for (; *chPtr != 0; chPtr++)
+                    ;
 
                 return (int)(chPtr - ptr);
             }
@@ -234,7 +248,7 @@ namespace Cyxor.Serialization
             public static unsafe int GetFrom(byte[] value)
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
 
                 fixed (byte* ptr = value)
                     return GetFrom(ptr, value.Length);
@@ -324,7 +338,7 @@ namespace Cyxor.Serialization
                     }
                 }
                 else
-                    throw new ArgumentOutOfRangeException("Incorrect swap bytes order data size");
+                    throw new ArgumentOutOfRangeException(nameof(size));
 
                 return value;
             }
@@ -337,7 +351,8 @@ namespace Cyxor.Serialization
                 var length = value.Length;
                 var bytes = new byte[(length + 1) / 3];
 
-                int CharConvert(int @char) => @char - (@char > 0x60 ? 0x57 : @char > 0x40 ? 0x37 : 0x30);
+                static int CharConvert(int @char)
+                    => @char - (@char > 0x60 ? 0x57 : @char > 0x40 ? 0x37 : 0x30);
 
                 for (int i = 0, j = 0; i < length; i += 3, ++j)
                     bytes[j] = (byte)((CharConvert(value[i]) << 4) + CharConvert(value[i + 1]));
@@ -360,14 +375,14 @@ namespace Cyxor.Serialization
                 BindingFlags.Public;
 #endif
 
-            public static TAttribute GetCustomAssemblyAttribute<TAttribute>(Type type) where TAttribute : Attribute
+            public static TAttribute? GetCustomAssemblyAttribute<TAttribute>(Type type) where TAttribute : Attribute
 #if NET20 || NET40 || NET35
                 => (TAttribute)type.Assembly.GetCustomAttributes(typeof(TAttribute), inherit: false).FirstOrDefault();
 #else
                 => type.GetTypeInfo().Assembly.GetCustomAttribute<TAttribute>();
 #endif
 
-            public static FieldInfo GetDeclaredField(Type type, string name)
+            public static FieldInfo? GetDeclaredField(Type type, string name)
 #if NET40 || NET35 || NET20
                 => type.GetField(name, GenericBindingFlags);
 #else
@@ -388,11 +403,11 @@ namespace Cyxor.Serialization
                 => type.GetTypeInfo().DeclaredMethods.Where(m => m.IsPublic);
 #endif
 
-            public static MethodInfo ConfigSetMethod(Type type, string propertyName)
+            public static MethodInfo? ConfigSetMethod(Type type, string propertyName)
 #if NET40 || NET35 || NET20
                 => type.GetProperty(propertyName).GetSetMethod(nonPublic: false);
 #else
-                => type.GetRuntimeProperty(propertyName).SetMethod;
+                => type.GetRuntimeProperty(propertyName)?.SetMethod;
 #endif
 
             public static Type[] GetGenericArguments(Type type)
@@ -444,7 +459,7 @@ namespace Cyxor.Serialization
             {
                 var bytes = (byte)0;
 
-                while (value >= 0x80)
+                while (value >= 128)
                 {
                     bytes++;
                     value >>= 7;
@@ -452,23 +467,6 @@ namespace Cyxor.Serialization
 
                 return bytes + 1;
             }
-        }
-
-        internal static class ResourceStrings
-        {
-            internal const string
-
-                ExceptionNegativeNumber = "Non-negative number required.",
-
-                CyxorInternalException = "Cyxor internal exception.",
-
-                ExceptionFormat = "Cyxor..{0}.{1}() : {2}",
-                ExceptionFormat1 = "Cyxor..{0}.{1}({2}) : {3}",
-                ExceptionFormat2 = "Cyxor..{0}.{1}({2}, {3}) : {4}",
-                ExceptionFormat3 = "Cyxor..{0}.{1}({2}, {3}, {4}) : {5}",
-                ExceptionFormat4 = "Cyxor..{0}.{1}({2}, {3}, {4}) : {5}",
-                ExceptionMessageBufferDeserializeNumeric = "",
-                ExceptionMessageBufferDeserializeObject = "Deserialization operation do not match format of bytes written in the Serialization process.";
         }
     }
 }

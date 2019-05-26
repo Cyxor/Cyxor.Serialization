@@ -4,7 +4,7 @@ namespace Cyxor.Serialization.Test
 {
     class Product
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public float Price { get; set; }
     }
 
@@ -12,11 +12,19 @@ namespace Cyxor.Serialization.Test
     public class BasicTest
     {
         [TestMethod]
+        public void Initialization()
+        {
+            using var serialStream = new SerialStream();
+            var schema = SerialStream.GenerateSerializationSchema();
+            Assert.IsTrue(schema.Length > 0);
+        }
+
+        [TestMethod]
         public void SimpleObject()
         {
             var product = new Product { Name = "PC", Price = 450.00f };
 
-            var ss = new SerialStream();
+            using var ss = new SerialStream();
             ss.Serialize(product);
 
             ss.Position = 0;

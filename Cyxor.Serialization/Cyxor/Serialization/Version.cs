@@ -9,8 +9,8 @@ namespace Cyxor.Serialization
 
     public static class Version
     {
-        public static string Value => Utilities.Reflection.GetCustomAssemblyAttribute
-            <AssemblyInformationalVersionAttribute>(typeof(Version)).InformationalVersion ??
-            typeof(Version).GetTypeInfo().Assembly.GetName().Version.ToString();
+        public static string? Value => Utilities.Reflection.GetCustomAssemblyAttribute
+            <AssemblyInformationalVersionAttribute>(typeof(Version))?.InformationalVersion ??
+            typeof(Version).GetTypeInfo().Assembly.GetName().Version?.ToString();
     }
 }
