@@ -112,17 +112,20 @@ namespace Cyxor.Serialization
         public T? DeserializeNullableEnum<T>() where T : struct, Enum
             => DeserializeNullableNumeric(DeserializeEnum<T>);
 
-        private T InternalDeserializeEnum<T>() where T : struct
-#if !NET20 && !NET35 && !NET40 && !NET45 && !NETSTANDARD1_0 && !NETSTANDARD1_3 && !NETSTANDARD2_0
-            => Enum.Parse<T>(DeserializeInt64().ToString(Culture));
-#else
-            => (T)Enum.Parse(typeof(T), DeserializeInt64().ToString(Culture));
-#endif
+        //        private T InternalDeserializeEnum<T>() where T : struct
+        //#if !NET20 && !NET35 && !NET40 && !NET45 && !NETSTANDARD1_0 && !NETSTANDARD1_3 && !NETSTANDARD2_0
+        //            => Enum.Parse<T>(DeserializeInt64().ToString(Culture));
+        //#else
+        //            => (T)Enum.Parse(typeof(T), DeserializeInt64().ToString(Culture));
+        //#endif
+
+        //public T? DeserializeNullableT<T>() where T : struct
+        //    => typeof(T).GetTypeInfo().IsEnum
+        //        ? DeserializeNullableNumeric(DeserializeEnum<T>)
+        //        : DeserializeNullableNumeric(DeserializeObject<T>);
 
         public T? DeserializeNullableT<T>() where T : struct
-            => typeof(T).GetTypeInfo().IsEnum
-                ? DeserializeNullableNumeric(InternalDeserializeEnum<T>)
-                : DeserializeNullableNumeric(DeserializeObject<T>);
+            => DeserializeNullableNumeric(DeserializeObject<T>);
 
         #endregion ValueTypesNullable
 

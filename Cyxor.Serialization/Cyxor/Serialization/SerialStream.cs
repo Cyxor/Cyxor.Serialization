@@ -37,10 +37,11 @@ namespace Cyxor.Serialization
 
 #region Static
 
-        static readonly Type NullableGenericType = typeof(SerialStream);
+        //static readonly Type NullableGenericType = typeof(SerialStream);
 
         static readonly MethodDictionary SerializeMethods = GetSerializeMethods();
-        static readonly MethodDictionary DeserializeMethods = GetDeserializeMethods(ref NullableGenericType);
+        //static readonly MethodDictionary DeserializeMethods = GetDeserializeMethods(ref NullableGenericType);
+        static readonly MethodDictionary DeserializeMethods = GetDeserializeMethods();
 
         public static readonly IEnumerable<Type> SupportedTypes = SerializeMethods.Keys;
 
@@ -53,119 +54,107 @@ namespace Cyxor.Serialization
             foreach (var serializeMethod in SerializeMethods)
                 if (!serializeMethod.Value.IsGenericMethodDefinition)
                     _ = Reflector.Delegate.GetAction(serializeMethod.Key);
+
+            //var ax = DeserializeMethods.Values.Where(p => p.IsGenericMethodDefinition);
+            //var fx = DeserializeMethods.Values.Where(p => !p.IsGenericMethodDefinition);
+
+            //var bx = SerializeMethods.Values.Where(p => p.IsGenericMethodDefinition);
+            //var vx = SerializeMethods.Values.Where(p => !p.IsGenericMethodDefinition);
+
+            //NonGenericSupportedTypes = SupportedTypes.Where(p => !p.GetTypeInfo().ContainsGenericParameters);
         }
 
         static MethodDictionary GetSerializeMethods()
         {
-            var methods = Utilities.Reflection.GetDeclaredPublicMethods(typeof(SerialStream));
+            var rr = typeof(SerialStream).GetMethodsInfo();
+            var count = rr.Count();
 
-            var operationName = nameof(SerializerOperation.Serialize);
+            var methods = typeof(SerialStream).GetMethodsInfo(name: nameof(SerializerOperation.Serialize), isPublic: true, parametersCount: 1);
+
             var serializeMethods = new MethodDictionary();
 
             foreach (var method in methods)
-                if (method.Name == operationName)
-                {
-                    var parameters = method.GetParameters();
+            {
+                var parameterType = method.GetParameters().Single().ParameterType;
 
-                    if (parameters.Length == 1)
-                    {
-                        if (!parameters[0].ParameterType.Name.EndsWith("*", StringComparison.Ordinal))
-                        {
-                            var keyType = parameters[0].ParameterType;
-
-                            if (keyType.IsArray)
-                            {
-                                if (keyType.GetElementType()!.IsGenericParameter)
-                                    keyType = typeof(Array);
-                            }
-                            else if (keyType.GetTypeInfo().IsGenericType)
-                            {
-                                if (keyType.Name.StartsWith(nameof(IEnumerable), StringComparison.Ordinal))
-                                {
-                                    if (method.GetGenericArguments().Length == 1)
-                                        keyType = typeof(IEnumerable);
-                                    else if (method.GetGenericArguments().Length == 2)
-                                        keyType = typeof(IDictionary);
-                                }
-                                else if (keyType.Name.StartsWith(typeof(IGrouping<,>).Name, StringComparison.Ordinal))
-                                    keyType = typeof(IGrouping<,>);
-                            }
-                            else if (keyType.IsGenericParameter && keyType.Name == "T")
-                                keyType = typeof(object);
-
-                            serializeMethods[keyType] = method;
-                        }
-                    }
-                }
+                if (!parameterType.IsPointer)
+                    serializeMethods[parameterType] = method;
+            }
 
             return serializeMethods;
         }
 
-        static MethodDictionary GetDeserializeMethods(ref Type nullableGenericType)
+        //static MethodDictionary GetDeserializeMethods(ref Type nullableGenericType)
+        static MethodDictionary GetDeserializeMethods()
         {
-            var methods = Utilities.Reflection.GetDeclaredPublicMethods(typeof(SerialStream));
+            var methods = typeof(SerialStream).GetMethodsInfo(nameStartsWith: nameof(SerializerOperation.Deserialize), isPublic: true, parametersCount: 0);
 
             var deserializeMethods = new MethodDictionary();
 
             var nonNullableOperationName = nameof(SerializerOperation.Deserialize);
             var nullableOperationName = $"{nonNullableOperationName}{nameof(Nullable)}";
 
-            foreach (var type in SerializeMethods.Keys)
+            foreach (var serializeType in SerializeMethods.Keys)
             {
-                //#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
-                //                if (type.Name.StartsWith("Span"))
-                //                {
-                //                    var isValueTypedd = type.GetTypeInfo().IsValueType || type == typeof(Enum);
-                //                }
-                //#endif
-
-
-                var isValueType = type.GetTypeInfo().IsValueType || type == typeof(Enum);
-                //#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
-                //                    || type == typeof(Span<>)
-                //#endif
-                //                    ;
-
+                var isValueType = serializeType.GetTypeInfo().IsValueType;
                 var operationName = isValueType ? nonNullableOperationName : nullableOperationName;
-
-                var serializeTypeName = type.Name;
-
-                if (serializeTypeName.StartsWith(nameof(Nullable), StringComparison.Ordinal))
-                    serializeTypeName = nameof(Nullable) + Utilities.Reflection.GetGenericArguments(type)[0].Name;
 
                 foreach (var method in methods)
                 {
-                    if (method.GetParameters().Length == 0 && method.Name.StartsWith(operationName, StringComparison.Ordinal))
+                    if (method.Name.StartsWith(operationName, StringComparison.Ordinal))
                     {
+                        var deserializeType = method.ReturnType;
+
                         var typeName = method.Name.Substring(operationName.Length);
 
-                        if (typeof(IGrouping<,>).Name.StartsWith(typeName, StringComparison.Ordinal))
-                            typeName = typeof(IGrouping<,>).Name;
-
-                        if (string.IsNullOrEmpty(typeName))
-                            continue;
-
-                        if (serializeTypeName != typeName)
-#pragma warning disable IDE0057 // Substring can be simplified
-                            if (serializeTypeName != typeName.Substring(0, typeName.Length - 1) + "[]")
-#pragma warning restore IDE0057 // Substring can be simplified
-                                if (!(serializeTypeName == nameof(IDictionary) && typeName == nameof(IEnumerable)))
-                                    continue;
-                                else if (method.GetGenericArguments().Length != 2)
-                                    continue;
-
-                        if (serializeTypeName == nameof(IEnumerable))
-                            if (method.GetGenericArguments().Length != 1)
+                        if (deserializeType != serializeType)
+                        {
+                            if (deserializeType.Name != serializeType.Name)
                                 continue;
 
-                        if (method.Name == nameof(DeserializeNullableT))
-                            nullableGenericType = type;
+                            if (deserializeType.FullName != serializeType.FullName)
+                                continue;
 
-                        deserializeMethods[type] = method;
+                            if (deserializeType.GetTypeInfo().IsGenericType != serializeType.GetTypeInfo().IsGenericType)
+                                continue;
+
+                            if (deserializeType.GetTypeInfo().IsGenericType)
+                            {
+                                var serializeGenericArguments = serializeType.GetGenericArguments();
+                                var deserializeGenericArguments = deserializeType.GetGenericArguments();
+
+                                if (deserializeGenericArguments.Length != serializeGenericArguments.Length)
+                                    continue;
+
+                                for (var i = 0; i < serializeGenericArguments.Length; i++)
+                                {
+                                    if (deserializeGenericArguments[i] != serializeGenericArguments[i])
+                                    {
+                                        if (deserializeGenericArguments[i].Name != serializeGenericArguments[i].Name)
+                                            continue;
+
+                                        if (deserializeGenericArguments[i].FullName != serializeGenericArguments[i].FullName)
+                                            continue;
+                                    }
+                                }
+                            }
+                        }
+
+                        deserializeMethods[serializeType] = method;
                         break;
                     }
                 }
             }
+
+            if (typeof(SerialStream).GetMethodInfo(nameof(SerializeEnum)) is MethodInfo serializeEnumMethodInfo)
+                SerializeMethods.Add(typeof(Enum), serializeEnumMethodInfo);
+            else
+                throw new InvalidOperationException("");
+
+            if (typeof(SerialStream).GetMethodInfo(nameof(DeserializeEnum)) is MethodInfo deserializeEnumMethodInfo)
+                deserializeMethods.Add(typeof(Enum), deserializeEnumMethodInfo);
+            else
+                throw new InvalidOperationException("");
 
             var notMappedTypes = SerializeMethods.Keys.Except(deserializeMethods.Keys);
 
@@ -190,11 +179,111 @@ namespace Cyxor.Serialization
             if (deserializeMethods.Count != SerializeMethods.Count)
                 throw new InvalidOperationException(sb.ToString());
 
-            if (nullableGenericType == typeof(SerialStream))
-                throw new InvalidOperationException(Utilities.ResourceStrings.CyxorInternalException);
+            //if (nullableGenericType == typeof(SerialStream))
+            //    throw new InvalidOperationException(Utilities.ResourceStrings.CyxorInternalException);
 
             return deserializeMethods;
         }
+
+        //        static MethodDictionary GetDeserializeMethods(ref Type nullableGenericType)
+        //        {
+        //            var methods = Utilities.Reflection.GetDeclaredPublicMethods(typeof(SerialStream));
+
+        //            var deserializeMethods = new MethodDictionary();
+
+        //            var nonNullableOperationName = nameof(SerializerOperation.Deserialize);
+        //            var nullableOperationName = $"{nonNullableOperationName}{nameof(Nullable)}";
+
+        //            foreach (var type in SerializeMethods.Keys)
+        //            {
+        //                //#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
+        //                //                if (type.Name.StartsWith("Span"))
+        //                //                {
+        //                //                    var isValueTypedd = type.GetTypeInfo().IsValueType || type == typeof(Enum);
+        //                //                }
+        //                //#endif
+
+
+        //                var isValueType = type.GetTypeInfo().IsValueType || type == typeof(Enum);
+        //                //#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
+        //                //                    || type == typeof(Span<>)
+        //                //#endif
+        //                //                    ;
+
+        //                var operationName = isValueType ? nonNullableOperationName : nullableOperationName;
+
+        //                var serializeTypeName = type.Name;
+
+        //                if (serializeTypeName.StartsWith(nameof(Nullable), StringComparison.Ordinal))
+        //                    serializeTypeName = nameof(Nullable) + Utilities.Reflection.GetGenericArguments(type)[0].Name;
+
+        //                foreach (var method in methods)
+        //                {
+        //                    if (method.GetParameters().Length == 0 && method.Name.StartsWith(operationName, StringComparison.Ordinal))
+        //                    {
+        //                        //var typeName = method.Name.Substring(operationName.Length);
+
+        //                        var genericArgumentsCount = method.GetGenericArguments().Length;
+
+        //                        var typeName = method.Name.Substring(operationName.Length) +
+        //                            (genericArgumentsCount == 0 ? string.Empty : $"`{genericArgumentsCount}");
+
+        //                        //if (typeof(IGrouping<,>).Name.StartsWith(typeName, StringComparison.Ordinal))
+        //                        //    typeName = typeof(IGrouping<,>).Name;
+
+        //                        if (string.IsNullOrEmpty(typeName))
+        //                            continue;
+
+        //                        if (serializeTypeName != typeName)
+        //#pragma warning disable IDE0057 // Substring can be simplified
+        //                            if (serializeTypeName != typeName.Substring(0, typeName.Length - 1) + "[]")
+        //#pragma warning restore IDE0057 // Substring can be simplified
+        //                                if (!(serializeTypeName == nameof(IDictionary) && typeName == nameof(IEnumerable)))
+        //                                    continue;
+        //                                else if (method.GetGenericArguments().Length != 2)
+        //                                    continue;
+
+        //                        if (serializeTypeName == nameof(IEnumerable))
+        //                            if (method.GetGenericArguments().Length != 1)
+        //                                continue;
+
+        //                        if (method.Name == nameof(DeserializeNullableT))
+        //                            nullableGenericType = type;
+
+        //                        deserializeMethods[type] = method;
+        //                        break;
+        //                    }
+        //                }
+        //            }
+
+        //            var notMappedTypes = SerializeMethods.Keys.Except(deserializeMethods.Keys);
+
+        //            var sb = new StringBuilder();
+        //            _ = sb.Append(Utilities.ResourceStrings.CyxorInternalException);
+
+        //            var notMappedTypesCount = notMappedTypes.Count();
+
+        //            if (notMappedTypesCount > 0)
+        //            {
+        //                var isAre = notMappedTypesCount == 1 ? "is" : "are";
+        //                var typeTypes = notMappedTypesCount == 1 ? "type" : "types";
+
+        //                _ = sb.Append($", there {isAre} '{notMappedTypesCount}' unmapped {typeTypes}:");
+
+        //                var count = 0;
+
+        //                foreach (var notMappedType in notMappedTypes)
+        //                    _ = sb.Append($" {++count}- {notMappedType.Name}");
+        //            }
+
+        //            if (deserializeMethods.Count != SerializeMethods.Count)
+        //                throw new InvalidOperationException(sb.ToString());
+
+        //            if (nullableGenericType == typeof(SerialStream))
+        //                throw new InvalidOperationException(Utilities.ResourceStrings.CyxorInternalException);
+
+        //            return deserializeMethods;
+        //        }
 
         public static string GenerateSerializationSchema()
         {
@@ -308,7 +397,7 @@ namespace Cyxor.Serialization
             var suitableType = type;
             var genericArgumentsType = default(Type[]);
 
-            if (type.IsInterfaceImplemented(typeof(ISerializable)))
+            if (type.IsInterfaceImplemented<ISerializable>())
             {
                 suitableType = typeof(ISerializable);
                 genericArgumentsType = new Type[] { type };
@@ -323,11 +412,11 @@ namespace Cyxor.Serialization
                 suitableType = typeof(Array);
                 genericArgumentsType = new Type[] { type.GetElementType()! };
             }
-            else if (type != typeof(string) && type.IsInterfaceImplemented(typeof(IEnumerable)))
+            else if (type != typeof(string) && type.IsInterfaceImplemented<IEnumerable>())
             {
                 if (type.GetTypeInfo().IsGenericType)
                 {
-                    genericArgumentsType = Utilities.Reflection.GetGenericArguments(type);
+                    genericArgumentsType = type.GetGenericArguments();
 
                     if (genericArgumentsType.Length == 1)
                         suitableType = typeof(IEnumerable);
@@ -340,14 +429,15 @@ namespace Cyxor.Serialization
 
             if (!dictionary.TryGetValue(suitableType, out var method))
             {
-                if (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                //if (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                //{
+                //    if (!dictionary.TryGetValue(NullableGenericType, out method))
+                //        throw new InvalidOperationException(Utilities.ResourceStrings.CyxorInternalException);
+                //}
+                //else
+                if (type.GetTypeInfo().IsValueType)
                 {
-                    if (!dictionary.TryGetValue(NullableGenericType, out method))
-                        throw new InvalidOperationException(Utilities.ResourceStrings.CyxorInternalException);
-                }
-                else if (type.GetTypeInfo().IsValueType)
-                {
-                    method = typeof(SerialStream).GetMethod(nameof(DeserializeObject), isPublic: true, parametersCount: 0, isGenericMethodDefinition: true, genericArgumentsCount: 1);
+                    method = typeof(SerialStream).GetMethodInfo(nameof(DeserializeObject), isPublic: true, parametersCount: 0, isGenericMethodDefinition: true, genericArgumentsCount: 1);
                     genericArgumentsType = new Type[] { type };
                 }
                 else
@@ -358,7 +448,7 @@ namespace Cyxor.Serialization
             }
 
             if (method.IsGenericMethodDefinition)
-                method = method.MakeGenericMethod(genericArgumentsType ?? Utilities.Reflection.GetGenericArguments(type));
+                method = method.MakeGenericMethod(genericArgumentsType ?? type.GetGenericArguments());
 
             return method;
         }

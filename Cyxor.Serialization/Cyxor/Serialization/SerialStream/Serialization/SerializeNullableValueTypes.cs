@@ -116,20 +116,13 @@ namespace Cyxor.Serialization
         public void Serialize(DateTimeOffset? value)
             => SerializeNullableValue(value, Serialize);
 
-        public void Serialize<T>(T? value) where T : struct
+        public void SerializeNullableEnum<T>(T? value) where T : struct, Enum
         {
-            if (!typeof(T).GetTypeInfo().IsEnum)
-                SerializeNullableValue(value, Serialize);
-            else
-            {
-                if (value == null)
-                    Serialize(false);
-                else
-                {
-                    Serialize(true);
-                    Serialize(Convert.ToInt64(value, Culture));
-                }
-            }
+            Serialize(value != null ? false : true);
+            Serialize(Convert.ToInt64(value, Culture));
         }
+
+        public void Serialize<T>(T? value) where T : struct
+            => SerializeNullableValue(value, Serialize);
     }
 }

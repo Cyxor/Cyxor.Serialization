@@ -22,7 +22,7 @@ namespace Cyxor.Serialization
                     Type = type;
 
                     #region Fields
-                    var fields = type.GetDeclaredFields();
+                    var fields = type.GetFields();
 
                     var fieldList = new List<FieldData>();
 
@@ -41,7 +41,7 @@ namespace Cyxor.Serialization
                     #endregion
 
                     #region Properties
-                    var properties = type.GetDeclaredPublicProperties();
+                    var properties = type.GetProperties(isPublic: true);
 
                     var propertyList = new List<PropertyData>();
 

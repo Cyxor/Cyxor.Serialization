@@ -144,7 +144,10 @@ namespace Cyxor.Serialization
             Serialize(value.Offset);
         }
 
-        public void Serialize(Enum value)
+        public void SerializeEnum<T>(T value) where T: struct, Enum
             => Serialize(Convert.ToInt64(value, Culture));
+
+        //public void Serialize(Enum value)
+        //    => Serialize(Convert.ToInt64(value, Culture));
     }
 }

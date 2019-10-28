@@ -62,7 +62,7 @@ namespace Cyxor.Serialization
 
         public void Serialize<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>>? value)
             where TKey : notnull
-            => InternalSerialize<TKey, TValue>(default, value);
+            => InternalSerialize(default, value);
 
         public void Serialize<TKey, TElement>(IGrouping<TKey, TElement>? value)
             where TKey : notnull

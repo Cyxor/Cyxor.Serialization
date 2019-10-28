@@ -49,7 +49,7 @@ namespace Cyxor.Serialization
                 var propertyName = field.Name.Substring(1, field.Name.IndexOf('>', StringComparison.Ordinal) - 1);
 #pragma warning restore IDE0057 // Substring can be simplified
 
-                var property = field.DeclaringType!.GetAnyDeclaredProperty(propertyName);
+                var property = field.DeclaringType!.GetProperty(propertyName)!;
 
                 return ShouldSerializeProperty(property);
             }
@@ -76,7 +76,7 @@ namespace Cyxor.Serialization
                     type.GetTypeInfo().IsEnum ||
                     type.GetTypeInfo().IsPrimitive ||
                     type == typeof(DateTimeOffset) ||
-                    type.IsInterfaceImplemented(typeof(IEnumerable));
+                    type.IsInterfaceImplemented<IEnumerable>();
 
                 _ = KnownTypesCache.TryAdd(type, result);
 

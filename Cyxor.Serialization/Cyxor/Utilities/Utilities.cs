@@ -366,14 +366,14 @@ namespace Cyxor.Serialization
 
         public static class Reflection
         {
-#if NET40 || NET35 || NET20
-            internal static BindingFlags GenericBindingFlags =
-                BindingFlags.DeclaredOnly |
-                BindingFlags.Instance |
-                BindingFlags.NonPublic |
-                BindingFlags.Static |
-                BindingFlags.Public;
-#endif
+//#if NET40 || NET35 || NET20
+//            internal static BindingFlags GenericBindingFlags =
+//                BindingFlags.DeclaredOnly |
+//                BindingFlags.Instance |
+//                BindingFlags.NonPublic |
+//                BindingFlags.Static |
+//                BindingFlags.Public;
+//#endif
 
             public static TAttribute? GetCustomAssemblyAttribute<TAttribute>(Type type) where TAttribute : Attribute
 #if NET20 || NET40 || NET35
@@ -382,55 +382,55 @@ namespace Cyxor.Serialization
                 => type.GetTypeInfo().Assembly.GetCustomAttribute<TAttribute>();
 #endif
 
-            public static FieldInfo? GetDeclaredField(Type type, string name)
-#if NET40 || NET35 || NET20
-                => type.GetField(name, GenericBindingFlags);
-#else
-                => type.GetTypeInfo().GetDeclaredField(name);
-#endif
+//            public static FieldInfo? GetDeclaredField(Type type, string name)
+//#if NET40 || NET35 || NET20
+//                => type.GetField(name, GenericBindingFlags);
+//#else
+//                => type.GetTypeInfo().GetDeclaredField(name);
+//#endif
 
-            public static IEnumerable<FieldInfo> GetDeclaredFields(Type type)
-#if NET40 || NET35 || NET20
-                => type.GetFields(GenericBindingFlags);
-#else
-                => type.GetTypeInfo().DeclaredFields;
-#endif
+//            public static IEnumerable<FieldInfo> GetDeclaredFields(Type type)
+//#if NET40 || NET35 || NET20
+//                => type.GetFields(GenericBindingFlags);
+//#else
+//                => type.GetTypeInfo().DeclaredFields;
+//#endif
 
-            public static IEnumerable<MethodInfo> GetDeclaredPublicMethods(Type type)
-#if NET40 || NET35 || NET20
-                => type.GetMethods(GenericBindingFlags);
-#else
-                => type.GetTypeInfo().DeclaredMethods.Where(m => m.IsPublic);
-#endif
+//            public static IEnumerable<MethodInfo> GetDeclaredPublicMethods(Type type)
+//#if NET40 || NET35 || NET20
+//                => type.GetMethods(GenericBindingFlags);
+//#else
+//                => type.GetTypeInfo().DeclaredMethods.Where(m => m.IsPublic);
+//#endif
 
-            public static MethodInfo? ConfigSetMethod(Type type, string propertyName)
-#if NET40 || NET35 || NET20
-                => type.GetProperty(propertyName).GetSetMethod(nonPublic: false);
-#else
-                => type.GetRuntimeProperty(propertyName)?.SetMethod;
-#endif
+//            public static MethodInfo? ConfigSetMethod(Type type, string propertyName)
+//#if NET40 || NET35 || NET20
+//                => type.GetProperty(propertyName).GetSetMethod(nonPublic: false);
+//#else
+//                => type.GetRuntimeProperty(propertyName)?.SetMethod;
+//#endif
 
-            public static Type[] GetGenericArguments(Type type)
-#if NET40 || NET35 || NET20
-                => type.GetGenericArguments();
-#else
-                => type.GetTypeInfo().GenericTypeArguments;
-#endif
+//            public static Type[] GetGenericArguments(Type type)
+//#if NET40 || NET35 || NET20
+//                => type.GetGenericArguments();
+//#else
+//                => type.GetTypeInfo().GenericTypeArguments;
+//#endif
 
-            public static ConstructorInfo GetConstructor(Type type, Type[] parameters)
-#if NET40 || NET35 || NET20
-                => type.GetConstructor(parameters);
-#else
-                => type.GetTypeInfo().DeclaredConstructors.FirstOrDefault(c =>
-                    c.GetParameters().Select(p => p.ParameterType).SequenceEqual(parameters));
-#endif
+//            public static ConstructorInfo GetConstructor(Type type, Type[] parameters)
+//#if NET40 || NET35 || NET20
+//                => type.GetConstructor(parameters);
+//#else
+//                => type.GetTypeInfo().DeclaredConstructors.FirstOrDefault(c =>
+//                    c.GetParameters().Select(p => p.ParameterType).SequenceEqual(parameters));
+//#endif
 
-            public static PropertyInfo GetAnyDeclaredProperty(Type type, string name)
-#if NET40 || NET35 || NET20
-                => type.GetProperty(name, GenericBindingFlags);
-#else
-                => type.GetTypeInfo().DeclaredProperties.SingleOrDefault(p => p.Name == name);
-#endif
+//            public static PropertyInfo GetAnyDeclaredProperty(Type type, string name)
+//#if NET40 || NET35 || NET20
+//                => type.GetProperty(name, GenericBindingFlags);
+//#else
+//                => type.GetTypeInfo().DeclaredProperties.SingleOrDefault(p => p.Name == name);
+//#endif
         }
 
         public static class EncodedInteger

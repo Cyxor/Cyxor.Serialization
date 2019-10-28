@@ -13,7 +13,18 @@ namespace Cyxor.Serialization
             internal static class Delegate
             {
                 #region Func
-                static readonly MethodInfo CreateFuncMethodInfo = typeof(Delegate).GetMethod(nameof(CreateFunc), isStatic: true)!;
+                static readonly MethodInfo CreateFuncMethodInfo = typeof(Delegate).GetMethodInfo(nameof(CreateFunc), isStatic: true)!;
+
+                static Delegate()
+                {
+                    var x = CreateFuncMethodInfo;
+                    var y = typeof(Delegate).GetMethodsInfo(isStatic: true);
+                    var z = typeof(Delegate).GetMethodsInfo();
+                    var w = typeof(Delegate).GetMethodsInfo(isStatic: false);
+
+                    if (x == null)
+                        CreateFuncMethodInfo = null;
+                }
 
                 static readonly ConcurrentCache<Type, Func<SerialStream, object?>> FuncDelegateCache = new ConcurrentCache<Type, Func<SerialStream, object?>>();
 
@@ -41,7 +52,7 @@ namespace Cyxor.Serialization
 
                 #region Action
 
-                static readonly MethodInfo CreateActionMethodInfo = typeof(Delegate).GetMethod(nameof(CreateAction), isStatic: true);
+                static readonly MethodInfo CreateActionMethodInfo = typeof(Delegate).GetMethodInfo(nameof(CreateAction), isStatic: true);
 
                 static readonly ConcurrentCache<Type, Action<SerialStream, object?>> ActionDelegateCache = new ConcurrentCache<Type, Action<SerialStream, object?>>();
 

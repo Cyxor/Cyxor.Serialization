@@ -56,7 +56,7 @@ namespace Cyxor.Serialization
                 private static void Map<T>(out T dest, T src)
                     => dest = src;
 
-                static readonly MethodInfo MapMethodInfo = typeof(FieldData).GetMethod(nameof(Map), isStatic: true);
+                static readonly MethodInfo MapMethodInfo = typeof(FieldData).GetMethodInfo(nameof(Map), isStatic: true);
 #endif
 
                 public FieldData(FieldInfo fieldInfo, bool shouldSerialize)
@@ -70,7 +70,7 @@ namespace Cyxor.Serialization
 
                     if (FieldInfo.FieldType.GetTypeInfo().IsGenericType)
                         if (!FieldInfo.FieldType.GetTypeInfo().IsInterface)
-                            if (FieldInfo.FieldType.IsInterfaceImplemented(typeof(IEnumerable)))
+                            if (FieldInfo.FieldType.IsInterfaceImplemented<IEnumerable>())
                                 if (!FieldInfo.FieldType.FullName.StartsWith($"{typeof(List<>).Namespace}.{typeof(List<>).Name}", StringComparison.Ordinal))
                                     NeedChangeCollection = true;
 

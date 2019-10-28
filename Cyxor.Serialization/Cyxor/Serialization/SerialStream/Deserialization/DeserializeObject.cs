@@ -44,7 +44,7 @@ namespace Cyxor.Serialization
             {
                 isNullableValue = true;
                 nullableValueType = type;
-                type = Utilities.Reflection.GetGenericArguments(type)[0];
+                type = Nullable.GetUnderlyingType(nullableValueType); //Utilities.Reflection.GetGenericArguments(type)[0];
             }
 
             if (Reflector.IsKnownType(type))

@@ -5,120 +5,133 @@ using System.Collections.Generic;
 
 namespace Cyxor.Extensions
 {
-    static class ReflectionExtensions
+    public static class ReflectionExtensions
     {
-        public static Func<MethodInfo, bool> GetMethodsPredicate(string? name = default, bool? isPublic = default,
-            bool? isStatic = default, int? parametersCount = default, bool? isGenericMethod = default,
-            bool? isGenericMethodDefinition = default, int? genericArgumentsCount = default)
-            => p
-                => p.Name == (name ?? p.Name)
+#if NET20 || NET35 || NET40
+        public static Type GetTypeInfo(this Type type) => type;
+#endif
+
+        public static IEnumerable<MethodInfo> GetAllMethods(this Type type)
+#if NET20 || NET35 || NET40 || NET45
+            => type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+#else
+            => type.GetRuntimeMethods();
+#endif
+
+        public static IEnumerable<MethodInfo> GetAllDeclaredMethods(this Type type)
+#if NET20 || NET35 || NET40 || NET45
+            => type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly);
+#else
+            => type.GetTypeInfo().DeclaredMethods.Where(p => p.IsPrivate || p.IsPublic || p.IsStatic || p.IsFamily || p.IsFamilyOrAssembly || p.IsFamilyAndAssembly);
+#endif
+
+#if NETSTANDARD1_0 || NETSTANDARD1_3
+        public static MethodInfo? GetGetMethod(this PropertyInfo type)
+            => type.GetMethod;
+
+        public static MethodInfo? GetSetMethod(this PropertyInfo type)
+            => type.SetMethod;
+
+        public static FieldInfo[] GetFields(this Type type)
+            => type.GetTypeInfo().DeclaredFields.ToArray();
+
+        public static PropertyInfo[] GetProperties(this Type type)
+            => type.GetTypeInfo().DeclaredProperties.ToArray();
+
+        // TODO:
+        //public static bool IsDefined(this Type type, Type attributeType)
+        //    => IsDefined(type, attributeType, inherit: false);
+
+        //public static bool IsDefined(this Type type, Type attributeType, bool inherit)
+        //    => type.GetTypeInfo().IsDefined(attributeType, inherit);
+
+        public static Type[] GetGenericArguments(this Type type)
+            => type.GetTypeInfo().GenericTypeArguments;
+#endif
+
+        public static IEnumerable<MethodInfo> GetMethodsInfo(this Type type,
+            string? name = default,
+            string? nameStartsWith = default,
+            bool? isPublic = default,
+            bool? isStatic = default,
+            bool? isInherited = default,
+            int? parametersCount = default,
+            bool? isGenericMethod = default,
+            bool? isGenericMethodDefinition = default,
+            int? genericArgumentsCount = default)
+            => ((isInherited ?? true) ? type.GetAllMethods() : type.GetAllDeclaredMethods()).Where(p =>
+                p.Name == (name ?? p.Name)
+                && (nameStartsWith == default ? true : p.Name.StartsWith(nameStartsWith!, StringComparison.Ordinal))
                 && p.IsPublic == (isPublic ?? p.IsPublic)
                 && p.IsPrivate == (isPublic == default ? p.IsPrivate : !isPublic)
                 && p.IsStatic == (isStatic ?? p.IsStatic)
                 && p.GetParameters().Length == (parametersCount ?? p.GetParameters().Length)
                 && p.IsGenericMethod == (isGenericMethod ?? p.IsGenericMethod)
                 && p.IsGenericMethodDefinition == (isGenericMethodDefinition ?? p.IsGenericMethodDefinition)
-                && p.GetGenericArguments().Length == (genericArgumentsCount ?? p.GetGenericArguments().Length);
+                && p.GetGenericArguments().Length == (genericArgumentsCount ?? p.GetGenericArguments().Length));
 
-#if NET20 || NET35 || NET40
-        public static Type GetTypeInfo(this Type type) => type;
-
-        public static BindingFlags GenericBindingFlags =
-            BindingFlags.DeclaredOnly |
-            BindingFlags.Instance |
-            BindingFlags.Static |
-            BindingFlags.Public |
-            BindingFlags.NonPublic;
-
-        public static BindingFlags GenericBindingFlagsPublic =
-            BindingFlags.DeclaredOnly |
-            BindingFlags.Instance |
-            BindingFlags.Static |
-            BindingFlags.Public;
-
-        public static BindingFlags GenericBindingFlagsNonPublic =
-            BindingFlags.DeclaredOnly |
-            BindingFlags.Instance |
-            BindingFlags.Static |
-            BindingFlags.NonPublic;
-
-        public static FieldInfo GetAnyDeclaredField(this Type type, string name)
-            => type.GetField(name, GenericBindingFlags);
-
-        public static IEnumerable<FieldInfo> GetDeclaredFields(this Type type)
-            => type.GetFields(GenericBindingFlags);
-
-        public static PropertyInfo GetAnyDeclaredProperty(this Type type, string name)
-            => type.GetProperty(name, GenericBindingFlags);
-
-        public static IEnumerable<PropertyInfo> GetDeclaredProperties(this Type type)
-            => type.GetProperties(GenericBindingFlags);
-
-        public static IEnumerable<PropertyInfo> GetDeclaredPublicProperties(this Type type)
-            => type.GetProperties(GenericBindingFlagsPublic);
-
-        public static IEnumerable<MethodInfo> GetMethods(this Type type, string? name = default, bool? isPublic = default,
-            bool? isStatic = default, int? parametersCount = default, bool? isGenericMethod = default,
-            bool? isGenericMethodDefinition = default, int? genericArgumentsCount = default)
-            => type.GetMethods().Where(
-                GetMethodsPredicate(name, isPublic, isStatic, parametersCount, isGenericMethod, isGenericMethodDefinition, genericArgumentsCount));
-
-        public static MethodInfo GetMethod(this Type type, string? name = default, bool? isPublic = default,
-            bool? isStatic = default, int? parametersCount = default, bool? isGenericMethod = default,
-            bool? isGenericMethodDefinition = default, int? genericArgumentsCount = default)
-            => GetMethods(type, name, isPublic, isStatic, parametersCount, isGenericMethod, isGenericMethodDefinition,
+        public static MethodInfo? GetMethodInfo(this Type type,
+            string? name = default,
+            string? nameStartsWith = default,
+            bool? isPublic = default,
+            bool? isStatic = default,
+            bool? isInherited = default,
+            int? parametersCount = default,
+            bool? isGenericMethod = default,
+            bool? isGenericMethodDefinition = default,
+            int? genericArgumentsCount = default)
+            => GetMethodsInfo(type, name, nameStartsWith, isPublic, isStatic, isInherited, parametersCount, isGenericMethod, isGenericMethodDefinition,
                 genericArgumentsCount)
                 .SingleOrDefault();
 
-        public static TAttribute? GetCustomAttribute<TAttribute>(this Type type, bool inherit = false)
-            where TAttribute : Attribute
-            => type.GetCustomAttributes(typeof(TAttribute), inherit).FirstOrDefault() as TAttribute;
+        public static IEnumerable<FieldInfo> GetFields(this Type type,
+            string? name = default,
+            bool? isPublic = default,
+            bool? isStatic = default,
+            bool? isInitOnly = default,
+            bool? isLiteral = default)
+            => type.GetFields().Where(p =>
+                p.Name == (name ?? p.Name)
+                && p.IsPublic == (isPublic ?? p.IsPublic)
+                && p.IsPrivate == (isPublic == default ? p.IsPrivate : !isPublic)
+                && p.IsStatic == (isStatic ?? p.IsStatic)
+                && p.IsInitOnly == (isInitOnly ?? p.IsInitOnly)
+                && p.IsLiteral == (isLiteral ?? p.IsLiteral));
 
-        public static TAttribute? GetCustomAttribute<TAttribute>(this MemberInfo element, bool inherit = false) where TAttribute : Attribute
-            => element.GetCustomAttributes(typeof(TAttribute), inherit).FirstOrDefault() as TAttribute;
+        public static FieldInfo? GetField(this Type type,
+            string? name = default,
+            bool? isPublic = default,
+            bool? isStatic = default,
+            bool? isInitOnly = default,
+            bool? isLiteral = default)
+            => GetFields(type, name, isPublic, isStatic, isInitOnly, isLiteral).SingleOrDefault();
 
-        public static IEnumerable<TAttribute>? GetCustomAttributes<TAttribute>(this Type type, bool inherit = false) where TAttribute : Attribute
-            => type.GetCustomAttributes(typeof(TAttribute), inherit) as IEnumerable<TAttribute>;
+        public static IEnumerable<PropertyInfo> GetProperties(this Type type,
+            string? name = default,
+            bool? isPublic = default,
+            bool? isStatic = default,
+            bool? canRead = default,
+            bool? canWrite = default)
+            => type.GetProperties().Where(p =>
+                p.Name == (name ?? p.Name)
+                && (isPublic == default ? true
+                    : isPublic == true
+                        ? (p.GetGetMethod()?.IsPublic ?? false) || (p.GetSetMethod()?.IsPublic ?? false)
+                        : !(p.GetGetMethod()?.IsPublic ?? false) && !(p.GetSetMethod()?.IsPublic ?? false))
+                && (isStatic == default ? true
+                    : isStatic == true
+                        ? (p.GetGetMethod()?.IsStatic ?? false) || (p.GetSetMethod()?.IsStatic ?? false)
+                        : !(p.GetGetMethod()?.IsStatic ?? false) && !(p.GetSetMethod()?.IsStatic ?? false))
+                && p.CanRead == (canRead ?? p.CanRead)
+                && p.CanWrite == (canWrite ?? p.CanWrite));
 
-        public static IEnumerable<TAttribute>? GetCustomAttributes<TAttribute>(this MethodInfo methodInfo, bool inherit = false) where TAttribute : Attribute
-            => methodInfo.GetCustomAttributes(typeof(TAttribute), inherit) as IEnumerable<TAttribute>;
-#else
-        public static FieldInfo GetAnyDeclaredField(this Type type, string name)
-            => type.GetTypeInfo().DeclaredFields.Where(p => p.Name == name).SingleOrDefault();
-
-        public static IEnumerable<FieldInfo> GetDeclaredFields(this Type type)
-            => type.GetTypeInfo().DeclaredFields;
-
-        public static PropertyInfo GetAnyDeclaredProperty(this Type type, string name)
-            => type.GetTypeInfo().DeclaredProperties.Where(p => p.Name == name).SingleOrDefault();
-
-        public static IEnumerable<PropertyInfo> GetDeclaredProperties(this Type type)
-            => type.GetTypeInfo().DeclaredProperties;
-
-        public static IEnumerable<PropertyInfo> GetDeclaredPublicProperties(this Type type)
-            => type.GetTypeInfo().DeclaredProperties.Where(p => (p.GetMethod?.IsPublic ?? true) && (p.SetMethod?.IsPublic ?? true));
-
-        public static IEnumerable<MethodInfo> GetMethods(this Type type, string? name = default, bool? isPublic = default,
-            bool? isStatic = default, int? parametersCount = default, bool? isGenericMethod = default,
-            bool? isGenericMethodDefinition = default, int? genericArgumentsCount = default)
-            => type.GetTypeInfo().DeclaredMethods.Where(
-                GetMethodsPredicate(name, isPublic, isStatic, parametersCount, isGenericMethod, isGenericMethodDefinition, genericArgumentsCount));
-
-        public static MethodInfo GetMethod(this Type type, string? name = default, bool? isPublic = default,
-            bool? isStatic = default, int? parametersCount = default, bool? isGenericMethod = default,
-            bool? isGenericMethodDefinition = default, int? genericArgumentsCount = default)
-            => GetMethods(type, name, isPublic, isStatic, parametersCount, isGenericMethod, isGenericMethodDefinition,
-                genericArgumentsCount)
-                .SingleOrDefault();
-#endif
-
-#if NETSTANDARD1_0 || NETSTANDARD1_3
-        public static bool IsDefined(this Type type, Type attributeType)
-            => IsDefined(type, attributeType, inherit: false);
-
-        public static bool IsDefined(this Type type, Type attributeType, bool inherit)
-            => type.GetTypeInfo().IsDefined(attributeType, inherit);
-#endif
+        public static PropertyInfo? GetProperty(this Type type,
+            string? name = default,
+            bool? isPublic = default,
+            bool? isStatic = default,
+            bool? canRead = default,
+            bool? canWrite = default)
+            => GetProperties(type, name, isPublic, isStatic, canRead, canWrite).SingleOrDefault();
 
         public static bool IsInterfaceImplemented<T>(this Type type)
             => IsInterfaceImplemented(type, typeof(T));
