@@ -49,11 +49,11 @@ namespace Cyxor.Serialization
         {
             foreach (var deserializeMethod in DeserializeMethods)
                 if (!deserializeMethod.Value.IsGenericMethodDefinition)
-                    _ = Reflector.Delegate.GetFunc(deserializeMethod.Key);
+                    _ = Delegate.GetFunc(deserializeMethod.Key);
 
             foreach (var serializeMethod in SerializeMethods)
                 if (!serializeMethod.Value.IsGenericMethodDefinition)
-                    _ = Reflector.Delegate.GetAction(serializeMethod.Key);
+                    _ = Delegate.GetAction(serializeMethod.Key);
 
             //var ax = DeserializeMethods.Values.Where(p => p.IsGenericMethodDefinition);
             //var fx = DeserializeMethods.Values.Where(p => !p.IsGenericMethodDefinition);
@@ -62,6 +62,37 @@ namespace Cyxor.Serialization
             //var vx = SerializeMethods.Values.Where(p => !p.IsGenericMethodDefinition);
 
             //NonGenericSupportedTypes = SupportedTypes.Where(p => !p.GetTypeInfo().ContainsGenericParameters);
+        }
+
+        internal static ConcurrentCache<Type, TypeData> TypesCache = new ConcurrentCache<Type, TypeData>();
+        internal static ConcurrentCache<Type, bool> KnownTypesCache = new ConcurrentCache<Type, bool>();
+
+
+
+        public static bool IsKnownType(Type type)
+        {
+            if (KnownTypesCache.TryGetValue(type, out var result))
+                return result;
+
+            result =
+                type.IsArray ||
+                type == typeof(Uri) ||
+                type == typeof(Guid) ||
+                type == typeof(string) ||
+                type == typeof(decimal) ||
+                type == typeof(TimeSpan) ||
+                type == typeof(DateTime) ||
+                type == typeof(SerialStream) ||
+                type == typeof(MemoryStream) ||
+                type == typeof(BitSerializer) ||
+                type.GetTypeInfo().IsEnum ||
+                type.GetTypeInfo().IsPrimitive ||
+                type == typeof(DateTimeOffset) ||
+                type.IsInterfaceImplemented<IEnumerable>();
+
+            _ = KnownTypesCache.TryAdd(type, result);
+
+            return result;
         }
 
         static MethodDictionary GetSerializeMethods()
@@ -305,12 +336,6 @@ namespace Cyxor.Serialization
 
 #region Reflector
 
-        internal enum SerializerOperation
-        {
-            Serialize,
-            Deserialize,
-        }
-
         class ObjectSerialization
         {
             readonly bool Raw;
@@ -387,7 +412,7 @@ namespace Cyxor.Serialization
         bool ObjectSerializationActive;
         readonly Stack<ObjectSerialization> SerializationStack = new Stack<ObjectSerialization>();
 
-        static MethodInfo GetSerializationMethod(Type type, SerializerOperation operation)
+        internal static MethodInfo GetSerializationMethod(Type type, SerializerOperation operation)
         {
             var dictionary = operation == SerializerOperation.Serialize ? SerializeMethods : DeserializeMethods;
 

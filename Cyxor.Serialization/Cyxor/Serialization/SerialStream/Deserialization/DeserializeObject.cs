@@ -20,7 +20,7 @@ namespace Cyxor.Serialization
         object? InternalTypeDeserializeObject(Type type, bool raw)
         {
             AutoRaw = raw;
-            var obj = Reflector.Delegate.GetFunc(type)(this);
+            var obj = Delegate.GetFunc(type)(this);
             AutoRaw = false;
 
             return obj;
@@ -47,7 +47,7 @@ namespace Cyxor.Serialization
                 type = Nullable.GetUnderlyingType(nullableValueType); //Utilities.Reflection.GetGenericArguments(type)[0];
             }
 
-            if (Reflector.IsKnownType(type))
+            if (IsKnownType(type))
             {
                 if (raw && length == 0)
                     return ReturnDefault<T>(type, isNullableValue, isNullableReference);
@@ -123,17 +123,17 @@ namespace Cyxor.Serialization
                     ((ISerializable)value).Deserialize(this);
                 else
                 {
-                    var typeData = default(Reflector.TypeData);
-                    var prevTypeData = default(Reflector.TypeData);
+                    var typeData = default(TypeData);
+                    var prevTypeData = default(TypeData);
 
                     while (type != typeof(ValueType) && type != typeof(object))
                     {
                         if (typeData == default)
                         {
-                            if (!Reflector.TypesCache.TryGetValue(type, out typeData))
+                            if (!TypesCache.TryGetValue(type, out typeData))
                             {
-                                typeData = new Reflector.TypeData(type);
-                                _ = Reflector.TypesCache.TryAdd(type, typeData);
+                                typeData = new TypeData(type);
+                                _ = TypesCache.TryAdd(type, typeData);
                             }
 
                             if (prevTypeData != default)

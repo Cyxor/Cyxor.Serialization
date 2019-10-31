@@ -22,7 +22,7 @@ namespace Cyxor.Serialization
             }
 
             AutoRaw = raw;
-            Reflector.Delegate.GetAction(type ?? value?.GetType() ?? typeof(object))(this, value);
+            Delegate.GetAction(type ?? value?.GetType() ?? typeof(object))(this, value);
             AutoRaw = false;
         }
 
@@ -47,7 +47,7 @@ namespace Cyxor.Serialization
             var type = value.GetType();
             var serializable = value as ISerializable;
 
-            if (serializable == default && Reflector.IsKnownType(type))
+            if (serializable == default && IsKnownType(type))
             {
                 TypeSerializeObject(value, type, raw);
                 return;
@@ -94,17 +94,17 @@ namespace Cyxor.Serialization
                     serializable.Serialize(this);
                 else
                 {
-                    var typeData = default(Reflector.TypeData);
-                    var prevTypeData = default(Reflector.TypeData);
+                    var typeData = default(TypeData);
+                    var prevTypeData = default(TypeData);
 
                     while (type != typeof(ValueType) && type != typeof(object))
                     {
                         if (typeData == default)
                         {
-                            if (!Reflector.TypesCache.TryGetValue(type, out typeData))
+                            if (!TypesCache.TryGetValue(type, out typeData))
                             {
-                                typeData = new Reflector.TypeData(type);
-                                _ = Reflector.TypesCache.TryAdd(type, typeData);
+                                typeData = new TypeData(type);
+                                _ = TypesCache.TryAdd(type, typeData);
                             }
 
                             if (prevTypeData != default)
