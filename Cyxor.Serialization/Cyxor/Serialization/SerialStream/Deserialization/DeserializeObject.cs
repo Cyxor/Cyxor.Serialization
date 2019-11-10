@@ -26,7 +26,8 @@ namespace Cyxor.Serialization
             return obj;
         }
 
-        T InternalDeserializeObject<T>([AllowNull] T value, bool raw, bool isNullableReference, IBackingSerializer? backingSerializer = default, object? backingSerializerOptions = default)
+        //T InternalDeserializeObject<T>([AllowNull] T value, bool raw, bool isNullableReference, IBackingSerializer? backingSerializer = default, object? backingSerializerOptions = default)
+        T InternalDeserializeObject<T>(T value, bool raw, bool isNullableReference, IBackingSerializer? backingSerializer = default, object? backingSerializerOptions = default)
         {
             AutoRaw = false;
 
@@ -94,7 +95,7 @@ namespace Cyxor.Serialization
             else if (length == 0)
                 return ReturnDefault<T>(type, isNullableValue, isNullableReference);
 
-            if (value == default)
+            if (value == null)
             {
                 var instance = Activator.CreateInstance(type);
 

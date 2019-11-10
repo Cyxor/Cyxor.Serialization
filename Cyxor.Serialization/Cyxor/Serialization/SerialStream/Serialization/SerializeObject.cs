@@ -36,7 +36,7 @@ namespace Cyxor.Serialization
                 return;
             }
 
-            if (value == default)
+            if (value == null)
             {
                 if (!raw)
                     Serialize((byte)0);

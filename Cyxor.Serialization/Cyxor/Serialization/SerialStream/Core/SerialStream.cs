@@ -97,9 +97,6 @@ namespace Cyxor.Serialization
 
         static MethodDictionary GetSerializeMethods()
         {
-            var rr = typeof(SerialStream).GetMethodsInfo();
-            var count = rr.Count();
-
             var methods = typeof(SerialStream).GetMethodsInfo(name: nameof(SerializerOperation.Serialize), isPublic: true, parametersCount: 1);
 
             var serializeMethods = new MethodDictionary();

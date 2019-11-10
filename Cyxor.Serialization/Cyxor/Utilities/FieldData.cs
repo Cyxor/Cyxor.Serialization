@@ -52,7 +52,7 @@ namespace Cyxor.Serialization
         private static void Map<T>(out T dest, T src)
             => dest = src;
 
-        static readonly MethodInfo MapMethodInfo = typeof(FieldData).GetMethodInfo(nameof(Map), isStatic: true);
+        static readonly MethodInfo MapMethodInfo = typeof(FieldData).GetMethodInfo(nameof(Map), isStatic: true, isInherited: false) ?? throw new InvalidOperationException(Utilities.ResourceStrings.CyxorInternalException);
 #endif
 
         public FieldData(FieldInfo fieldInfo, bool shouldSerialize)
