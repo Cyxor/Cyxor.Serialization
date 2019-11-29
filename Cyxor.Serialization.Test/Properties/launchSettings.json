@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Cyxor.Serialization.Test": {
+      "commandName": "Project",
+      "commandLineArgs": "/p:CollectCoverage=true"
+    }
+  }
+}

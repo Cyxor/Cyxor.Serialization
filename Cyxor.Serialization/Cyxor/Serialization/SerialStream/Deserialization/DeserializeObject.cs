@@ -27,7 +27,7 @@ namespace Cyxor.Serialization
         }
 
         //T InternalDeserializeObject<T>([AllowNull] T value, bool raw, bool isNullableReference, IBackingSerializer? backingSerializer = default, object? backingSerializerOptions = default)
-        T InternalDeserializeObject<T>(T value, bool raw, bool isNullableReference, IBackingSerializer? backingSerializer = default, object? backingSerializerOptions = default)
+        T InternalDeserializeObject<T>([AllowNull] T value, bool raw, bool isNullableReference, IBackingSerializer? backingSerializer = default, object? backingSerializerOptions = default)
         {
             AutoRaw = false;
 
@@ -45,6 +45,8 @@ namespace Cyxor.Serialization
             {
                 isNullableValue = true;
                 nullableValueType = type;
+
+                // TODO: Check if it is a closed generic type first
                 type = Nullable.GetUnderlyingType(nullableValueType); //Utilities.Reflection.GetGenericArguments(type)[0];
             }
 

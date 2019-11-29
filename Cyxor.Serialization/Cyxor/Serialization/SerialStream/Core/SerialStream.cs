@@ -97,7 +97,7 @@ namespace Cyxor.Serialization
 
         static MethodDictionary GetSerializeMethods()
         {
-            var methods = typeof(SerialStream).GetMethodsInfo(name: nameof(SerializerOperation.Serialize), isPublic: true, parametersCount: 1);
+            var methods = typeof(SerialStream).GetMethodsInfo(name: nameof(SerializerOperation.Serialize), publicMethods: true, parametersCount: 1);
 
             var serializeMethods = new MethodDictionary();
 
@@ -115,7 +115,7 @@ namespace Cyxor.Serialization
         //static MethodDictionary GetDeserializeMethods(ref Type nullableGenericType)
         static MethodDictionary GetDeserializeMethods()
         {
-            var methods = typeof(SerialStream).GetMethodsInfo(nameStartsWith: nameof(SerializerOperation.Deserialize), isPublic: true, parametersCount: 0);
+            var methods = typeof(SerialStream).GetMethodsInfo(nameStartsWith: nameof(SerializerOperation.Deserialize), publicMethods: true, parametersCount: 0);
 
             var deserializeMethods = new MethodDictionary();
 

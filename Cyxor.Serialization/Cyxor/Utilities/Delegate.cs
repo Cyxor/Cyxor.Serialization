@@ -14,9 +14,9 @@ namespace Cyxor.Serialization
         static Delegate()
         {
             var x = CreateFuncMethodInfo;
-            var y = typeof(Delegate).GetMethodsInfo(isStatic: true);
+            var y = typeof(Delegate).GetMethodsInfo(staticMethods: true);
             var z = typeof(Delegate).GetMethodsInfo();
-            var w = typeof(Delegate).GetMethodsInfo(isStatic: false);
+            var w = typeof(Delegate).GetMethodsInfo(staticMethods: false);
 
             if (x == null)
                 CreateFuncMethodInfo = null;

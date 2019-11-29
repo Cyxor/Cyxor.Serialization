@@ -19,7 +19,7 @@ namespace Cyxor.Serialization
             Type = type;
 
             #region Fields
-            var fields = type.GetFields();
+            var fields = type.GetFieldsInfo(inheritedFields: false);
 
             var fieldList = new List<FieldData>();
 
@@ -38,7 +38,7 @@ namespace Cyxor.Serialization
             #endregion
 
             #region Properties
-            var properties = type.GetProperties(isPublic: true);
+            var properties = type.GetPropertiesInfo(isInherited: false, hasPublicGetAccessor: true);
 
             var propertyList = new List<PropertyData>();
 
@@ -91,7 +91,7 @@ namespace Cyxor.Serialization
             var propertyName = field.Name.Substring(1, field.Name.IndexOf('>', StringComparison.Ordinal) - 1);
 #pragma warning restore IDE0057 // Substring can be simplified
 
-            var property = field.DeclaringType!.GetProperty(propertyName)!;
+            var property = field.DeclaringType!.GetPropertyInfo(propertyName)!;
 
             return ShouldSerializeProperty(property);
         }

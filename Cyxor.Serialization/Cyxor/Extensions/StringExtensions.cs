@@ -8,6 +8,11 @@ namespace Cyxor.Extensions
     {
         public static int IndexOf(this string thisString, char value, StringComparison stringComparison)
             => thisString.IndexOf(new string(value, 1), stringComparison);
+
+#pragma warning disable IDE0060 // Remove unused parameter
+        public static bool Contains(this string thisString, string value, StringComparison stringComparison)
+#pragma warning restore IDE0060 // Remove unused parameter
+            => thisString.Contains(value);
     }
 }
 #endif
