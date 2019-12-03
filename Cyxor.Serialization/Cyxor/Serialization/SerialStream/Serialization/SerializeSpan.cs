@@ -6,7 +6,7 @@ namespace Cyxor.Serialization
 {
     using Extensions;
 
-    partial class SerialStream
+    partial class SerializationStream
     {
         void InternalSerialize<T>(in ReadOnlySpan<T> readOnlySpan, bool raw) where T : struct
         {

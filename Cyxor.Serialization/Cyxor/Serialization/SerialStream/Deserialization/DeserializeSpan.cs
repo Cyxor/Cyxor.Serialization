@@ -7,7 +7,7 @@ namespace Cyxor.Serialization
 {
     using Extensions;
 
-    partial class SerialStream
+    partial class SerializationStream
     {
         public Span<T> DeserializeSpan<T>() where T: struct
         {

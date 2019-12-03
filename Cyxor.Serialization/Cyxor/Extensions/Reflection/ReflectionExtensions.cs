@@ -22,19 +22,6 @@ namespace Cyxor.Extensions
 #endif
 
 #if NETSTANDARD1_0 || NETSTANDARD1_3
-        //public static FieldInfo[] GetFields(this Type type)
-        //    => type.GetTypeInfo().DeclaredFields.ToArray();
-
-        //public static PropertyInfo[] GetProperties(this Type type)
-        //    => type.GetTypeInfo().DeclaredProperties.ToArray();
-
-        // TODO:
-        //public static bool IsDefined(this Type type, Type attributeType)
-        //    => IsDefined(type, attributeType, inherit: false);
-
-        //public static bool IsDefined(this Type type, Type attributeType, bool inherit)
-        //    => type.GetTypeInfo().IsDefined(attributeType, inherit);
-
         public static Type[] GetGenericArguments(this Type type)
             => type.GetTypeInfo().GenericTypeArguments;
 #endif

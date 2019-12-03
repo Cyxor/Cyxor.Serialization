@@ -8,10 +8,34 @@ namespace Cyxor.Extensions
     public static partial class ReflectionExtensions
     {
 #if NETSTANDARD1_0 || NETSTANDARD1_3
-        public static MethodInfo? GetGetMethod(this PropertyInfo propertyInfo, bool nonPublic = false)
+        /// <summary>
+        /// Returns the public or non-public get accessor for this property.
+        /// </summary>
+        /// <param name="propertyInfo">The property object that contains the get accessor.</param>
+        /// <param name="nonPublic">
+        /// Indicates whether a non-public get accessor should be returned, <see langword="true"/> if a non-public accessor is to be returned; 
+        /// otherwise, <see langword="false"/>.
+        /// </param>
+        /// <returns>
+        /// A MethodInfo object representing the get accessor for this property, if nonPublic is true.
+        /// Returns null if nonPublic is false and the get accessor is non-public, or if nonPublic is true but no get accessors exist.
+        /// </returns>
+        public static MethodInfo? GetGetMethod(this PropertyInfo propertyInfo, bool nonPublic)
             => !nonPublic && propertyInfo.GetMethod.IsPrivate ? null : propertyInfo.GetMethod;
 
-        public static MethodInfo? GetSetMethod(this PropertyInfo propertyInfo, bool nonPublic = false)
+        /// <summary>
+        /// Returns the public or non-public set accessor for this property.
+        /// </summary>
+        /// <param name="propertyInfo">The property object that contains the set accessor.</param>
+        /// <param name="nonPublic">
+        /// Indicates whether a non-public set accessor should be returned, <see langword="true"/> if a non-public accessor is to be returned; 
+        /// otherwise, <see langword="false"/>.
+        /// </param>
+        /// <returns>
+        /// A MethodInfo object representing the set accessor for this property, if nonPublic is true.
+        /// Returns null if nonPublic is false and the set accessor is non-public, or if nonPublic is true but no set accessors exist.
+        /// </returns>
+        public static MethodInfo? GetSetMethod(this PropertyInfo propertyInfo, bool nonPublic)
             => !nonPublic && propertyInfo.SetMethod.IsPrivate ? null : propertyInfo.SetMethod;
 #endif
 
@@ -47,55 +71,55 @@ namespace Cyxor.Extensions
         /// </summary>
         /// <param name="type">The type that contains the properties.</param>
         /// <param name="name">
-        /// The property names.
+        /// The name of the properties.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
         /// <param name="nameStartsWith">
-        /// The property names beginning.
+        /// The beginning of the properties name.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
         /// <param name="nameEndsWith">
-        /// The property names ending.
+        /// The end of the properties name.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
         /// <param name="nameContains">
-        /// A match string in the property names.
+        /// A match string in the properties name.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
         /// <param name="inheritedProperties">
         /// A value indicating whether to filter by inherited properties.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
-        /// <param name="hasPublicGetAccessor">
-        /// A value indicating whether to filter by p.
+        /// <param name="publicGetAccessor">
+        /// A value indicating whether to filter by properties with a public get accessor.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
-        /// <param name="hasPrivateGetAccessor">
-        /// A value indicating whether the property has a private get accessor.
+        /// <param name="privateGetAccessor">
+        /// A value indicating whether to filter by properties with a private get accessor.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
-        /// <param name="hasStaticGetAccessor">
-        /// A value indicating whether the properties are static.
+        /// <param name="staticGetAccessor">
+        /// A value indicating whether to filter by properties with a static get accessor.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
-        /// <param name="hasGenericPropertyType">
-        /// A value indicating whether the properties are generic field-types.
+        /// <param name="genericPropertyType">
+        /// A value indicating whether to filter by generic PropertyType.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
-        /// <param name="hasGenericPropertyTypeDefinition">
-        /// A value indicating whether the properties are generic field-type definitions.
+        /// <param name="genericPropertyTypeDefinition">
+        /// A value indicating whether to filter by generic PropertyType definition.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
         /// <param name="canReadProperties">
-        /// A value indicating whether the properties are literal.
+        /// A value indicating whether to filter by can-read properties.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
         /// <param name="canWriteProperties">
-        /// A value indicating whether the properties are init only.
+        /// A value indicating whether to filter by can-write properties.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
         /// <param name="propertyType">
-        /// The return type of the properties.
+        /// The type of the properties.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
         /// <param name="attributes">
@@ -130,34 +154,34 @@ namespace Cyxor.Extensions
             string? nameStartsWith = default,
             string? nameEndsWith = default,
             string? nameContains = default,
-            bool? isInherited = default,
-            bool? hasPublicGetAccessor = default,
-            bool? hasPrivateGetAccessor = default,
-            bool? hasStaticGetAccessor = default,
-            bool? hasGenericPropertyType = default,
-            bool? hasGenericPropertyTypeDefinition = default,
-            bool? canRead = default,
-            bool? canWrite = default,
+            bool? inheritedProperties = default,
+            bool? publicGetAccessor = default,
+            bool? privateGetAccessor = default,
+            bool? staticGetAccessor = default,
+            bool? genericPropertyType = default,
+            bool? genericPropertyTypeDefinition = default,
+            bool? canReadProperties = default,
+            bool? canWriteProperties = default,
             Type? propertyType = default,
             IEnumerable<Type>? attributes = default,
             int? genericArgumentsCount = default,
             IEnumerable<Type>? genericArguments = default)
-            => from property in (isInherited ?? true) ? type.GetAllRuntimeProperties() : type.GetAllDeclaredProperties()
+            => from property in (inheritedProperties ?? true) ? type.GetAllRuntimeProperties() : type.GetAllDeclaredProperties()
                 let propertyGenericArguments = property.PropertyType.GetGenericArguments()
                 where property.Name == (name ?? property.Name)
                 && (nameStartsWith == default ? true : property.Name.StartsWith(nameStartsWith!, StringComparison.Ordinal))
                 && (nameEndsWith == default ? true : property.Name.EndsWith(nameEndsWith!, StringComparison.Ordinal))
                 && (nameContains == default ? true : property.Name.Contains(nameContains!, StringComparison.Ordinal))
-                && property.GetGetMethod(nonPublic: true)?.IsPublic == (hasPublicGetAccessor ?? property.GetGetMethod(nonPublic: true)?.IsPublic)
-                && property.GetGetMethod(nonPublic: true)?.IsPrivate == (hasPrivateGetAccessor ?? property.GetGetMethod(nonPublic: true)?.IsPrivate)
-                && property.GetGetMethod(nonPublic: true)?.IsStatic == (hasStaticGetAccessor ?? property.GetGetMethod(nonPublic: true)?.IsStatic)
-                && property.PropertyType.GetTypeInfo().IsGenericType == (hasGenericPropertyType ?? property.PropertyType.GetTypeInfo().IsGenericType)
+                && property.GetGetMethod(nonPublic: true)?.IsPublic == (publicGetAccessor ?? property.GetGetMethod(nonPublic: true)?.IsPublic)
+                && property.GetGetMethod(nonPublic: true)?.IsPrivate == (privateGetAccessor ?? property.GetGetMethod(nonPublic: true)?.IsPrivate)
+                && property.GetGetMethod(nonPublic: true)?.IsStatic == (staticGetAccessor ?? property.GetGetMethod(nonPublic: true)?.IsStatic)
+                && property.PropertyType.GetTypeInfo().IsGenericType == (genericPropertyType ?? property.PropertyType.GetTypeInfo().IsGenericType)
                 && property.PropertyType.GetTypeInfo().IsGenericTypeDefinition
-                    == (hasGenericPropertyTypeDefinition ?? property.PropertyType.GetTypeInfo().IsGenericTypeDefinition)
-                && property.CanRead == (canRead ?? property.CanRead)
-                && property.CanWrite == (canWrite ?? property.CanWrite)
+                    == (genericPropertyTypeDefinition ?? property.PropertyType.GetTypeInfo().IsGenericTypeDefinition)
+                && property.CanRead == (canReadProperties ?? property.CanRead)
+                && property.CanWrite == (canWriteProperties ?? property.CanWrite)
                 && property.PropertyType == (propertyType ?? property.PropertyType)
-                && (attributes == default ? true : attributes.All(p => property.IsDefined(p, isInherited ?? true)))
+                && (attributes == default ? true : attributes.All(p => property.IsDefined(p, inheritedProperties ?? true)))
                 && propertyGenericArguments.Length == (genericArgumentsCount ?? propertyGenericArguments.Length)
                 && (genericArguments == default ? true : propertyGenericArguments.SequenceEqual(genericArguments))
                 select property;
@@ -186,24 +210,24 @@ namespace Cyxor.Extensions
         /// A value indicating whether the property is inherited.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
-        /// <param name="isPublicGetAccessor">
-        /// A value indicating whether the property is public.
+        /// <param name="hasPublicGetAccessor">
+        /// A value indicating whether the property has a public get accessor.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
-        /// <param name="isPrivateGetAccessor">
-        /// A value indicating whether the property is private.
+        /// <param name="hasPrivateGetAccessor">
+        /// A value indicating whether the property has a private get accessor.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
-        /// <param name="isStaticGetAccessor">
-        /// A value indicating whether the property is static.
+        /// <param name="hasStaticGetAccessor">
+        /// A value indicating whether the property has a static get accessor.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
-        /// <param name="isGenericPropertyType">
-        /// A value indicating whether the property is a generic property-type.
+        /// <param name="hasGenericPropertyType">
+        /// A value indicating whether the property has a generic property-type.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
-        /// <param name="isGenericPropertyTypeDefinition">
-        /// A value indicating whether the property is a generic property-type definition.
+        /// <param name="hasGenericPropertyTypeDefinition">
+        /// A value indicating whether the property has a generic property-type definition.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
         /// <param name="canRead">
@@ -275,4 +299,3 @@ namespace Cyxor.Extensions
         }
     }
 }
-  

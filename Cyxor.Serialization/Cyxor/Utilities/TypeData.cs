@@ -38,7 +38,7 @@ namespace Cyxor.Serialization
             #endregion
 
             #region Properties
-            var properties = type.GetPropertiesInfo(isInherited: false, hasPublicGetAccessor: true);
+            var properties = type.GetPropertiesInfo(inheritedProperties: false, publicGetAccessor: true);
 
             var propertyList = new List<PropertyData>();
 

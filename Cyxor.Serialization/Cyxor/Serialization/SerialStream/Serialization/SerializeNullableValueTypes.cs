@@ -10,7 +10,7 @@ namespace Cyxor.Serialization
     using Extensions;
 #endif
 
-    partial class SerialStream
+    partial class SerializationStream
     {
         delegate void SerializeSignature<T>(T value) where T : struct;
 

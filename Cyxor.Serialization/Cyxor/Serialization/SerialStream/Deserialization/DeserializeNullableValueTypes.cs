@@ -10,7 +10,7 @@ namespace Cyxor.Serialization
     using Extensions;
 #endif
 
-    partial class SerialStream
+    partial class SerializationStream
     {
         #region ValueTypesNullable
 

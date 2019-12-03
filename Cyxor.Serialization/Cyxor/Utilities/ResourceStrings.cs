@@ -35,7 +35,7 @@ namespace Cyxor.Serialization
                 => $"Unable to cast from char array to array of type '{typeName}'";
 
             public static string TheWholeSerialStreamContentIsNotAnObjectOfType(string typeName)
-                => $"The whole {nameof(SerialStream)} content is not an object of type '{typeName}'";
+                => $"The whole {nameof(SerializationStream)} content is not an object of type '{typeName}'";
 
             public static string NullKeyWhenDeserializingDictionary(string keyTypeName, string valueTypeName)
                 => $"Null key when deserializing (IEnumerable<KeyValuePair<{keyTypeName}, {valueTypeName}>>)";

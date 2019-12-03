@@ -2,7 +2,7 @@
 
 namespace Cyxor.Serialization
 {
-    partial class SerialStream
+    partial class SerializationStream
     {
         public void Serialize(byte[]? value)
             => InternalSerialize(value, 0, value?.Length ?? 0, raw: AutoRaw);

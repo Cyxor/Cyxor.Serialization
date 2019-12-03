@@ -12,7 +12,7 @@ namespace Cyxor.Serialization
     using Extensions;
 #endif
 
-    partial class SerialStream
+    partial class SerializationStream
     {
         static InvalidOperationException DataException() =>
             new InvalidOperationException(Utilities.ResourceStrings.ExceptionMessageBufferDeserializeObject);
@@ -20,7 +20,7 @@ namespace Cyxor.Serialization
         object? InternalTypeDeserializeObject(Type type, bool raw)
         {
             AutoRaw = raw;
-            var obj = Delegate.GetFunc(type)(this);
+            var obj = SerializationDelegateCache.GetFunc(type)(this);
             AutoRaw = false;
 
             return obj;
@@ -46,8 +46,12 @@ namespace Cyxor.Serialization
                 isNullableValue = true;
                 nullableValueType = type;
 
-                // TODO: Check if it is a closed generic type first
-                type = Nullable.GetUnderlyingType(nullableValueType); //Utilities.Reflection.GetGenericArguments(type)[0];
+                if (nullableValueType.GetTypeInfo().ContainsGenericParameters)
+                    throw new InvalidOperationException("The type you are trying to deserialize is an open generic type. " +
+                        "You can only create an instance of a generic type if it is closed. " +
+                        "For more information see 'Type.ContainsGenericParameters'.");
+
+                type = Nullable.GetUnderlyingType(nullableValueType)!;
             }
 
             if (IsKnownType(type))

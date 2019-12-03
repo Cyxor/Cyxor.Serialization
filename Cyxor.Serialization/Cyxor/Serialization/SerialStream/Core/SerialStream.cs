@@ -23,6 +23,10 @@ using System.Collections.Concurrent;
 using System.Threading;
 #endif
 
+#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
+using System.Buffers;
+#endif
+
 namespace Cyxor.Serialization
 {
     using Extensions;
@@ -31,29 +35,41 @@ namespace Cyxor.Serialization
     using BufferOverflowException = EndOfStreamException;
 
     [DebuggerDisplay("{DebuggerDisplay()}")]
-    public sealed partial class SerialStream : Stream
+    public sealed partial class SerializationStream : Stream
     {
         bool AutoRaw;
 
-#region Static
+        #region Static
+
+#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
+        static readonly ArrayPool<byte> BufferPool = ArrayPool<byte>.Create();
+#endif
 
         //static readonly Type NullableGenericType = typeof(SerialStream);
 
-        static readonly MethodDictionary SerializeMethods = GetSerializeMethods();
+        static readonly MethodDictionary SerializeMethods =
+            (from method in typeof(SerializationStream)
+               .GetMethodsInfo(name: nameof(SerializerOperation.Serialize), publicMethods: true, parametersCount: 1)
+             let parameterType = method.GetParameters().Single().ParameterType
+             where !parameterType.IsPointer
+             orderby parameterType.Name
+             select new KeyValuePair<Type, MethodInfo>(parameterType, method))
+            .ToDictionary(p => p.Key, p => p.Value);
+
         //static readonly MethodDictionary DeserializeMethods = GetDeserializeMethods(ref NullableGenericType);
         static readonly MethodDictionary DeserializeMethods = GetDeserializeMethods();
 
         public static readonly IEnumerable<Type> SupportedTypes = SerializeMethods.Keys;
 
-        static SerialStream()
+        static SerializationStream()
         {
             foreach (var deserializeMethod in DeserializeMethods)
                 if (!deserializeMethod.Value.IsGenericMethodDefinition)
-                    _ = Delegate.GetFunc(deserializeMethod.Key);
+                    _ = SerializationDelegateCache.GetFunc(deserializeMethod.Key);
 
             foreach (var serializeMethod in SerializeMethods)
                 if (!serializeMethod.Value.IsGenericMethodDefinition)
-                    _ = Delegate.GetAction(serializeMethod.Key);
+                    _ = SerializationDelegateCache.GetSerializationMethod(serializeMethod.Key);
 
             //var ax = DeserializeMethods.Values.Where(p => p.IsGenericMethodDefinition);
             //var fx = DeserializeMethods.Values.Where(p => !p.IsGenericMethodDefinition);
@@ -82,7 +98,7 @@ namespace Cyxor.Serialization
                 type == typeof(decimal) ||
                 type == typeof(TimeSpan) ||
                 type == typeof(DateTime) ||
-                type == typeof(SerialStream) ||
+                type == typeof(SerializationStream) ||
                 type == typeof(MemoryStream) ||
                 type == typeof(BitSerializer) ||
                 type.GetTypeInfo().IsEnum ||
@@ -96,90 +112,41 @@ namespace Cyxor.Serialization
         }
 
         static MethodDictionary GetSerializeMethods()
-        {
-            var methods = typeof(SerialStream).GetMethodsInfo(name: nameof(SerializerOperation.Serialize), publicMethods: true, parametersCount: 1);
-
-            var serializeMethods = new MethodDictionary();
-
-            foreach (var method in methods)
-            {
-                var parameterType = method.GetParameters().Single().ParameterType;
-
-                if (!parameterType.IsPointer)
-                    serializeMethods[parameterType] = method;
-            }
-
-            return serializeMethods;
-        }
+            => (from method in typeof(SerializationStream)
+                    .GetMethodsInfo(name: nameof(SerializerOperation.Serialize), publicMethods: true, parametersCount: 1)
+                let parameterType = method.GetParameters().Single().ParameterType
+                where !parameterType.IsPointer
+                orderby parameterType.Name
+                select new KeyValuePair<Type, MethodInfo>(parameterType, method))
+                .ToDictionary(p => p.Key, p => p.Value);
 
         //static MethodDictionary GetDeserializeMethods(ref Type nullableGenericType)
         static MethodDictionary GetDeserializeMethods()
         {
-            var methods = typeof(SerialStream).GetMethodsInfo(nameStartsWith: nameof(SerializerOperation.Deserialize), publicMethods: true, parametersCount: 0);
-
-            var deserializeMethods = new MethodDictionary();
-
             var nonNullableOperationName = nameof(SerializerOperation.Deserialize);
             var nullableOperationName = $"{nonNullableOperationName}{nameof(Nullable)}";
 
-            foreach (var serializeType in SerializeMethods.Keys)
-            {
-                var isValueType = serializeType.GetTypeInfo().IsValueType;
-                var operationName = isValueType ? nonNullableOperationName : nullableOperationName;
+            var deserializeMethods =
+                (from method in typeof(SerializationStream)
+                    .GetMethodsInfo(nameStartsWith: nameof(SerializerOperation.Deserialize), publicMethods: true, parametersCount: 0)
+                 let returnType = method.ReturnType
+                 let operationName = returnType.GetTypeInfo().IsValueType ? nonNullableOperationName : nullableOperationName
+                 where method.Name.StartsWith(operationName, StringComparison.OrdinalIgnoreCase)
+                    && !method.Name.Contains("raw", StringComparison.OrdinalIgnoreCase)
+                    && !method.Name.EndsWith("enum", StringComparison.OrdinalIgnoreCase)
+                    && !method.Name.Contains("collection", StringComparison.OrdinalIgnoreCase)
+                    && !method.Name.Contains("dictionary", StringComparison.OrdinalIgnoreCase)
+                    && !method.Name.Contains("compressed", StringComparison.OrdinalIgnoreCase)
+                 orderby returnType.Name
+                 select new KeyValuePair<Type, MethodInfo>(returnType, method))
+                 .ToDictionary(p => p.Key, p => p.Value);
 
-                foreach (var method in methods)
-                {
-                    if (method.Name.StartsWith(operationName, StringComparison.Ordinal))
-                    {
-                        var deserializeType = method.ReturnType;
-
-                        var typeName = method.Name.Substring(operationName.Length);
-
-                        if (deserializeType != serializeType)
-                        {
-                            if (deserializeType.Name != serializeType.Name)
-                                continue;
-
-                            if (deserializeType.FullName != serializeType.FullName)
-                                continue;
-
-                            if (deserializeType.GetTypeInfo().IsGenericType != serializeType.GetTypeInfo().IsGenericType)
-                                continue;
-
-                            if (deserializeType.GetTypeInfo().IsGenericType)
-                            {
-                                var serializeGenericArguments = serializeType.GetGenericArguments();
-                                var deserializeGenericArguments = deserializeType.GetGenericArguments();
-
-                                if (deserializeGenericArguments.Length != serializeGenericArguments.Length)
-                                    continue;
-
-                                for (var i = 0; i < serializeGenericArguments.Length; i++)
-                                {
-                                    if (deserializeGenericArguments[i] != serializeGenericArguments[i])
-                                    {
-                                        if (deserializeGenericArguments[i].Name != serializeGenericArguments[i].Name)
-                                            continue;
-
-                                        if (deserializeGenericArguments[i].FullName != serializeGenericArguments[i].FullName)
-                                            continue;
-                                    }
-                                }
-                            }
-                        }
-
-                        deserializeMethods[serializeType] = method;
-                        break;
-                    }
-                }
-            }
-
-            if (typeof(SerialStream).GetMethodInfo(nameof(SerializeEnum)) is MethodInfo serializeEnumMethodInfo)
+            if (typeof(SerializationStream).GetMethodInfo(nameof(SerializeEnum)) is MethodInfo serializeEnumMethodInfo)
                 SerializeMethods.Add(typeof(Enum), serializeEnumMethodInfo);
             else
                 throw new InvalidOperationException("");
 
-            if (typeof(SerialStream).GetMethodInfo(nameof(DeserializeEnum)) is MethodInfo deserializeEnumMethodInfo)
+            if (typeof(SerializationStream).GetMethodInfo(nameof(DeserializeEnum)) is MethodInfo deserializeEnumMethodInfo)
                 deserializeMethods.Add(typeof(Enum), deserializeEnumMethodInfo);
             else
                 throw new InvalidOperationException("");
@@ -362,7 +329,7 @@ namespace Cyxor.Serialization
                 Next?.AdjustBufferPosition(offset);
             }
 
-            internal void Step(SerialStream serializer, int size)
+            internal void Step(SerializationStream serializer, int size)
             {
                 var count = serializer.position + size - BufferPosition - PositionLenght;
 
@@ -376,26 +343,23 @@ namespace Cyxor.Serialization
                     count < Utilities.EncodedInteger.FourBytesCap ? 5 : 6;
 
                 if (PositionLenght < positionLenght)
-                    AdjustBuffer();
-
-                void AdjustBuffer()
                 {
-                    var differenceBytes = positionLenght - PositionLenght;
+                    var offset = positionLenght - PositionLenght;
 
                     serializer.ObjectSerializationActive = !serializer.ObjectSerializationActive;
-                    serializer.EnsureCapacity(differenceBytes + size, SerializerOperation.Serialize);
+                    serializer.EnsureCapacity(offset + size, SerializerOperation.Serialize);
                     serializer.ObjectSerializationActive = !serializer.ObjectSerializationActive;
 
-                    System.Buffer.BlockCopy(
+                    Buffer.BlockCopy(
                         serializer.buffer!,
                         BufferPosition,
                         serializer.buffer!,
-                        BufferPosition + differenceBytes,
+                        BufferPosition + offset,
                         serializer.position - BufferPosition);
 
-                    PositionLenght += differenceBytes;
-                    serializer.position += differenceBytes;
-                    Next?.AdjustBufferPosition(differenceBytes);
+                    PositionLenght += offset;
+                    serializer.position += offset;
+                    Next?.AdjustBufferPosition(offset);
                 }
             }
         }
@@ -408,6 +372,8 @@ namespace Cyxor.Serialization
         readonly bool UseObjectSerialization = true;
         bool ObjectSerializationActive;
         readonly Stack<ObjectSerialization> SerializationStack = new Stack<ObjectSerialization>();
+
+        //static readonly MethodInfo DeserializeObjectMethodInfo = typeof(SerializationStream).GetMethodInfo(nameof(DeserializeObject), isPublic: true, parametersCount: 0, isGenericMethodDefinition: true, genericArgumentsCount: 1)!;
 
         internal static MethodInfo GetSerializationMethod(Type type, SerializerOperation operation)
         {
@@ -459,7 +425,8 @@ namespace Cyxor.Serialization
                 //else
                 if (type.GetTypeInfo().IsValueType)
                 {
-                    method = typeof(SerialStream).GetMethodInfo(nameof(DeserializeObject), isPublic: true, parametersCount: 0, isGenericMethodDefinition: true, genericArgumentsCount: 1);
+                    //method = DeserializeObjectMethodInfo;
+                    method = typeof(SerializationStream).GetMethodInfo(nameof(DeserializeObject), isPublic: true, parametersCount: 0, isGenericMethodDefinition: true, genericArgumentsCount: 1)!;
                     genericArgumentsType = new Type[] { type };
                 }
                 else
@@ -479,27 +446,27 @@ namespace Cyxor.Serialization
 
 #region Core
 
-        public SerialStream() { }
+        public SerializationStream() { }
 
-        public SerialStream(byte[] value)
+        public SerializationStream(byte[] value)
             => SetBuffer(value);
 
-        public SerialStream(string value)
+        public SerializationStream(string value)
             => SerializeRaw(value);
 
-        public SerialStream(object value)
+        public SerializationStream(object value)
             => SerializeRaw(value);
 
-        public SerialStream(SerialStream value)
+        public SerializationStream(SerializationStream value)
             => SerializeRaw(value);
 
-        public SerialStream(ArraySegment<byte> arraySegment)
+        public SerializationStream(ArraySegment<byte> arraySegment)
             => SetBuffer(arraySegment);
 
-        public SerialStream(byte[] buffer, int offset, int count)
+        public SerializationStream(byte[] buffer, int offset, int count)
             => SetBuffer(buffer, offset, count);
 
-        public SerialStream(object value, IBackingSerializer backingSerializer, object? backingSerializerOptions = default)
+        public SerializationStream(object value, IBackingSerializer backingSerializer, object? backingSerializerOptions = default)
             => SerializeRaw(value, backingSerializer, backingSerializerOptions);
 
 #region Public properties
@@ -507,7 +474,7 @@ namespace Cyxor.Serialization
         /// <summary>
         /// Represents the empty Serializer. This field is readonly.
         /// </summary>
-        public static readonly SerialStream Empty = new SerialStream();
+        public static readonly SerializationStream Empty = new SerializationStream();
 
         static readonly UTF8Encoding Encoding = new UTF8Encoding(false, true);
 
@@ -624,14 +591,6 @@ namespace Cyxor.Serialization
 
         byte[]? buffer;
 
-        void InternalSetBuffer(byte[]? value)
-        {
-            if (buffer != default)
-                MemoryDisposed?.Invoke(this, EventArgs.Empty);
-
-            buffer = value;
-        }
-
         /// <summary>
         /// Gets the underlying array of unsigned bytes of this SerialStream.
         /// </summary>
@@ -647,7 +606,7 @@ namespace Cyxor.Serialization
 
 #region Public
 
-        public static bool IsNullOrEmpty(SerialStream serializer)
+        public static bool IsNullOrEmpty(SerializationStream serializer)
             => (serializer?.length ?? 0) == 0 ? true : false;
 
         public string ToHexString()
@@ -683,20 +642,42 @@ namespace Cyxor.Serialization
         public void SetBuffer(ArraySegment<byte> arraySegment)
             => SetBuffer(arraySegment.Array, arraySegment.Offset, arraySegment.Count);
 
-        public void SetBuffer(byte[]? buffer, int index, int count)
+        public void SetBuffer(byte[]? value, int index, int count)
         {
-            if (count < 0 || count > (buffer?.Length ?? 0))
+            if (count < 0 || count > (value?.Length ?? 0))
                 throw new ArgumentOutOfRangeException(nameof(count));
 
             if (index < 0 || index > count)
                 throw new ArgumentOutOfRangeException(nameof(index));
 
-            InternalSetBuffer(buffer);
+            InternalSetBuffer(value);
 
             length = count;
             position = index;
             Capacity = buffer?.Length ?? 0;
         }
+
+        void InternalSetBuffer(byte[]? value)
+        {
+            if (buffer != default)
+#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
+            {
+                BufferPool.Return(buffer);
+#endif
+                MemoryDisposed?.Invoke(this, EventArgs.Empty);
+#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
+            }
+#endif
+
+            buffer = value;
+        }
+
+        static byte[] CreateBuffer(int length)
+#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
+            => BufferPool.Rent(length);
+#else
+            => new byte[length];
+#endif
 
         /// <summary>
         /// Sets the length of the current buffer to the specified value.
@@ -781,14 +762,14 @@ namespace Cyxor.Serialization
             }
         }
 
-        public void Insert(SerialStream value)
+        public void Insert(SerializationStream value)
         {
             if (value.length == 0)
                 return;
 
             EnsureCapacity(value.length, SerializerOperation.Serialize);
 
-            using var auxBuffer = new SerialStream();
+            using var auxBuffer = new SerializationStream();
             auxBuffer.SerializeRaw(buffer, position, length - position);
             SerializeRaw(value);
             SerializeRaw(auxBuffer);
@@ -877,7 +858,7 @@ namespace Cyxor.Serialization
 
         public object Clone()
         {
-            var value = new SerialStream();
+            var value = new SerializationStream();
             value.SerializeRaw(this);
 
             value.length = length;
@@ -920,7 +901,7 @@ namespace Cyxor.Serialization
                             if (Capacity < 256)
                                 Capacity = 256;
 
-                            buffer = new byte[Capacity];
+                            buffer = CreateBuffer(Capacity);
                         }
                         else if (position + size > Capacity)
                         {
@@ -931,7 +912,7 @@ namespace Cyxor.Serialization
                             else
                                 Capacity += Capacity / 2;
 
-                            var newBuffer = new byte[Capacity];
+                            var newBuffer = CreateBuffer(Capacity);
 
                             System.Buffer.BlockCopy(buffer, 0, newBuffer, 0, length);
 

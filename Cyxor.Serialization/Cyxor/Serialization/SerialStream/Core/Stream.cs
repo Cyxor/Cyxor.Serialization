@@ -27,8 +27,7 @@ namespace Cyxor.Serialization
 {
     using Extensions;
 
-    [DebuggerDisplay("{DebuggerDisplay()}")]
-    public sealed partial class SerialStream : Stream
+    partial class SerializationStream
     {
         public override bool CanRead => true;
         public override bool CanSeek => true;

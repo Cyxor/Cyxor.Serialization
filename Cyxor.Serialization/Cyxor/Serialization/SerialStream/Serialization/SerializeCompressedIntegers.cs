@@ -1,6 +1,6 @@
 ﻿namespace Cyxor.Serialization
 {
-    partial class SerialStream
+    partial class SerializationStream
     {
         public void SerializeCompressedInt(short value)
             => SerializeCompressedInt((ulong)((value << 1) ^ (value >> 15)));

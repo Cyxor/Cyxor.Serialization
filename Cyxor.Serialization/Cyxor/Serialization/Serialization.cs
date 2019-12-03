@@ -10,8 +10,8 @@ namespace Cyxor.Serialization
 
     public interface ISerializable
     {
-        void Serialize(SerialStream serializer);
-        void Deserialize(SerialStream serializer);
+        void Serialize(SerializationStream serializer);
+        void Deserialize(SerializationStream serializer);
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
@@ -22,8 +22,8 @@ namespace Cyxor.Serialization
         bool disposed;
 
         [CyxorIgnore]
-        SerialStream serializer = new SerialStream();
-        public virtual SerialStream Serializer
+        SerializationStream serializer = new SerializationStream();
+        public virtual SerializationStream Serializer
         {
             get
             {

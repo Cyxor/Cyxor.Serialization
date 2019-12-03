@@ -11,7 +11,7 @@ namespace Cyxor.Serialization
     using Extensions;
 #endif
 
-    partial class SerialStream
+    partial class SerializationStream
     {
         void TypeSerializeObject(object? value, Type? type, bool raw, IBackingSerializer? backingSerializer = default, object? backingSerializerOptions = default)
         {
@@ -22,7 +22,7 @@ namespace Cyxor.Serialization
             }
 
             AutoRaw = raw;
-            Delegate.GetAction(type ?? value?.GetType() ?? typeof(object))(this, value);
+            SerializationDelegateCache.GetSerializationMethod(type ?? value?.GetType() ?? typeof(object))(this, value);
             AutoRaw = false;
         }
 

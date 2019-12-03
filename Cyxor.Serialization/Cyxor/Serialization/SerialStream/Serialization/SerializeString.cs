@@ -1,6 +1,6 @@
 ﻿namespace Cyxor.Serialization
 {
-    partial class SerialStream
+    partial class SerializationStream
     {
         void InternalSerialize(string? value, bool raw)
         {

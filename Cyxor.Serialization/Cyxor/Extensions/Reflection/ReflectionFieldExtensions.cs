@@ -87,7 +87,7 @@ namespace Cyxor.Extensions
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
         /// <param name="fieldType">
-        /// The return type of the fields.
+        /// The type of the fields.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
         /// <param name="attributes">
@@ -191,11 +191,11 @@ namespace Cyxor.Extensions
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
         /// <param name="hasGenericFieldType">
-        /// A value indicating whether the field is a generic field-type.
+        /// A value indicating whether the field has a generic field-type.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
         /// <param name="hasGenericFieldTypeDefinition">
-        /// A value indicating whether the field is a generic field-type definition.
+        /// A value indicating whether the field has a generic field-type definition.
         /// The default value is <see langword="null"/> to not use this filter.
         /// </param>
         /// <param name="isLiteral">

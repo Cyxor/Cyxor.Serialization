@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Cyxor.Serialization
 {
-    partial class SerialStream
+    partial class SerializationStream
     {
         void InternalSerialize<T1, T2>(IEnumerable<T1>? value1, IEnumerable<KeyValuePair<T1, T2>>? value2)
         {

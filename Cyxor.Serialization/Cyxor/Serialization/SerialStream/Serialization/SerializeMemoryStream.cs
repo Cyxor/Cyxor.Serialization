@@ -8,7 +8,7 @@ namespace Cyxor.Serialization
 
     using BufferOverflowException = EndOfStreamException;
 
-    partial class SerialStream
+    partial class SerializationStream
     {
         void InternalSerialize(MemoryStream? value, bool raw)
         {

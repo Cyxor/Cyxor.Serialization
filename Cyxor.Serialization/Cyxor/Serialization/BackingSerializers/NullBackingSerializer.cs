@@ -4,16 +4,16 @@ namespace Cyxor.Serialization
 {
     public class NullBackingSerializer : IBackingSerializer
     {
-        public void Serialize(SerialStream serialStream, object? value, Type? inputType, object? backingSerializerOptions)
+        public void Serialize(SerializationStream serialStream, object? value, Type? inputType, object? backingSerializerOptions)
             => serialStream.Serialize(default(object));
 
-        public void Serialize<T>(SerialStream serialStream, T value, object? backingSerializerOptions)
+        public void Serialize<T>(SerializationStream serialStream, T value, object? backingSerializerOptions)
             => serialStream.Serialize(default(object));
 
-        public T Deserialize<T>(SerialStream serialStream, object? backingSerializerOptions)
+        public T Deserialize<T>(SerializationStream serialStream, object? backingSerializerOptions)
             => serialStream.DeserializeObject<T>();
 
-        public object? Deserialize(SerialStream serialStream, Type type, object? backingSerializerOptions)
+        public object? Deserialize(SerializationStream serialStream, Type type, object? backingSerializerOptions)
             => serialStream.DeserializeObject(type);
     }
 }

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Cyxor.Serialization
 {
-    partial class SerialStream
+    partial class SerializationStream
     {
         #region Array
 

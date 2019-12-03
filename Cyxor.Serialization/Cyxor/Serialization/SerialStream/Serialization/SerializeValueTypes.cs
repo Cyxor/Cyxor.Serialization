@@ -2,7 +2,7 @@
 
 namespace Cyxor.Serialization
 {
-    partial class SerialStream
+    partial class SerializationStream
     {
         void SerializeNumeric(ValueType value, int size, bool unsigned, bool floatingPoint = false, bool? littleEndian = default)
         {

@@ -7,21 +7,21 @@ namespace Cyxor.Serialization
 {
     public class JsonBackingSerializer : IBackingSerializer
     {
-        public void Serialize(SerialStream serialStream, object? value, Type? inputType, object? backingSerializerOptions)
+        public void Serialize(SerializationStream serialStream, object? value, Type? inputType, object? backingSerializerOptions)
         {
             var jsonSerializerOptions = IBackingSerializer.CheckOptionsObject<JsonSerializerOptions>(backingSerializerOptions);
             using var utf8JsonWriter = new Utf8JsonWriter(serialStream);
             JsonSerializer.Serialize(utf8JsonWriter, value, inputType ?? value?.GetType() ?? typeof(object), jsonSerializerOptions);
         }
 
-        public void Serialize<T>(SerialStream serialStream, T value, object? backingSerializerOptions)
+        public void Serialize<T>(SerializationStream serialStream, T value, object? backingSerializerOptions)
         {
             var jsonSerializerOptions = IBackingSerializer.CheckOptionsObject<JsonSerializerOptions>(backingSerializerOptions);
             using var utf8JsonWriter = new Utf8JsonWriter(serialStream);
             JsonSerializer.Serialize(utf8JsonWriter, value, jsonSerializerOptions);
         }
 
-        public T Deserialize<T>(SerialStream serialStream, object? backingSerializerOptions)
+        public T Deserialize<T>(SerializationStream serialStream, object? backingSerializerOptions)
         {
             var jsonSerializerOptions = IBackingSerializer.CheckOptionsObject<JsonSerializerOptions>(backingSerializerOptions);
             var readOnlySpan = new ReadOnlySpan<byte>(serialStream.GetBuffer(), serialStream.Int32Position, serialStream.Int32Length);
@@ -31,7 +31,7 @@ namespace Cyxor.Serialization
             return value;
         }
 
-        public object? Deserialize(SerialStream serialStream, Type type, object? backingSerializerOptions)
+        public object? Deserialize(SerializationStream serialStream, Type type, object? backingSerializerOptions)
         {
             var jsonSerializerOptions = IBackingSerializer.CheckOptionsObject<JsonSerializerOptions>(backingSerializerOptions);
             var readOnlySpan = new ReadOnlySpan<byte>(serialStream.GetBuffer(), serialStream.Int32Position, serialStream.Int32Length);

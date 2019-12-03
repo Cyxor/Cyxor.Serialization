@@ -39,7 +39,7 @@ namespace Cyxor.Serialization.Test
         [TestMethod]
         public void GroupingX()
         {
-            using var ss = new SerialStream();
+            using var ss = new SerializationStream();
             ss.Serialize(ProductCategory.Vehicles);
 
             ss.Position = 0;
@@ -68,12 +68,12 @@ namespace Cyxor.Serialization.Test
                                                            group product by product.Price
                                                        group categoryProduct by categoryGroup.Key;
 
-            using var serializer = new SerialStream();
+            using var serializer = new SerializationStream();
             serializer.Serialize(productsGroupedByCategory.First());
             serializer.Serialize(productsGroupedByCategory);
             serializer.Serialize(productsGroupedByCategoryThenByPrice);
 
-            using var deserializer = new SerialStream(serializer) { Position = 0 };
+            using var deserializer = new SerializationStream(serializer) { Position = 0 };
 
             //todo: error in the deserialization of the enum.
 

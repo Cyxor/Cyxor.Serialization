@@ -2,27 +2,27 @@
 
 namespace Cyxor.Serialization
 {
-    partial class SerialStream
+    partial class SerializationStream
     {
-        public SerialStream DeserializeSerialStream()
-            => new SerialStream(DeserializeBytes());
+        public SerializationStream DeserializeSerialStream()
+            => new SerializationStream(DeserializeBytes());
 
-        public SerialStream? DeserializeNullableSerialStream()
+        public SerializationStream? DeserializeNullableSerialStream()
         {
             var bytes = DeserializeNullableBytes();
-            return bytes == default ? default : new SerialStream(bytes);
+            return bytes == default ? default : new SerializationStream(bytes);
         }
 
-        public SerialStream DeserializeRawSerialStream()
-            => new SerialStream(DeserializeRawBytes());
+        public SerializationStream DeserializeRawSerialStream()
+            => new SerializationStream(DeserializeRawBytes());
 
-        public SerialStream? DeserializeNullableRawSerialStream()
+        public SerializationStream? DeserializeNullableRawSerialStream()
         {
             var bytes = DeserializeNullableRawBytes();
-            return bytes == default ? default : new SerialStream(bytes);
+            return bytes == default ? default : new SerializationStream(bytes);
         }
 
-        public bool TryDeserializeSerialStream([NotNullWhen(true)] out SerialStream? value)
+        public bool TryDeserializeSerialStream([NotNullWhen(true)] out SerializationStream? value)
         {
             value = default;
 
@@ -31,7 +31,7 @@ namespace Cyxor.Serialization
 
             try
             {
-                value = new SerialStream(bytes);
+                value = new SerializationStream(bytes);
                 return true;
             }
             catch
@@ -40,7 +40,7 @@ namespace Cyxor.Serialization
             }
         }
 
-        public bool TryDeserializeNullableSerialStream(out SerialStream? value)
+        public bool TryDeserializeNullableSerialStream(out SerializationStream? value)
         {
             value = default;
 
@@ -52,7 +52,7 @@ namespace Cyxor.Serialization
 
             try
             {
-                value = new SerialStream(bytes);
+                value = new SerializationStream(bytes);
                 return true;
             }
             catch
@@ -61,13 +61,13 @@ namespace Cyxor.Serialization
             }
         }
 
-        public SerialStream ToSerialStream()
+        public SerializationStream ToSerialStream()
         {
             position = 0;
             return DeserializeRawSerialStream();
         }
 
-        public SerialStream? ToNullableSerialStream()
+        public SerializationStream? ToNullableSerialStream()
         {
             position = 0;
             return DeserializeNullableRawSerialStream();

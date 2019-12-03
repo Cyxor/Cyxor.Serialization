@@ -20,7 +20,7 @@ namespace Cyxor.Serialization.Test
         public void TotalDeclaredFields()
         {
             var totalDeclaredFields = 437;
-            var declaredFieldsCount = typeof(SerialStream).GetAllDeclaredFields().Count();
+            var declaredFieldsCount = typeof(SerializationStream).GetAllDeclaredFields().Count();
 
             Assert.IsTrue(declaredFieldsCount == totalDeclaredFields);
         }
@@ -33,7 +33,7 @@ namespace Cyxor.Serialization.Test
         public void TotalDeclaredProperties()
         {
             var totalDeclaredProperties = 437;
-            var declaredPropertiesCount = typeof(SerialStream).GetAllDeclaredProperties().Count();
+            var declaredPropertiesCount = typeof(SerializationStream).GetAllDeclaredProperties().Count();
 
             Assert.IsTrue(declaredPropertiesCount == totalDeclaredProperties);
         }
@@ -46,7 +46,7 @@ namespace Cyxor.Serialization.Test
         public void TotalDeclaredMethods()
         {
             var totalDeclaredMethods = 437;
-            var declaredMethodsCount = typeof(SerialStream).GetAllDeclaredMethods().Count();
+            var declaredMethodsCount = typeof(SerializationStream).GetAllDeclaredMethods().Count();
 
             Assert.IsTrue(declaredMethodsCount == totalDeclaredMethods);
         }
@@ -54,8 +54,8 @@ namespace Cyxor.Serialization.Test
         [TestMethod]
         public void Properties()
         {
-            var declaredMethods = typeof(SerialStream).GetAllDeclaredMethods().Count();
-            var runtimeMethods = typeof(SerialStream).GetAllRuntimeMethods().Count();
+            var declaredMethods = typeof(SerializationStream).GetAllDeclaredMethods().Count();
+            var runtimeMethods = typeof(SerializationStream).GetAllRuntimeMethods().Count();
 
             Logger.LogMessage($"{declaredMethods}/{runtimeMethods}");
 
