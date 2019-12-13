@@ -8,7 +8,7 @@ namespace Cyxor.Serialization
 
     partial class SerializationStream
     {
-        void InternalSerialize<T>(in ReadOnlySpan<T> readOnlySpan, bool raw) where T : struct
+        void InternalSerialize<T>(in ReadOnlySpan<T> readOnlySpan, bool raw) where T : unmanaged
         {
             if (readOnlySpan.IsEmpty)
             {
@@ -18,7 +18,7 @@ namespace Cyxor.Serialization
                 return;
             }
 
-            var bytesReadOnlySpan = readOnlySpan.ToReadOnlySpanOfBytes();
+            var bytesReadOnlySpan = readOnlySpan.Cast<T, byte>();
 
             if (!raw)
                 SerializeOp(bytesReadOnlySpan.Length);
@@ -28,16 +28,16 @@ namespace Cyxor.Serialization
             bytesReadOnlySpan.CopyTo(new Span<byte>(buffer, position, bytesReadOnlySpan.Length));
         }
 
-        public void Serialize<T>(Span<T> span) where T : struct
+        public void Serialize<T>(Span<T> span) where T : unmanaged
             => InternalSerialize((ReadOnlySpan<T>)span, AutoRaw);
 
-        public void SerializeRaw<T>(Span<T> span) where T : struct
+        public void SerializeRaw<T>(Span<T> span) where T : unmanaged
             => InternalSerialize((ReadOnlySpan<T>)span, raw: true);
 
-        public void Serialize<T>(ReadOnlySpan<T> readOnlySpan) where T : struct
+        public void Serialize<T>(ReadOnlySpan<T> readOnlySpan) where T : unmanaged
             => InternalSerialize(readOnlySpan, AutoRaw);
 
-        public void SerializeRaw<T>(ReadOnlySpan<T> readOnlySpan) where T : struct
+        public void SerializeRaw<T>(ReadOnlySpan<T> readOnlySpan) where T : unmanaged
             => InternalSerialize(readOnlySpan, raw: true);
     }
 }

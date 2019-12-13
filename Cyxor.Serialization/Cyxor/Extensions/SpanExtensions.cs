@@ -6,17 +6,15 @@ namespace Cyxor.Extensions
 {
     static class SpanExtensions
     {
-        public static Span<byte> ToSpanOfBytes<T>(this in Span<T> span) where T : struct
-            => System.Runtime.InteropServices.MemoryMarshal.AsBytes(span);
+        public static Span<TTo> Cast<TFrom, TTo>(this in Span<TFrom> span)
+            where TFrom : unmanaged
+            where TTo : unmanaged
+            => System.Runtime.InteropServices.MemoryMarshal.Cast<TFrom, TTo>(span);
 
-        public static ReadOnlySpan<byte> ToReadOnlySpanOfBytes<T>(this in ReadOnlySpan<T> readOnlySpan) where T : struct
-            => System.Runtime.InteropServices.MemoryMarshal.AsBytes(readOnlySpan);
-
-        public static Span<T> ToSpanOf<T>(this in Span<byte> span) where T : struct
-            => System.Runtime.InteropServices.MemoryMarshal.Cast<byte, T>(span);
-
-        public static ReadOnlySpan<T> ToReadOnlySpanOf<T>(this in ReadOnlySpan<byte> readOnlySpan) where T : struct
-            => System.Runtime.InteropServices.MemoryMarshal.Cast<byte, T>(readOnlySpan);
+        public static ReadOnlySpan<TTo> Cast<TFrom, TTo>(this in ReadOnlySpan<TFrom> readOnlySpan)
+            where TFrom : unmanaged
+            where TTo : unmanaged
+            => System.Runtime.InteropServices.MemoryMarshal.Cast<TFrom, TTo>(readOnlySpan);
     }
 }
 

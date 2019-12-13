@@ -1,7 +1,6 @@
 ﻿#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Cyxor.Serialization
 {
@@ -9,42 +8,44 @@ namespace Cyxor.Serialization
 
     partial class SerializationStream
     {
-        public Span<T> DeserializeSpan<T>() where T: struct
+        public Span<T> DeserializeSpan<T>() where T: unmanaged
         {
             if (AutoRaw)
                 return DeserializeRawSpan<T>();
 
             var count = DeserializeOp();
 
-            return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingValueType(typeof(Span<T>).Name))
+            return count == -1 ? throw new InvalidOperationException
+                (Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingValueType(typeof(Span<T>).Name))
                 : count == 0 ? Span<T>.Empty
                 : DeserializeSpan<T>(count);
         }
 
-        public Span<T> DeserializeRawSpan<T>() where T : struct
+        public Span<T> DeserializeRawSpan<T>() where T: unmanaged
             => DeserializeSpan<T>(length - position);
 
-        public ref Span<T> DeserializeRawSpan<T>(ref Span<T> span) where T : struct
+        public ref Span<T> DeserializeRawSpan<T>(ref Span<T> span) where T : unmanaged
             => ref DeserializeSpan(ref span, length - position);
 
-        public Span<T> DeserializeSpan<T>(int bytesCount) where T: struct
+        public Span<T> DeserializeSpan<T>(int bytesCount) where T: unmanaged
         {
             var span = new Span<byte>(new byte[bytesCount]);
             _ = DeserializeSpan(ref span, bytesCount);
-            return span.ToSpanOf<T>();
+            return span.Cast<byte, T>();
         }
 
-        public ref Span<T> DeserializeSpan<T>(ref Span<T> span) where T: struct
+        public ref Span<T> DeserializeSpan<T>(ref Span<T> span) where T: unmanaged
         {
             var count = DeserializeOp();
 
             if (count == -1)
-                throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingValueType(typeof(Span<T>).Name));
+                throw new InvalidOperationException
+                    (Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingValueType(typeof(Span<T>).Name));
 
             return ref count == 0 ? ref span : ref DeserializeSpan(ref span, count);
         }
 
-        public ref Span<T> DeserializeSpan<T>(ref Span<T> span, int bytesCount) where T: struct
+        public ref Span<T> DeserializeSpan<T>(ref Span<T> span, int bytesCount) where T: unmanaged
         {
             if (bytesCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(bytesCount), $"Parameter {nameof(bytesCount)} must be a positive value");
@@ -58,7 +59,7 @@ namespace Cyxor.Serialization
             EnsureCapacity(bytesCount, SerializerOperation.Deserialize);
 
             var bufferSpan = new Span<byte>(buffer, position, bytesCount);
-            var spanOfT = bufferSpan.ToSpanOf<T>();
+            var spanOfT = bufferSpan.Cast<byte, T>();
 
             spanOfT.CopyTo(span);
             position += bytesCount;
@@ -66,7 +67,7 @@ namespace Cyxor.Serialization
             return ref span;
         }
 
-        public bool TryDeserializeSpan<T>(out Span<T> value) where T: struct
+        public bool TryDeserializeSpan<T>(out Span<T> value) where T: unmanaged
         {
             value = Span<T>.Empty;
 
@@ -84,21 +85,21 @@ namespace Cyxor.Serialization
             }
         }
 
-        public bool TryDeserializeSpan<T>(out Span<T> value, int count) where T: struct
+        public bool TryDeserializeSpan<T>(out Span<T> value, int bytesCount) where T: unmanaged
         {
             value = Span<T>.Empty;
 
-            if (count <= 0)
+            if (bytesCount <= 0)
                 return false;
 
-            if (length - position < count)
+            if (length - position < bytesCount)
                 return false;
 
             var currentPosition = position;
 
             try
             {
-                value = DeserializeSpan<T>(count);
+                value = DeserializeSpan<T>(bytesCount);
                 return true;
             }
             catch
@@ -108,28 +109,29 @@ namespace Cyxor.Serialization
             }
         }
 
-        public Span<T> ToSpan<T>() where T : struct
+        public Span<T> ToSpan<T>() where T : unmanaged
         {
             position = 0;
             return DeserializeRawSpan<T>();
         }
 
-        public ReadOnlySpan<T> DeserializeReadOnlySpan<T>() where T : struct
+        public ReadOnlySpan<T> DeserializeReadOnlySpan<T>() where T : unmanaged
         {
             if (AutoRaw)
                 return DeserializeRawReadOnlySpan<T>();
 
             var count = DeserializeOp();
 
-            return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingValueType(typeof(ReadOnlySpan<T>).Name))
+            return count == -1 ? throw new InvalidOperationException
+                (Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingValueType(typeof(ReadOnlySpan<T>).Name))
                 : count == 0 ? ReadOnlySpan<T>.Empty
                 : DeserializeReadOnlySpan<T>(count);
         }
 
-        public ReadOnlySpan<T> DeserializeRawReadOnlySpan<T>() where T : struct
+        public ReadOnlySpan<T> DeserializeRawReadOnlySpan<T>() where T : unmanaged
             => DeserializeReadOnlySpan<T>(length - position);
 
-        public ReadOnlySpan<T> DeserializeReadOnlySpan<T>(int bytesCount) where T : struct
+        public ReadOnlySpan<T> DeserializeReadOnlySpan<T>(int bytesCount) where T : unmanaged
         {
             if (bytesCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(bytesCount), $"Parameter {nameof(bytesCount)} must be a positive value");
@@ -143,10 +145,10 @@ namespace Cyxor.Serialization
 
             position += bytesCount;
 
-            return bufferReadOnlySpan.ToReadOnlySpanOf<T>();
+            return bufferReadOnlySpan.Cast<byte, T>();
         }
 
-        public bool TryDeserializeReadOnlySpan<T>(out ReadOnlySpan<T> value) where T : struct
+        public bool TryDeserializeReadOnlySpan<T>(out ReadOnlySpan<T> value) where T : unmanaged
         {
             value = ReadOnlySpan<T>.Empty;
 
@@ -164,21 +166,21 @@ namespace Cyxor.Serialization
             }
         }
 
-        public bool TryDeserializeReadOnlySpan<T>(out ReadOnlySpan<T> value, int count) where T : struct
+        public bool TryDeserializeReadOnlySpan<T>(out ReadOnlySpan<T> value, int bytesCount) where T : unmanaged
         {
             value = ReadOnlySpan<T>.Empty;
 
-            if (count <= 0)
+            if (bytesCount <= 0)
                 return false;
 
-            if (length - position < count)
+            if (length - position < bytesCount)
                 return false;
 
             var currentPosition = position;
 
             try
             {
-                value = DeserializeReadOnlySpan<T>(count);
+                value = DeserializeReadOnlySpan<T>(bytesCount);
                 return true;
             }
             catch
@@ -188,7 +190,7 @@ namespace Cyxor.Serialization
             }
         }
 
-        public ReadOnlySpan<T> ToReadOnlySpan<T>() where T : struct
+        public ReadOnlySpan<T> ToReadOnlySpan<T>() where T : unmanaged
         {
             position = 0;
             return DeserializeRawReadOnlySpan<T>();

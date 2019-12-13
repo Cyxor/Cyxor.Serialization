@@ -351,7 +351,7 @@ namespace Cyxor.Serialization
             return false;
         }
 
-        public bool TryDeserializeEnum<TEnum>(out TEnum value) where TEnum : struct
+        public bool TryDeserializeEnum<TEnum>(out TEnum value) where TEnum : struct, Enum
         {
             value = default;
 
