@@ -1,6 +1,7 @@
 ﻿#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
 
 using System;
+using System.Runtime.InteropServices;
 
 namespace Cyxor.Extensions
 {
@@ -9,12 +10,12 @@ namespace Cyxor.Extensions
         public static Span<TTo> Cast<TFrom, TTo>(this in Span<TFrom> span)
             where TFrom : unmanaged
             where TTo : unmanaged
-            => System.Runtime.InteropServices.MemoryMarshal.Cast<TFrom, TTo>(span);
+            => MemoryMarshal.Cast<TFrom, TTo>(span);
 
         public static ReadOnlySpan<TTo> Cast<TFrom, TTo>(this in ReadOnlySpan<TFrom> readOnlySpan)
             where TFrom : unmanaged
             where TTo : unmanaged
-            => System.Runtime.InteropServices.MemoryMarshal.Cast<TFrom, TTo>(readOnlySpan);
+            => MemoryMarshal.Cast<TFrom, TTo>(readOnlySpan);
     }
 }
 
