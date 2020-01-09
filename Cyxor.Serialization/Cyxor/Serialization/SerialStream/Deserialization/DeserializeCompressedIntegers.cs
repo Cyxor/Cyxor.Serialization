@@ -2,20 +2,26 @@
 
 namespace Cyxor.Serialization
 {
-    partial class SerializationStream
+    partial class Serializer
     {
         #region CompressedIntegers
 
-        public ulong DeserializeCompressedInt(int size, bool isSigned)
+        ulong InternalDeserializeCompressedInt(int size, bool isSigned)
         {
             ulong val1 = 0;
             var val2 = 0;
             byte val3;
 
-            var bitVal = size == sizeof(short) ? 21 : size == sizeof(int) ? 35 : size == sizeof(long) ? 63 : 0;
+            var bitVal = size switch
+            {
+                2 => 21,
+                4 => 35,
+                8 => 63,
+                _ => 0
+            };
 
             if (bitVal == 0)
-                throw new ArgumentException(Utilities.ResourceStrings.ExceptionMessageBufferDeserializeNumeric);
+                throw new ArgumentException("Invalid size", nameof(size));
 
             while (val2 != bitVal)
             {
@@ -31,28 +37,28 @@ namespace Cyxor.Serialization
         }
 
         public short DeserializeCompressedInt16()
-            => (short)DeserializeCompressedInt(sizeof(short), isSigned: true);
-
-        public ushort DeserializeCompressedUInt16()
-            => (ushort)DeserializeCompressedInt(sizeof(ushort), isSigned: false);
+            => (short)InternalDeserializeCompressedInt(sizeof(short), isSigned: true);
 
         public int DeserializeCompressedInt32()
-            => (int)DeserializeCompressedInt(sizeof(int), isSigned: true);
-
-        public uint DeserializeCompressedUInt32()
-            => (uint)DeserializeCompressedInt(sizeof(uint), isSigned: false);
+            => (int)InternalDeserializeCompressedInt(sizeof(int), isSigned: true);
 
         public long DeserializeCompressedInt64()
-            => (long)DeserializeCompressedInt(sizeof(long), isSigned: true);
+            => (long)InternalDeserializeCompressedInt(sizeof(long), isSigned: true);
+
+        public ushort DeserializeCompressedUInt16()
+            => (ushort)InternalDeserializeCompressedInt(sizeof(ushort), isSigned: false);
+
+        public uint DeserializeCompressedUInt32()
+            => (uint)InternalDeserializeCompressedInt(sizeof(uint), isSigned: false);
 
         public ulong DeserializeCompressedUInt64()
-            => DeserializeCompressedInt(sizeof(ulong), isSigned: false);
+            => InternalDeserializeCompressedInt(sizeof(ulong), isSigned: false);
 
         #endregion CompressedIntegers
 
         #region CompressedIntegersTry
 
-        bool TryDeserializeCompressedInt<T>(out T value, int size, bool signed) where T : struct
+        bool InternalTryDeserializeCompressedInt<T>(out T value, int size, bool signed) where T : struct
         {
             var result = false;
             var startPosition = position;
@@ -98,23 +104,23 @@ namespace Cyxor.Serialization
             return result;
         }
 
-        public bool TryDeserializeCompressedUInt16(out ushort value)
-            => TryDeserializeCompressedInt(out value, sizeof(ushort), signed: false);
-
-        public bool TryDeserializeCompressedUInt32(out uint value)
-            => TryDeserializeCompressedInt(out value, sizeof(uint), signed: false);
-
-        public bool TryDeserializeCompressedUInt64(out ulong value)
-            => TryDeserializeCompressedInt(out value, sizeof(ulong), signed: false);
-
         public bool TryDeserializeCompressedInt16(out short value)
-            => TryDeserializeCompressedInt(out value, sizeof(short), signed: true);
+            => InternalTryDeserializeCompressedInt(out value, sizeof(short), signed: true);
 
         public bool TryDeserializeCompressedInt32(out int value)
-            => TryDeserializeCompressedInt(out value, sizeof(int), signed: true);
+            => InternalTryDeserializeCompressedInt(out value, sizeof(int), signed: true);
 
         public bool TryDeserializeCompressedInt64(out long value)
-            => TryDeserializeCompressedInt(out value, sizeof(long), signed: true);
+            => InternalTryDeserializeCompressedInt(out value, sizeof(long), signed: true);
+
+        public bool TryDeserializeCompressedUInt16(out ushort value)
+            => InternalTryDeserializeCompressedInt(out value, sizeof(ushort), signed: false);
+
+        public bool TryDeserializeCompressedUInt32(out uint value)
+            => InternalTryDeserializeCompressedInt(out value, sizeof(uint), signed: false);
+
+        public bool TryDeserializeCompressedUInt64(out ulong value)
+            => InternalTryDeserializeCompressedInt(out value, sizeof(ulong), signed: false);
 
         #endregion CompressedIntegersTry
     }

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Cyxor.Serialization
 {
-    partial class SerializationStream
+    partial class Serializer
     {
         #region Array
 
@@ -54,6 +54,7 @@ namespace Cyxor.Serialization
                 : InternalDeserializeArray<T>(count);
         }
 
+        [SerializerMethodIdentifier(SerializerMethodIdentifier.DeserializeArray)]
         public T[]? DeserializeNullableArray<T>()
         {
             var count = DeserializeOp();
@@ -161,6 +162,7 @@ namespace Cyxor.Serialization
                 : InternalDeserializeIEnumerable<T>(count);
         }
 
+        [SerializerMethodIdentifier(SerializerMethodIdentifier.DeserializeIEnumerable)]
         public IEnumerable<T>? DeserializeNullableIEnumerable<T>()
         {
             var count = DeserializeOp();
@@ -232,6 +234,7 @@ namespace Cyxor.Serialization
                 : InternalDeserializeIEnumerable<TKey, TValue>(count);
         }
 
+        [SerializerMethodIdentifier(SerializerMethodIdentifier.DeserializeIDictionary)]
         public IEnumerable<KeyValuePair<TKey, TValue>>? DeserializeNullableIEnumerable<TKey, TValue>()
             where TKey : notnull
         {
@@ -299,6 +302,7 @@ namespace Cyxor.Serialization
             throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(IGrouping<TKey, TElement>).Name));
         }
 
+        [SerializerMethodIdentifier(SerializerMethodIdentifier.DeserializeIGrouping)]
         public IGrouping<TKey, TElement>? DeserializeNullableIGrouping<TKey, TElement>()
             where TKey : notnull
         {

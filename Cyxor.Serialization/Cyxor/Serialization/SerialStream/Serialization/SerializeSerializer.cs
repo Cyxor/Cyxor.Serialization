@@ -1,8 +1,8 @@
 ﻿namespace Cyxor.Serialization
 {
-    partial class SerializationStream
+    partial class Serializer
     {
-        void InternalSerialize(SerializationStream? value, bool raw)
+        void InternalSerialize(Serializer? value, bool raw)
         {
             if (value == default)
             {
@@ -15,10 +15,10 @@
             InternalSerialize(value.buffer, 0, value.length, raw);
         }
 
-        public void Serialize(SerializationStream? value)
+        public void Serialize(Serializer? value)
             => InternalSerialize(value, AutoRaw);
 
-        public void SerializeRaw(SerializationStream? value)
+        public void SerializeRaw(Serializer? value)
             => InternalSerialize(value, raw: true);
     }
 }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Cyxor.Serialization
 {
-    partial class SerializationStream
+    partial class Serializer
     {
         void InternalSerialize<T1, T2>(IEnumerable<T1>? value1, IEnumerable<KeyValuePair<T1, T2>>? value2)
         {
@@ -54,16 +54,20 @@ namespace Cyxor.Serialization
                 }
         }
 
+        [SerializerMethodIdentifier(SerializerMethodIdentifier.SerializeArray)]
         public void Serialize<T>(T[]? value)
             => InternalSerialize<T, T>(value, default);
 
+        [SerializerMethodIdentifier(SerializerMethodIdentifier.SerializeIEnumerable)]
         public void Serialize<T>(IEnumerable<T>? value)
             => InternalSerialize<T, T>(value, default);
 
+        [SerializerMethodIdentifier(SerializerMethodIdentifier.SerializeIDictionary)]
         public void Serialize<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>>? value)
             where TKey : notnull
             => InternalSerialize(default, value);
 
+        [SerializerMethodIdentifier(SerializerMethodIdentifier.SerializeIGrouping)]
         public void Serialize<TKey, TElement>(IGrouping<TKey, TElement>? value)
             where TKey : notnull
         {

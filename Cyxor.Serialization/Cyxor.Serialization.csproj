@@ -6,12 +6,13 @@
     <LangVersion>8.0</LangVersion>
     <RootNamespace></RootNamespace>
     <Authors>Yandy Zaldivar</Authors>
-    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionPrefix>0.2.0</VersionPrefix>
     <!--<VersionSuffix>preview</VersionSuffix>-->
     <Copyright>@ Yandy Zaldivar</Copyright>
-    <AssemblyName>Cyxor.Serialization</AssemblyName>
-    <AssemblyTitle>Cyxor.Serialization</AssemblyTitle>
-    <TargetFrameworks>net20;net35;net40;net45;netstandard1.0<!--;netstandard1.1-->;netstandard1.3;netstandard2.0;netstandard2.1;netcoreapp3.0</TargetFrameworks>
+    <AssemblyName>Cyxor.SerializationX</AssemblyName>
+    <AssemblyTitle>Cyxor.SerializationX</AssemblyTitle>
+    <!--<TargetFrameworks>net20;net35;net40;net45;netstandard1.0--><!--;netstandard1.1--><!--;netstandard1.3;netstandard2.0;netstandard2.1;netcoreapp3.0;netcoreapp3.1</TargetFrameworks>-->
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <Description>Effective binary object serialization class library for low-overhead network transmissions</Description>
 
     <Deterministic>true</Deterministic>
@@ -30,7 +31,7 @@
     <!--<NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.1' ">1.6.1</NetStandardImplicitPackageVersion>-->
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.1</NetStandardImplicitPackageVersion>
     <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
-  
+
     <!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
   </PropertyGroup>
 

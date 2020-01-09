@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Cyxor.Serialization
 {
-    partial class SerializationStream
+    partial class Serializer
     {
         public string DeserializeString()
         {
@@ -53,6 +53,7 @@ namespace Cyxor.Serialization
             position += byteCount;
 
             return Encoding.GetString(buffer!, position - byteCount, byteCount);
+            //return System.Text.Encoding.Unicode.GetString(buffer!, position - byteCount, byteCount);
         }
 
         /// <summary>
@@ -73,6 +74,7 @@ namespace Cyxor.Serialization
             position += byteCount;
 
             return Encoding.GetString(buffer!, position - byteCount, byteCount);
+            //return System.Text.Encoding.Unicode.GetString(buffer!, position - byteCount, byteCount);
         }
 
         public bool TryDeserializeString([NotNullWhen(true)] out string? value)

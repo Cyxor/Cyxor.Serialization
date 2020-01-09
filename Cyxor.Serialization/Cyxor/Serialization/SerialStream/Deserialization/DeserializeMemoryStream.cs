@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Cyxor.Serialization
 {
-    partial class SerializationStream
+    partial class Serializer
     {
         public MemoryStream DeserializeMemoryStream()
             => new MemoryStream(DeserializeBytes());

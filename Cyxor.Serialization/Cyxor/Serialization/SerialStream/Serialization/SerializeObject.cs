@@ -11,9 +11,9 @@ namespace Cyxor.Serialization
     using Extensions;
 #endif
 
-    partial class SerializationStream
+    partial class Serializer
     {
-        void TypeSerializeObject(object? value, Type? type, bool raw, IBackingSerializer? backingSerializer = default, object? backingSerializerOptions = default)
+        void TypeSerializeObject(object? value, Type? type, bool raw, IBackingSerializer? backingSerializer = default, object? backingSerializerOptions = default, Action<Serializer, object?>? action = null)
         {
             if (backingSerializer != default)
             {
@@ -22,7 +22,8 @@ namespace Cyxor.Serialization
             }
 
             AutoRaw = raw;
-            SerializationDelegateCache.GetSerializationMethod(type ?? value?.GetType() ?? typeof(object))(this, value);
+            type ??= value?.GetType() ?? typeof(object);
+            (action ?? SerializerDelegateCache.GetSerializationMethod(type))(this, value);
             AutoRaw = false;
         }
 
@@ -53,11 +54,16 @@ namespace Cyxor.Serialization
                 return;
             }
 
-            if (CircularReferencesActive)
+            var circularReferencesRootObject = false;
+
+            if (Options.HandleCircularReferences)
             {
+                if (CircularReferencesIndex == 0)
+                    circularReferencesRootObject = true;
+
                 if (!raw)
                 {
-                    if (CircularReferencesDictionary.TryGetValue(value, out var index))
+                    if (CircularReferencesSerializeDictionary.TryGetValue(value, out var index))
                     {
                         if (index + 1 < ObjectProperties.MaxLength)
                             Serialize((byte)(ObjectProperties.CircularMap | ((index + 1) << 2)));
@@ -71,13 +77,13 @@ namespace Cyxor.Serialization
                     }
                 }
 
-                CircularReferencesDictionary.Add(value, CircularReferencesIndex++);
+                CircularReferencesSerializeDictionary.Add(value, CircularReferencesIndex++);
             }
 
-            if (UseObjectSerialization)
+            if (Options.PrefixObjectLength)
             {
                 if (SerializationStack.Count == 0)
-                    ObjectSerializationActive = true;
+                    PrefixObjectLengthActive = true;
 
                 var objSerial = SerializationStack.Count > 0 ? SerializationStack.Peek() : default;
                 SerializationStack.Push(new ObjectSerialization(position, raw, previous: objSerial));
@@ -85,10 +91,8 @@ namespace Cyxor.Serialization
 
             try
             {
-                if (!raw && UseObjectSerialization)
-                    Serialize((byte)0);
-                else if (!raw)
-                    Serialize((byte)1);
+                if (!raw)
+                    Serialize(ObjectProperties.EmptyMap);
 
                 if (serializable != default)
                     serializable.Serialize(this);
@@ -116,9 +120,10 @@ namespace Cyxor.Serialization
                         for (var i = 0; i < typeData.Fields.Length; i++)
                             if (typeData.Fields[i].ShouldSerialize)
                             {
-                                var fieldValue = typeData.Fields[i].GetValue(value);
+                                var fieldValue = typeData.Fields[i].GetValueDelegate(value);
 
-                                TypeSerializeObject(fieldValue, typeData.Fields[i].FieldInfo.FieldType, raw: false);
+                                TypeSerializeObject(fieldValue, typeData.Fields[i].FieldInfo.FieldType, raw: false, action: typeData.Fields[i].SerializeAction);
+                                
                                 serializedFieldsCount++;
                             }
 
@@ -131,7 +136,7 @@ namespace Cyxor.Serialization
                     }
                 }
 
-                if (!raw && UseObjectSerialization)
+                if (!raw && PrefixObjectLengthActive)
                 {
                     var finalPosition = position;
                     var serializationObject = SerializationStack.Peek();
@@ -146,28 +151,27 @@ namespace Cyxor.Serialization
             }
             finally
             {
-                if (UseObjectSerialization)
+                if (PrefixObjectLengthActive)
                 {
                     var objSerial = SerializationStack.Pop();
 
-                    if (objSerial.Previous != default)
+                    if (objSerial.Previous != null)
                     {
-                        objSerial.Previous.Next = default;
-                        objSerial.Previous = default;
+                        objSerial.Previous.Next = null;
+                        objSerial.Previous = null;
                     }
 
                     if (SerializationStack.Count == 0)
                     {
-                        if (CircularReferencesActive)
-                        {
-                            CircularReferencesIndex = 0;
-                            CircularReferencesDictionary.Clear();
-                        }
-
                         SerializationStack.TrimExcess();
-
-                        ObjectSerializationActive = false;
+                        PrefixObjectLengthActive = false;
                     }
+                }
+
+                if (circularReferencesRootObject)
+                {
+                    CircularReferencesIndex = 0;
+                    CircularReferencesSerializeDictionary.Clear();
                 }
             }
         }
@@ -178,6 +182,7 @@ namespace Cyxor.Serialization
         public void SerializeRaw(object? value, Type? type = default, IBackingSerializer? backingSerializer = default, object? backingSerializerOptions = default)
             => TypeSerializeObject(value, type, raw: true, backingSerializer, backingSerializerOptions);
 
+        [SerializerMethodIdentifier(SerializerMethodIdentifier.SerializeObject)]
         public void Serialize<T>(T value)
             => InternalSerializeObject(value, raw: false);
 

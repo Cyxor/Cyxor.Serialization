@@ -9,7 +9,7 @@ namespace Cyxor.Serialization.Test
         [TestMethod]
         public void String()
         {
-            using var ss = new SerializationStream();
+            using var ss = new Serializer();
 
 
 
@@ -29,7 +29,7 @@ namespace Cyxor.Serialization.Test
             //var fuera = new Fuera();
             Fuera? fuera = null;
 
-            using var ss = new SerializationStream();
+            using var ss = new Serializer();
             ss.SerializeRaw(fuera);
 
             ss.Position = 0;
@@ -50,7 +50,7 @@ namespace Cyxor.Serialization.Test
         {
             MyEnum? guid = null;
 
-            using var ss = new SerializationStream();
+            using var ss = new Serializer();
             ss.SerializeRaw(guid);
 
             ss.Position = 0;
@@ -67,7 +67,7 @@ namespace Cyxor.Serialization.Test
         {
             string? dd = null;
 
-            using var ss = new SerializationStream();
+            using var ss = new Serializer();
             ss.SerializeRaw(dd);
 
             ss.Position = 0;
@@ -81,7 +81,7 @@ namespace Cyxor.Serialization.Test
         {
             int? ni = default;
 
-            using var ss = new SerializationStream();
+            using var ss = new Serializer();
             ss.Serialize(ni);
 
             ss.Position = 0;
@@ -99,7 +99,7 @@ namespace Cyxor.Serialization.Test
         {
             Fuera? fuera = new Fuera();
 
-            using var ss = new SerializationStream();
+            using var ss = new Serializer();
             ss.Serialize(fuera);
 
             ss.Position = 0;

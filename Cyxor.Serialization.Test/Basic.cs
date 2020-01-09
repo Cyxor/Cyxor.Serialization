@@ -3,6 +3,8 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Cyxor.Extensions;
+using BenchmarkDotNet.Attributes;
+using System.Threading;
 
 namespace Cyxor.Serialization.Test
 {
@@ -37,14 +39,20 @@ namespace Cyxor.Serialization.Test
     [TestClass]
     public class BasicTest
     {
+        [Benchmark]
+        public void Benchmarkxc()
+        {
+            Thread.Sleep(5000);
+        }
+
         [TestMethod]
         public void Initialization()
         {
             //var ax = typeof(B).GetMethodsInfo();
 
 
-            using var serialStream = new SerializationStream();
-            var schema = SerializationStream.GenerateSerializationSchema();
+            using var serialStream = new Serializer();
+            var schema = Serializer.GenerateSerializationSchema();
             Assert.IsTrue(schema.Length > 0);
 
             //var genericTypes = SerialStream.SupportedTypes.Where(p => p.IsGenericType).Where(p => !p.GenericTypeArguments.First().IsGenericParameter);
@@ -66,7 +74,7 @@ namespace Cyxor.Serialization.Test
         {
             var product = new Product { Name = "PC", Price = 450.00f };
 
-            using var ss = new SerializationStream();
+            using var ss = new Serializer();
             ss.Serialize(product);
 
             ss.Position = 0;

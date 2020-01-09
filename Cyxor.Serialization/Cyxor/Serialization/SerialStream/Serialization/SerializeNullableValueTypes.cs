@@ -10,7 +10,7 @@ namespace Cyxor.Serialization
     using Extensions;
 #endif
 
-    partial class SerializationStream
+    partial class Serializer
     {
         delegate void SerializeSignature<T>(T value) where T : struct;
 
@@ -86,20 +86,20 @@ namespace Cyxor.Serialization
         public void Serialize(int? value)
             => SerializeNullableValue(value, Serialize);
 
-        public void Serialize(int? value, bool littleEndian)
-            => SerializeNullableValue(value, littleEndian, Serialize);
-
         public void SerializeUncompressedNullableInt32(int? value)
             => SerializeNullableValue(value, SerializeUncompressedInt32);
+
+        public void SerializeUncompressedNullableInt32(int? value, bool littleEndian)
+            => SerializeNullableValue(value, littleEndian, SerializeUncompressedInt32);
 
         public void Serialize(long? value)
             => SerializeNullableValue(value, Serialize);
 
-        public void Serialize(long? value, bool littleEndian)
-            => SerializeNullableValue(value, littleEndian, Serialize);
-
         public void SerializeUncompressedNullableInt64(long? value)
             => SerializeNullableValue(value, SerializeUncompressedInt64);
+
+        public void SerializeUncompressedNullableInt64(long? value, bool littleEndian)
+            => SerializeNullableValue(value, littleEndian, SerializeUncompressedInt64);
 
         public void Serialize(Guid? value)
             => SerializeNullableValue(value, Serialize);

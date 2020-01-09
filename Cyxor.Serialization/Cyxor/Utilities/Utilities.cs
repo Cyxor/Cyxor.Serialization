@@ -2,11 +2,26 @@
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Cyxor.Serialization
 {
+    using Extensions;
+
     static partial class Utilities
     {
+        //public static class RuntimeF
+        //{
+        //    public static bool IsReferenceOrContainsReferencesX(Type type)
+        //    {
+        //        var methodInfo = typeof(RuntimeHelpers).GetMethodInfo(nameof(RuntimeHelpers.IsReferenceOrContainsReferences), isPublic: true, parametersCount: 0, isGenericMethodDefinition: true, genericArgumentsCount: 1)!;
+
+        //        var genericMethodInfo = methodInfo.MakeGenericMethod(type);
+
+        //        return (bool)genericMethodInfo.Invoke(null, null)!;
+        //    }
+        //}
+
         public static class Array
         {
             public static T[] Empty<T>()
@@ -15,6 +30,29 @@ namespace Cyxor.Serialization
 #else
                 => System.Array.Empty<T>();
 #endif
+        }
+
+        public static class Unmanaged
+        {
+
+        }
+
+        public static class TypeHelper
+        {
+            public static void Serialize<T>(T t)
+                => throw new NotImplementedException(t?.ToString());
+
+            public static T Serialization<T>()
+                => throw new NotImplementedException();
+
+            public static IEnumerable<T> IEnumerable<T>()
+                => throw new NotImplementedException();
+
+            public static IGrouping<TKey, TElement> IGrouping<TKey, TElement>()
+                => throw new NotImplementedException();
+
+            public static IEnumerable<KeyValuePair<TKey, TValue>> IEnumerableKeyValuePair<TKey, TValue>()
+                => throw new NotImplementedException();
         }
 
         public static class Bits
@@ -341,6 +379,45 @@ namespace Cyxor.Serialization
                     throw new ArgumentOutOfRangeException(nameof(size));
 
                 return value;
+            }
+
+            public static unsafe T Swap<T>(T value) where T : unmanaged
+            {
+                var size = sizeof(T);
+
+                var lValue = (long)&value;
+
+                if (size == sizeof(short))
+                {
+                    lValue = lValue >> 8 | lValue << 8;
+                }
+                else if (size == sizeof(int))
+                {
+                    lValue = (lValue >> 24) | ((lValue & 0x00ff0000) >> 8) |
+                             ((lValue & 0x0000ff00) << 8) | (lValue << 24);
+                }
+                else if (size == sizeof(long))
+                {
+                    lValue = (lValue >> 56) | ((lValue & 0x00ff000000000000L) >> 40) |
+                             ((lValue & 0x0000ff0000000000L) >> 24) | ((lValue & 0x000000ff00000000L) >> 8) |
+                             ((lValue & 0x00000000ff000000L) << 8) | ((lValue & 0x0000000000ff0000L) << 24) |
+                             ((lValue & 0x000000000000ff00L) << 40) | (lValue << 56);
+                }
+                else
+                {
+                    var ptrValue = (byte*)&value;
+
+                    for (var i = 0; i < size; i++)
+                    {
+                        var tmp = ptrValue[size - 1 - i];
+                        ptrValue[size - 1 - i] = ptrValue[i];
+                        ptrValue[i] = tmp;
+                    }
+
+                    return *(T*)ptrValue;
+                }
+
+                return *(T*)&lValue;
             }
         }
 

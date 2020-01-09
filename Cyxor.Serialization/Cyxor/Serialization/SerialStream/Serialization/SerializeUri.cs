@@ -2,7 +2,7 @@
 
 namespace Cyxor.Serialization
 {
-    partial class SerializationStream
+    partial class Serializer
     {
         public void Serialize(Uri? value)
             => Serialize(value?.ToString());

@@ -12,15 +12,15 @@ namespace Cyxor.Serialization
     using Extensions;
 #endif
 
-    partial class SerializationStream
+    partial class Serializer
     {
         static InvalidOperationException DataException() =>
             new InvalidOperationException(Utilities.ResourceStrings.ExceptionMessageBufferDeserializeObject);
 
-        object? InternalTypeDeserializeObject(Type type, bool raw)
+        object? InternalTypeDeserializeObject(Type type, bool raw, Func<Serializer, object?>? func = null)
         {
             AutoRaw = raw;
-            var obj = SerializationDelegateCache.GetFunc(type)(this);
+            var obj = (func ?? SerializerDelegateCache.GetDeserializationMethod(type))(this);
             AutoRaw = false;
 
             return obj;
@@ -77,6 +77,7 @@ namespace Cyxor.Serialization
             }
 
             var count = 0;
+            var lengthPrefixed = false;
 
             if (!raw)
             {
@@ -87,16 +88,19 @@ namespace Cyxor.Serialization
 
                 var circularReference = (ObjectProperties.CircularMap & count) == ObjectProperties.CircularMap;
 
-                count = count == ObjectProperties.LengthMap ? DeserializeInt32()
-                    : ObjectProperties.Length((byte)count);
+                lengthPrefixed = (ObjectProperties.EmptyMap & count) != ObjectProperties.EmptyMap;
 
-                if (CircularReferencesActive && circularReference)
+                count = count == ObjectProperties.LengthMap ? DeserializeInt32()
+                    : (((byte)count & ObjectProperties.LengthMap) >> 2);
+
+                if (Options.HandleCircularReferences && circularReference)
                 {
-                    try { return (T)CircularReferencesIndexDictionary[count]; }
+                    try { return (T)CircularReferencesDeserializeDictionary[count]; }
                     catch { throw DataException(); }
                 }
 
-                EnsureCapacity(count, SerializerOperation.Deserialize);
+                if (lengthPrefixed)
+                    EnsureCapacity(count, SerializerOperation.Deserialize);
             }
             else if (length == 0)
                 return ReturnDefault<T>(type, isNullableValue, isNullableReference);
@@ -111,15 +115,15 @@ namespace Cyxor.Serialization
                 value = (T)instance;
             }
 
-            var firstObject = false;
+            var rootObject = false;
 
-            if (CircularReferencesActive)
+            if (Options.HandleCircularReferences)
             {
                 if (CircularReferencesIndex == 0)
-                    firstObject = true;
+                    rootObject = true;
 
                 var index = CircularReferencesIndex++;
-                CircularReferencesIndexDictionary.Add(index, value);
+                CircularReferencesDeserializeDictionary.Add(index, value);
             }
 
             try
@@ -153,12 +157,12 @@ namespace Cyxor.Serialization
                             if (typeData.Fields[i].ShouldSerialize)
                             {
                                 var fieldType = typeData.Fields[i].FieldInfo.FieldType;
-                                var fieldValue = InternalTypeDeserializeObject(fieldType, raw: false);
+                                var fieldValue = InternalTypeDeserializeObject(fieldType, raw: false, func: typeData.Fields[i].DeserializeFunc);
 
                                 if (typeData.Fields[i].NeedChangeCollection)
                                     fieldValue = Activator.CreateInstance(fieldType, fieldValue);
 
-                                typeData.Fields[i].SetValue(value, fieldValue);
+                                typeData.Fields[i].SetValueDelegate(value, fieldValue);
                                 deserializedFieldsCount++;
                             }
 
@@ -171,7 +175,7 @@ namespace Cyxor.Serialization
                     }
                 }
 
-                if (!raw && UseObjectSerialization && count != position - currentPosition || raw && position != length)
+                if (lengthPrefixed && count != position - currentPosition || raw && position != length)
                     throw DataException();
 
                 return value;
@@ -182,10 +186,10 @@ namespace Cyxor.Serialization
             }
             finally
             {
-                if (firstObject)
+                if (rootObject)
                 {
                     CircularReferencesIndex = 0;
-                    CircularReferencesIndexDictionary.Clear();
+                    CircularReferencesDeserializeDictionary.Clear();
                 }
             }
 
@@ -295,6 +299,7 @@ namespace Cyxor.Serialization
         public T DeserializeObject<T>()
             => InternalDeserializeObject<T>(value: default, raw: AutoRaw, isNullableReference: false);
 
+        [SerializerMethodIdentifier(SerializerMethodIdentifier.DeserializeObject)]
         public T? DeserializeNullableObject<T>() where T : class
             => InternalDeserializeObject<T>(value: default, raw: AutoRaw, isNullableReference: true);
 

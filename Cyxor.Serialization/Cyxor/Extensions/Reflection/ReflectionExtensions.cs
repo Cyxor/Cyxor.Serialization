@@ -15,11 +15,22 @@ namespace Cyxor.Extensions
             => IsInterfaceImplemented(type, typeof(T));
 
         public static bool IsInterfaceImplemented(this Type type, Type interfaceType)
-#if NET20 || NET35 || NET40
-            => type.GetInterfaces().Any(p => p == interfaceType);
-#else
-            => type.GetTypeInfo().ImplementedInterfaces.Any(p => p == interfaceType);
-#endif
+            => !interfaceType.IsInterface
+                ? false
+                : type == interfaceType
+                    ? true
+                    : type.IsInterface && interfaceType.IsGenericTypeDefinition && type.GetGenericTypeDefinition() == interfaceType
+                        ? true
+                        : type.GetInterfaces().Any(p => interfaceType.IsGenericTypeDefinition
+                            ? p.IsGenericType && p.GetGenericTypeDefinition() == interfaceType
+                            : p == interfaceType);
+
+//        public static bool IsInterfaceImplemented(this Type type, Type interfaceType)
+//#if NET20 || NET35 || NET40
+//            => type.GetInterfaces().Any(p => p == interfaceType);
+//#else
+//            => type.GetTypeInfo().ImplementedInterfaces.Any(p => p == interfaceType);
+//#endif
 
 #if NETSTANDARD1_0 || NETSTANDARD1_3
         public static Type[] GetGenericArguments(this Type type)

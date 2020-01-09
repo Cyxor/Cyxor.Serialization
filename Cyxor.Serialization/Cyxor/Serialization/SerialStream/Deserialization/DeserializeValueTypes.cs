@@ -2,11 +2,11 @@
 
 namespace Cyxor.Serialization
 {
-    partial class SerializationStream
+    partial class Serializer
     {
         #region ValueTypes
 
-        T DeserializeNumeric<T>(int size, bool unsigned, bool floatingPoint = false, bool? littleEndian = default) where T : struct
+        T InternalDeserializeUnmanaged<T>(int size, bool unsigned, bool floatingPoint = false, bool? littleEndian = default) where T : struct
         {
             EnsureCapacity(size, SerializerOperation.Deserialize);
 
@@ -58,67 +58,68 @@ namespace Cyxor.Serialization
         }
 
         public bool DeserializeBoolean()
-            => DeserializeNumeric<byte>(sizeof(bool), unsigned: true) != 0;
+            => InternalDeserializeUnmanaged<byte>(sizeof(bool), unsigned: true) != 0;
 
         public byte DeserializeByte()
-            => DeserializeNumeric<byte>(sizeof(byte), unsigned: true);
+            => InternalDeserializeUnmanaged<byte>(sizeof(byte), unsigned: true);
 
         public short DeserializeInt16()
-            => DeserializeNumeric<short>(sizeof(short), unsigned: false);
+            => InternalDeserializeUnmanaged<short>(sizeof(short), unsigned: false);
 
         public short DeserializeInt16(bool littleEndian)
-            => DeserializeNumeric<short>(sizeof(short), unsigned: false, littleEndian);
+            => InternalDeserializeUnmanaged<short>(sizeof(short), unsigned: false, littleEndian);
 
         public float DeserializeSingle()
-            => DeserializeNumeric<float>(sizeof(float), unsigned: false, floatingPoint: true);
+            => InternalDeserializeUnmanaged<float>(sizeof(float), unsigned: false, floatingPoint: true);
 
         public double DeserializeDouble()
-            => DeserializeNumeric<double>(sizeof(double), unsigned: false, floatingPoint: true);
+            => InternalDeserializeUnmanaged<double>(sizeof(double), unsigned: false, floatingPoint: true);
 
         public decimal DeserializeDecimal()
-            => DeserializeNumeric<decimal>(sizeof(decimal), unsigned: false, floatingPoint: true);
+            => InternalDeserializeUnmanaged<decimal>(sizeof(decimal), unsigned: false, floatingPoint: true);
 
         public sbyte DeserializeSByte()
-            => DeserializeNumeric<sbyte>(sizeof(sbyte), unsigned: false);
+            => InternalDeserializeUnmanaged<sbyte>(sizeof(sbyte), unsigned: false);
 
         public ushort DeserializeUInt16()
-            => DeserializeNumeric<ushort>(sizeof(ushort), unsigned: true);
+            => InternalDeserializeUnmanaged<ushort>(sizeof(ushort), unsigned: true);
 
         public ushort DeserializeUInt16(bool littleEndian)
-            => DeserializeNumeric<ushort>(sizeof(ushort), unsigned: true, littleEndian);
+            => InternalDeserializeUnmanaged<ushort>(sizeof(ushort), unsigned: true, littleEndian);
 
         public uint DeserializeUInt32()
-            => DeserializeNumeric<uint>(sizeof(uint), unsigned: true);
+            => InternalDeserializeUnmanaged<uint>(sizeof(uint), unsigned: true);
 
         public uint DeserializeUInt32(bool littleEndian)
-            => DeserializeNumeric<uint>(sizeof(uint), unsigned: true, littleEndian);
+            => InternalDeserializeUnmanaged<uint>(sizeof(uint), unsigned: true, littleEndian);
 
         public ulong DeserializeUInt64()
-            => DeserializeNumeric<ulong>(sizeof(ulong), unsigned: true);
+            => InternalDeserializeUnmanaged<ulong>(sizeof(ulong), unsigned: true);
 
         public ulong DeserializeUInt64(bool littleEndian)
-            => DeserializeNumeric<ulong>(sizeof(ulong), unsigned: true, littleEndian);
+            => InternalDeserializeUnmanaged<ulong>(sizeof(ulong), unsigned: true, littleEndian);
 
         public char DeserializeChar()
             => (char)DeserializeCompressedUInt16();
 
         public int DeserializeInt32()
             => (int)DeserializeCompressedUInt32();
+            //=> InternalDeserializeUnmanaged<int>(sizeof(int), unsigned: false);
 
         public int DeserializeInt32(bool littleEndian)
-            => DeserializeNumeric<int>(sizeof(int), unsigned: false, littleEndian);
+            => InternalDeserializeUnmanaged<int>(sizeof(int), unsigned: false, littleEndian);
 
         public int DeserializeUncompressedInt32()
-            => DeserializeNumeric<int>(sizeof(int), unsigned: false);
+            => InternalDeserializeUnmanaged<int>(sizeof(int), unsigned: false);
 
         public long DeserializeInt64()
             => (long)DeserializeCompressedUInt64();
 
         public long DeserializeInt64(bool littleEndian)
-            => DeserializeNumeric<long>(sizeof(long), unsigned: false, littleEndian);
+            => InternalDeserializeUnmanaged<long>(sizeof(long), unsigned: false, littleEndian);
 
         public long DeserializeUncompressedInt64()
-            => DeserializeNumeric<long>(sizeof(long), unsigned: false);
+            => InternalDeserializeUnmanaged<long>(sizeof(long), unsigned: false);
 
         public Guid DeserializeGuid()
         {
@@ -144,6 +145,10 @@ namespace Cyxor.Serialization
 #else
             => (T)Enum.Parse(typeof(T), DeserializeInt64().ToString(Culture));
 #endif
+
+        [SerializerMethodIdentifier(SerializerMethodIdentifier.DeserializeUnmanaged)]
+        public unsafe T DeserializeUnmanaged<T>() where T : unmanaged
+            => InternalDeserializeUnmanaged<T>(sizeof(T), unsigned: false);
 
         #endregion ValueTypes
 

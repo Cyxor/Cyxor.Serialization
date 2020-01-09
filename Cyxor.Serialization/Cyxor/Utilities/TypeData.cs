@@ -24,14 +24,7 @@ namespace Cyxor.Serialization
             var fieldList = new List<FieldData>();
 
             foreach (var field in fields)
-            {
-                var shouldSerialize = ShouldSerializeField(field);
-                //fieldList.Add(new FieldData(field, shouldSerialize));
-
-                // TODO: If the field is static the expressions will fail
-                if (shouldSerialize)
-                    fieldList.Add(new FieldData(field, shouldSerialize));
-            }
+                fieldList.Add(new FieldData(field, ShouldSerializeField(field)));
 
             Fields = fieldList.ToArray();
             Array.Sort(Fields);
@@ -87,9 +80,7 @@ namespace Cyxor.Serialization
             if (field.Name[0] != '<')
                 return true;
 
-#pragma warning disable IDE0057 // Substring can be simplified
-            var propertyName = field.Name.Substring(1, field.Name.IndexOf('>', StringComparison.Ordinal) - 1);
-#pragma warning restore IDE0057 // Substring can be simplified
+            var propertyName = field.Name[1..field.Name.IndexOf('>', StringComparison.Ordinal)];
 
             var property = field.DeclaringType!.GetPropertyInfo(propertyName)!;
 

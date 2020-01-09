@@ -26,7 +26,7 @@ namespace Cyxor.Serialization
 {
     using Extensions;
 
-    partial class SerializationStream
+    partial class Serializer
     {
         public override bool CanRead => true;
         public override bool CanSeek => true;
@@ -54,19 +54,23 @@ namespace Cyxor.Serialization
 
         public override int Read(byte[] buffer, int offset, int count)
         {
+            count = count > length - position ? length - position : count;
             DeserializeBytes(buffer, offset, count);
-            return position == length ? 0 : count;
+            return count;
         }
 
-        public bool StreamWriteRaw { get; set; }
+        public override int Read(Span<byte> buffer)
+        {
+            var initialPosition = position;
+            _ = DeserializeRawSpan(ref buffer);
+            return position - initialPosition;
+        }
 
         public override void Write(byte[] buffer, int offset, int count)
-        {
-            if (!StreamWriteRaw)
-                Serialize(buffer, offset, count);
-            else
-                SerializeRaw(buffer, offset, count);
-        }
+            => SerializeRaw(buffer, offset, count);
+
+        public override void Write(ReadOnlySpan<byte> buffer)
+            => SerializeRaw(buffer);
 
         public override void Flush() { }
 

@@ -21,7 +21,7 @@ namespace Cyxor.Serialization.Test
             public ProductCategory Category { get; set; }
 
             public override int GetHashCode()
-                => $"{Name}{Price}{Category}".GetHashCode();
+                => $"{Name}{Price}{Category}".GetHashCode(StringComparison.Ordinal);
 
             public override bool Equals(object? obj)
                 => obj is Product other ? Equals(other) : false;
@@ -29,7 +29,7 @@ namespace Cyxor.Serialization.Test
             public bool Equals(Product other)
             {
                 var result = Category.Equals(other.Category);
-                result &= Name.Equals(other.Name);
+                result &= Name.Equals(other.Name, StringComparison.Ordinal);
                 result &= Price.Equals(other.Price);
 
                 return result;
@@ -39,7 +39,7 @@ namespace Cyxor.Serialization.Test
         [TestMethod]
         public void GroupingX()
         {
-            using var ss = new SerializationStream();
+            using var ss = new Serializer();
             ss.Serialize(ProductCategory.Vehicles);
 
             ss.Position = 0;
@@ -68,12 +68,12 @@ namespace Cyxor.Serialization.Test
                                                            group product by product.Price
                                                        group categoryProduct by categoryGroup.Key;
 
-            using var serializer = new SerializationStream();
+            using var serializer = new Serializer();
             serializer.Serialize(productsGroupedByCategory.First());
             serializer.Serialize(productsGroupedByCategory);
             serializer.Serialize(productsGroupedByCategoryThenByPrice);
 
-            using var deserializer = new SerializationStream(serializer) { Position = 0 };
+            using var deserializer = new Serializer(serializer) { Position = 0 };
 
             //todo: error in the deserialization of the enum.
 

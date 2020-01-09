@@ -7,7 +7,7 @@ namespace Cyxor.Serialization
 {
     using Extensions;
 
-    partial class SerializationStream
+    partial class Serializer
     {
         public Memory<T> DeserializeMemory<T>() where T: unmanaged
         {
