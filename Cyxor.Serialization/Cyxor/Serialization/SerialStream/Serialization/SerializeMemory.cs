@@ -1,6 +1,4 @@
-﻿#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
-
-using System;
+﻿using System;
 
 namespace Cyxor.Serialization
 {
@@ -25,5 +23,3 @@ namespace Cyxor.Serialization
         //    => SerializeNullableValue(readOnlyMemory, Serialize);
     }
 }
-
-#endif

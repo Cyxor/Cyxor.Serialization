@@ -7,64 +7,6 @@ namespace Cyxor.Extensions
 {
     public static partial class ReflectionExtensions
     {
-#if NETSTANDARD1_0 || NETSTANDARD1_3
-        /// <summary>
-        /// Returns the public or non-public get accessor for this property.
-        /// </summary>
-        /// <param name="propertyInfo">The property object that contains the get accessor.</param>
-        /// <param name="nonPublic">
-        /// Indicates whether a non-public get accessor should be returned, <see langword="true"/> if a non-public accessor is to be returned; 
-        /// otherwise, <see langword="false"/>.
-        /// </param>
-        /// <returns>
-        /// A MethodInfo object representing the get accessor for this property, if nonPublic is true.
-        /// Returns null if nonPublic is false and the get accessor is non-public, or if nonPublic is true but no get accessors exist.
-        /// </returns>
-        public static MethodInfo? GetGetMethod(this PropertyInfo propertyInfo, bool nonPublic)
-            => !nonPublic && propertyInfo.GetMethod.IsPrivate ? null : propertyInfo.GetMethod;
-
-        /// <summary>
-        /// Returns the public or non-public set accessor for this property.
-        /// </summary>
-        /// <param name="propertyInfo">The property object that contains the set accessor.</param>
-        /// <param name="nonPublic">
-        /// Indicates whether a non-public set accessor should be returned, <see langword="true"/> if a non-public accessor is to be returned; 
-        /// otherwise, <see langword="false"/>.
-        /// </param>
-        /// <returns>
-        /// A MethodInfo object representing the set accessor for this property, if nonPublic is true.
-        /// Returns null if nonPublic is false and the set accessor is non-public, or if nonPublic is true but no set accessors exist.
-        /// </returns>
-        public static MethodInfo? GetSetMethod(this PropertyInfo propertyInfo, bool nonPublic)
-            => !nonPublic && propertyInfo.SetMethod.IsPrivate ? null : propertyInfo.SetMethod;
-#endif
-
-        /// <summary>
-        /// Retrieves a collection that represents all the properties defined on the specified <paramref name="type"/>, 
-        /// including inherited, non-public, instance, and static properties.
-        /// </summary>
-        /// <param name="type">The type that contains the properties.</param>
-        /// <returns>A collection of properties for the specified <paramref name="type"/>.</returns>
-        public static IEnumerable<PropertyInfo> GetAllRuntimeProperties(this Type type)
-#if NET20 || NET35 || NET40 || NET45
-            => type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-#else
-            => type.GetRuntimeProperties();
-#endif
-
-        /// <summary>
-        /// Gets a collection of the properties defined by the current <paramref name="type"/>.
-        /// </summary>
-        /// <param name="type">The type that contains the properties.</param>
-        /// <returns>A collection of the properties defined by the current <paramref name="type"/>.</returns>
-        public static IEnumerable<PropertyInfo> GetAllDeclaredProperties(this Type type)
-#if NET20 || NET35 || NET40 || NET45
-            => type
-                .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly);
-#else
-            => type.GetTypeInfo().DeclaredProperties;
-#endif
-
         /// <summary>
         /// Retrieves a collection that represents all properties defined on a specified type when using the default parameters, 
         /// including inherited, non-public, instance, and static properties. Tweak the desired parameters to filter the result.
@@ -166,8 +108,8 @@ namespace Cyxor.Extensions
             IEnumerable<Type>? attributes = default,
             int? genericArgumentsCount = default,
             IEnumerable<Type>? genericArguments = default)
-            => from property in (inheritedProperties ?? true) ? type.GetAllRuntimeProperties() : type.GetAllDeclaredProperties()
-                let propertyGenericArguments = property.PropertyType.GetGenericArguments()
+            => from property in (inheritedProperties ?? true) ? type.GetRuntimeProperties() : type.GetTypeInfo().DeclaredProperties
+               let propertyGenericArguments = property.PropertyType.GetGenericArguments()
                 where property.Name == (name ?? property.Name)
                 && (nameStartsWith == default ? true : property.Name.StartsWith(nameStartsWith!, StringComparison.Ordinal))
                 && (nameEndsWith == default ? true : property.Name.EndsWith(nameEndsWith!, StringComparison.Ordinal))

@@ -10,7 +10,6 @@ namespace Cyxor.Serialization
         T Deserialize<T>(Serializer serialStream, object? backingSerializerOptions);
         object? Deserialize(Serializer serialStream, Type type, object? backingSerializerOptions);
 
-#if !NET20 && !NET35 && !NET40 && !NET45 && !NETSTANDARD1_0 && !NETSTANDARD1_3 && !NETSTANDARD2_0
         public static T? CheckOptionsObject<T>(object? backingSerializerOptions) where T: class
         {
             var options = default(T);
@@ -25,6 +24,5 @@ namespace Cyxor.Serialization
 
             return options;
         }
-#endif
     }
 }

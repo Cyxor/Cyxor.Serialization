@@ -1,6 +1,4 @@
-﻿#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
-
-using System;
+﻿using System;
 using System.Buffers;
 using System.Runtime.InteropServices;
 
@@ -26,5 +24,3 @@ namespace Cyxor.Extensions
             => MemoryMarshal.AsMemory(readOnlyMemory).Cast<TFrom, TTo>();
     }
 }
-
-#endif

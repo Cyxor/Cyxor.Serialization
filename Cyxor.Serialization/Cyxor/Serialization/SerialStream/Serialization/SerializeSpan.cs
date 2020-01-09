@@ -1,11 +1,8 @@
-﻿#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
-
-using System;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Cyxor.Serialization
 {
-    using Extensions;
-
     partial class Serializer
     {
         void InternalSerialize<T>(in ReadOnlySpan<T> readOnlySpan, bool raw) where T : unmanaged
@@ -18,7 +15,7 @@ namespace Cyxor.Serialization
                 return;
             }
 
-            var bytesReadOnlySpan = readOnlySpan.Cast<T, byte>();
+            var bytesReadOnlySpan = MemoryMarshal.Cast<T, byte>(readOnlySpan);
 
             if (!raw)
                 SerializeOp(bytesReadOnlySpan.Length);
@@ -41,5 +38,3 @@ namespace Cyxor.Serialization
             => InternalSerialize(readOnlySpan, raw: true);
     }
 }
-
-#endif

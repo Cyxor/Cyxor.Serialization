@@ -1,6 +1,4 @@
-﻿#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
-
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 
 namespace Cyxor.Serialization
@@ -210,5 +208,3 @@ namespace Cyxor.Serialization
 
     }
 }
-
-#endif

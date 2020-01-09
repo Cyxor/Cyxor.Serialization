@@ -1,4 +1,6 @@
-﻿namespace Cyxor.Serialization
+﻿using System;
+
+namespace Cyxor.Serialization
 {
     public readonly struct SerializerOptions : System.IEquatable<SerializerOptions>
     {
@@ -8,6 +10,9 @@
         public readonly bool PrefixObjectLength;
         public readonly bool HandleCircularReferences;
         public readonly int PoolThreshold;
+
+        // TODO: Add reversed byte order (endianness)?
+        // TODO: Compact boolean properties into BitSerializer?
 #pragma warning restore CA1051 // Do not declare visible instance fields
 
         public SerializerOptions(bool readOnly = false, bool pooling = false, int poolThreshold = 0, bool prefixObjectLength = false,
@@ -24,8 +29,7 @@
             => obj == null ? false : Equals((SerializerOptions)obj);
 
         public override int GetHashCode()
-            // TODO:
-            => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
+            => HashCode.Combine(ReadOnly, Pooling, PrefixObjectLength, HandleCircularReferences, PoolThreshold);
 
         public static bool operator ==(SerializerOptions left, SerializerOptions right)
             => left.Equals(right);

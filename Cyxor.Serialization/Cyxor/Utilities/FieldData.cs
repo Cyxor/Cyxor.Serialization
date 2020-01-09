@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Reflection;
 using System.Collections;
-using System.Collections.Generic;
-
-#if !NET20
 using System.Linq.Expressions;
-#endif
+using System.Collections.Generic;
 
 namespace Cyxor.Serialization
 {
@@ -43,12 +40,10 @@ namespace Cyxor.Serialization
             return fieldData == default ? false : Equals(fieldData);
         }
 
-#if !NET20
         private static void Map<T>(out T dest, T src)
             => dest = src;
 
         static readonly MethodInfo MapMethodInfo = typeof(FieldData).GetMethodInfo(nameof(Map), isStatic: true, isInherited: false) ?? throw new InvalidOperationException(Utilities.ResourceStrings.CyxorInternalException);
-#endif
 
         public FieldData(FieldInfo fieldInfo, bool shouldSerialize)
         {
@@ -69,10 +64,7 @@ namespace Cyxor.Serialization
                             NeedChangeCollection = true;
 
             HashCode = Utilities.HashCode.GetFrom(FieldInfo.Name);
-#if NET20
-            GetValueDelegate = FieldInfo.GetValue;
-            SetValueDelegate = FieldInfo.SetValue;
-#else
+
             var mapMethodInfo = MapMethodInfo.MakeGenericMethod(FieldInfo.FieldType);
 
             var valueParameter = Expression.Parameter(typeof(object), "value");
@@ -96,7 +88,6 @@ namespace Cyxor.Serialization
             GetValueDelegate = Expression.Lambda<Func<object?, object>>(getterExpression, objectParameter).Compile();
 
             SetValueDelegate = Expression.Lambda<Action<object?, object?>>(setterExpression, objectParameter, valueParameter).Compile();
-#endif
         }
     }
 }

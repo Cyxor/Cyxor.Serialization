@@ -1,15 +1,7 @@
 ﻿using System;
 
-#if !NET20 && !NET35 && !NET40
-using System.Reflection;
-#endif
-
 namespace Cyxor.Serialization
 {
-#if NET20 || NET35 || NET40
-    using Extensions;
-#endif
-
     partial class Serializer
     {
         #region ValueTypesNullable

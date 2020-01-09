@@ -2,30 +2,16 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Buffers;
 using System.Reflection;
 using System.Collections;
 using System.Diagnostics;
 using System.Globalization;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-
-#if !NET20
 using System.Linq.Expressions;
-#endif
-
-#if !NET20 && !NET35 && !NET40
-using System.Runtime.CompilerServices;
-#endif
-
-#if !NET20 && !NET35 && !NETSTANDARD1_0
+using System.Collections.Generic;
 using System.Collections.Concurrent;
-#else
-using System.Threading;
-#endif
-
-#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
-using System.Buffers;
-#endif
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 namespace Cyxor.Serialization
 {
@@ -40,9 +26,7 @@ namespace Cyxor.Serialization
     {
         static readonly bool IsLittleEndian = BitConverter.IsLittleEndian;
 
-#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
         static readonly ArrayPool<byte> BufferPool = ArrayPool<byte>.Create();
-#endif
 
         static readonly MethodDictionary SerializeMethods =
             (from method in typeof(Serializer)
@@ -90,8 +74,8 @@ namespace Cyxor.Serialization
                     _ = SerializerDelegateCache.GetSerializationMethod(serializeMethod.Key);
         }
 
-        internal static ConcurrentCache<Type, TypeData> TypesCache = new ConcurrentCache<Type, TypeData>();
-        internal static ConcurrentCache<Type, bool> KnownTypesCache = new ConcurrentCache<Type, bool>();
+        internal static ConcurrentDictionary<Type, TypeData> TypesCache = new ConcurrentDictionary<Type, TypeData>();
+        internal static ConcurrentDictionary<Type, bool> KnownTypesCache = new ConcurrentDictionary<Type, bool>();
 
         public static bool IsKnownType(Type type)
         {

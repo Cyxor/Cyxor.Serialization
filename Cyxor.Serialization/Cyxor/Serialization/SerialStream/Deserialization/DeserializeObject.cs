@@ -2,16 +2,8 @@
 using System.IO;
 using System.Diagnostics.CodeAnalysis;
 
-#if !NET20 && !NET35 && !NET40
-using System.Reflection;
-#endif
-
 namespace Cyxor.Serialization
 {
-#if NET20 || NET35 || NET40
-    using Extensions;
-#endif
-
     partial class Serializer
     {
         static InvalidOperationException DataException() =>
@@ -41,12 +33,12 @@ namespace Cyxor.Serialization
             if (type.FullName == default)
                 throw new InvalidOperationException(Utilities.ResourceStrings.CyxorInternalException);
 
-            if (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
                 isNullableValue = true;
                 nullableValueType = type;
 
-                if (nullableValueType.GetTypeInfo().ContainsGenericParameters)
+                if (nullableValueType.ContainsGenericParameters)
                     throw new InvalidOperationException("The type you are trying to deserialize is an open generic type. " +
                         "You can only create an instance of a generic type if it is closed. " +
                         "For more information see 'Type.ContainsGenericParameters'.");
@@ -171,7 +163,7 @@ namespace Cyxor.Serialization
 
                         prevTypeData = typeData;
                         typeData = typeData.Parent;
-                        type = typeData?.Parent?.Type ?? type.GetTypeInfo().BaseType!;
+                        type = typeData?.Parent?.Type ?? type.BaseType!;
                     }
                 }
 
@@ -195,7 +187,7 @@ namespace Cyxor.Serialization
 
             static TDefault ReturnDefault<TDefault>(Type type, bool isNullableValue, bool isNullableReference)
             {
-                if (type.GetTypeInfo().IsValueType)
+                if (type.IsValueType)
                 {
                     if (!isNullableValue)
                         throw new InvalidOperationException
@@ -215,7 +207,7 @@ namespace Cyxor.Serialization
         object? InternalDeserializeObject(Type type, bool raw, bool isNonNullableReference)
         {
             if (!isNonNullableReference)
-                if (type.GetTypeInfo().IsValueType)
+                if (type.IsValueType)
                     throw new InvalidOperationException
                         (Utilities.ResourceStrings.UnableToDeserializeValueTypeAsNullableReference(type.Name));
 

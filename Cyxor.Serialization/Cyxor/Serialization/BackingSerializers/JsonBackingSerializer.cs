@@ -1,6 +1,4 @@
-﻿#if !NET20 && !NET35 && !NET40 && !NET45 && !NETSTANDARD1_0 && !NETSTANDARD1_3 && !NETSTANDARD2_0 && !NETSTANDARD2_1
-
-using System;
+﻿using System;
 using System.Text.Json;
 
 namespace Cyxor.Serialization
@@ -42,4 +40,3 @@ namespace Cyxor.Serialization
         }
     }
 }
-#endif

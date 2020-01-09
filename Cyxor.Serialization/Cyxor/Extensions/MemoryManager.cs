@@ -1,7 +1,6 @@
-﻿#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
-
-using System;
+﻿using System;
 using System.Buffers;
+using System.Runtime.InteropServices;
 
 namespace Cyxor.Extensions
 {
@@ -17,7 +16,7 @@ namespace Cyxor.Extensions
         }
 
         public override Span<TTo> GetSpan()
-            => _memory.Span.Cast<TFrom, TTo>();
+            => MemoryMarshal.Cast<TFrom, TTo>(_memory.Span);
 
         protected override void Dispose(bool disposing) { }
 
@@ -28,5 +27,3 @@ namespace Cyxor.Extensions
             => throw new NotSupportedException();
     }
 }
-
-#endif

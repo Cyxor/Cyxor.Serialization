@@ -95,21 +95,14 @@ namespace Cyxor.Serialization
                 EnsureCapacity(byteCount, SerializerOperation.Serialize);
 
                 fixed (byte* ptr = buffer)
-                    Utilities.Memory.Wstrcpy(value + index, (char*)(ptr + position), count);
+                    Buffer.MemoryCopy(value + index, ptr + position, byteCount, byteCount);
 
                 position += byteCount;
 
                 return;
             }
 
-#if !NETSTANDARD1_0
             byteCount = Encoding.GetByteCount(value + index, count);
-#else
-            var managedValue = new char[count];
-            fixed (char* charPtr = managedValue)
-                Utilities.Memory.Wstrcpy(value + index, charPtr, count);
-            byteCount = Encoding.GetByteCount(managedValue);
-#endif
 
             if (!raw)
                 varIntSize = Utilities.EncodedInteger.RequiredBytes((uint)byteCount);
@@ -126,12 +119,8 @@ namespace Cyxor.Serialization
 
             var realByteCount = 0;
 
-#if !NETSTANDARD1_0
             fixed (byte* ptr = buffer)
                 realByteCount = Encoding.GetBytes(value + index, count, ptr + position, byteCount);
-#else
-            realByteCount = Encoding.GetBytes(managedValue, 0, count, buffer, position);
-#endif
 
             if (!raw)
                 if (realByteCount != byteCount)
@@ -145,7 +134,8 @@ namespace Cyxor.Serialization
 
                     if (diff > 0)
                         fixed (byte* ptr = &buffer![position + diff])
-                            Utilities.Memory.Memcpy(ptr, ptr - diff, realByteCount);
+                            //Utilities.Memory.Memcpy(ptr, ptr - diff, realByteCount);
+                            Buffer.MemoryCopy(value + index, ptr + position, byteCount, byteCount);
                 }
 
             position += realByteCount;
@@ -209,14 +199,7 @@ namespace Cyxor.Serialization
         //                return;
         //            }
 
-        //#if !NETSTANDARD1_0
         //            byteCount = Encoding.GetByteCount(value + index, count);
-        //#else
-        //            var managedValue = new char[count];
-        //            fixed (char* charPtr = managedValue)
-        //                Utilities.Memory.Wstrcpy(value + index, charPtr, count);
-        //            byteCount = Encoding.GetByteCount(managedValue);
-        //#endif
 
         //            if (!raw)
         //                varIntSize = Utilities.EncodedInteger.RequiredBytes((uint)byteCount);
@@ -233,12 +216,8 @@ namespace Cyxor.Serialization
 
         //            var realByteCount = 0;
 
-        //#if !NETSTANDARD1_0
         //            fixed (byte* ptr = buffer)
         //                realByteCount = Encoding.GetBytes(value + index, count, ptr + position, byteCount);
-        //#else
-        //            realByteCount = Encoding.GetBytes(managedValue, 0, count, buffer, position);
-        //#endif
 
         //            if (!raw)
         //                if (realByteCount != byteCount)

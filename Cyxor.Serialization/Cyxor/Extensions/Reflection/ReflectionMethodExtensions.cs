@@ -8,32 +8,6 @@ namespace Cyxor.Extensions
     public static partial class ReflectionExtensions
     {
         /// <summary>
-        /// Retrieves a collection that represents all methods defined on the specified <paramref name="type"/>, 
-        /// including inherited, non-public, instance, and static methods.
-        /// </summary>
-        /// <param name="type">The type that contains the methods.</param>
-        /// <returns>A collection of methods for the specified <paramref name="type"/>.</returns>
-        public static IEnumerable<MethodInfo> GetAllRuntimeMethods(this Type type)
-#if NET20 || NET35 || NET40 || NET45
-            => type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-#else
-            => type.GetRuntimeMethods();
-#endif
-
-        /// <summary>
-        /// Gets a collection of the methods defined by the current <paramref name="type"/>.
-        /// </summary>
-        /// <param name="type">The type that contains the methods.</param>
-        /// <returns>A collection of the methods defined by the current <paramref name="type"/>.</returns>
-        public static IEnumerable<MethodInfo> GetAllDeclaredMethods(this Type type)
-#if NET20 || NET35 || NET40 || NET45
-            => type
-                .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly);
-#else
-            => type.GetTypeInfo().DeclaredMethods;
-#endif
-
-        /// <summary>
         /// Retrieves a collection that represents all methods defined on a specified type when using the default parameters, 
         /// including inherited, non-public, instance, and static methods. Tweak the desired parameters to filter the result.
         /// </summary>
@@ -134,7 +108,7 @@ namespace Cyxor.Extensions
             IEnumerable<Type>? parameters = default,
             int? genericArgumentsCount = default,
             IEnumerable<Type>? genericArguments = default)
-            => from method in (inheritedMethods ?? true) ? type.GetAllRuntimeMethods() : type.GetAllDeclaredMethods()
+            => from method in (inheritedMethods ?? true) ? type.GetRuntimeMethods() : type.GetTypeInfo().DeclaredMethods
                let methodParameters = method.GetParameters()
                let methodGenericArguments = method.GetGenericArguments()
                where method.Name == (name ?? method.Name)

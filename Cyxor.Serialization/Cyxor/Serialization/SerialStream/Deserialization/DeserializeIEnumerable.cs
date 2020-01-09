@@ -50,7 +50,7 @@ namespace Cyxor.Serialization
             var count = DeserializeOp();
 
             return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(T[]).Name))
-                : count == 0 ? Utilities.Array.Empty<T>()
+                : count == 0 ? Array.Empty<T>()
                 : InternalDeserializeArray<T>(count);
         }
 
@@ -60,7 +60,7 @@ namespace Cyxor.Serialization
             var count = DeserializeOp();
 
             return count == -1 ? default
-                : count == 0 ? Utilities.Array.Empty<T>()
+                : count == 0 ? Array.Empty<T>()
                 : InternalDeserializeArray<T>(count);
         }
 

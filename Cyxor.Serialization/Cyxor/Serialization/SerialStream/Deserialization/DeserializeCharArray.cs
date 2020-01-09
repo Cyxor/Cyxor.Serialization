@@ -13,7 +13,7 @@ namespace Cyxor.Serialization
             var count = DeserializeOp();
 
             return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(char[]).Name))
-                : count == 0 ? Utilities.Array.Empty<char>()
+                : count == 0 ? Array.Empty<char>()
                 : DeserializeChars(count);
         }
 
@@ -25,7 +25,7 @@ namespace Cyxor.Serialization
             var count = DeserializeOp();
 
             return count == -1 ? default
-                : count == 0 ? Utilities.Array.Empty<char>()
+                : count == 0 ? Array.Empty<char>()
                 : DeserializeNullableChars(count);
         }
 
@@ -38,7 +38,7 @@ namespace Cyxor.Serialization
         public char[] DeserializeChars(int byteCount)
         {
             if (byteCount == 0)
-                return Utilities.Array.Empty<char>();
+                return Array.Empty<char>();
 
             if (byteCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(byteCount), $"Parameter {nameof(byteCount)} must be a positive value");
@@ -115,16 +115,8 @@ namespace Cyxor.Serialization
 
             EnsureCapacity(byteCount, SerializerOperation.Deserialize);
 
-#if !NETSTANDARD1_0
             fixed (byte* src = buffer)
                 result = Encoding.GetChars(src + position, byteCount, chars, charCount);
-#else
-            var charArray = new char[charCount];
-            result = Encoding.GetChars(buffer, position, byteCount, charArray, 0);
-
-            fixed (char* charPtr = charArray)
-                Utilities.Memory.Wstrcpy(charPtr, chars, charCount);
-#endif
 
             position += byteCount;
 

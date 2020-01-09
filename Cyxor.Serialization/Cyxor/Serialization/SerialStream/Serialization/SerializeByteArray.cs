@@ -82,7 +82,7 @@ namespace Cyxor.Serialization
             EnsureCapacity(count, SerializerOperation.Serialize);
 
             fixed (byte* ptr = buffer)
-                Utilities.Memory.Memcpy(value + index, ptr + position, count);
+                Buffer.MemoryCopy(value + index, ptr + position, count, count);
 
             position += count;
         }

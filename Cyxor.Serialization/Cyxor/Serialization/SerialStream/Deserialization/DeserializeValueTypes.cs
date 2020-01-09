@@ -140,11 +140,7 @@ namespace Cyxor.Serialization
             => new DateTimeOffset(DeserializeDateTime(), DeserializeTimeSpan());
 
         public T DeserializeEnum<T>() where T : struct, Enum
-#if !NET20 && !NET35 && !NET40 && !NET45 && !NETSTANDARD1_0 && !NETSTANDARD1_3 && !NETSTANDARD2_0
             => Enum.Parse<T>(DeserializeInt64().ToString(Culture));
-#else
-            => (T)Enum.Parse(typeof(T), DeserializeInt64().ToString(Culture));
-#endif
 
         [SerializerMethodIdentifier(SerializerMethodIdentifier.DeserializeUnmanaged)]
         public unsafe T DeserializeUnmanaged<T>() where T : unmanaged
@@ -363,12 +359,7 @@ namespace Cyxor.Serialization
             if (!TryDeserializeInt64(out var lValue))
                 return false;
 
-#if NET20 || NET35
-            var result = Enum.IsDefined(typeof(TEnum), lValue);
-            value = (TEnum)Enum.ToObject(typeof(TEnum), lValue);
-#else
             var result = Enum.TryParse(lValue.ToString(Culture), out value);
-#endif
 
             if (!result)
                 position -= sizeof(long);

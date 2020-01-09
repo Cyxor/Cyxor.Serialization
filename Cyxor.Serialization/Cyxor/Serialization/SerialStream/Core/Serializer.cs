@@ -2,29 +2,15 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Buffers;
 using System.Reflection;
 using System.Collections;
 using System.Diagnostics;
 using System.Globalization;
-using System.Collections.Generic;
-
-#if !NET20
 using System.Linq.Expressions;
-#endif
-
-#if !NET20 && !NET35 && !NET40
-using System.Runtime.CompilerServices;
-#endif
-
-#if !NET20 && !NET35 && !NETSTANDARD1_0
+using System.Collections.Generic;
 using System.Collections.Concurrent;
-#else
-using System.Threading;
-#endif
-
-#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
-using System.Buffers;
-#endif
+using System.Runtime.CompilerServices;
 
 namespace Cyxor.Serialization
 {
@@ -125,22 +111,6 @@ namespace Cyxor.Serialization
         static readonly UTF8Encoding Encoding = new UTF8Encoding(false, true);
 
         static readonly CultureInfo Culture = CultureInfo.InvariantCulture;
-
-//#if !NETSTANDARD1_0
-//        public static ASCIIEncoding ASCIIEncoding = new ASCIIEncoding();
-//#endif
-
-
-        /// <summary>
-        /// Indicates the Serializer default byte order ("endianess").
-        /// All values written to serializer instances will be converted to the specified byte order if necessary and
-        /// values read will be converted to this computer architecture byte order if necessary. The initial value
-        /// is always equal to the current computer architecture and by default swapping never occurs.
-        /// </summary>
-        /// <value>
-        /// The byte order.
-        /// </value>
-        //public static ByteOrder ByteOrder;
 
         /// <summary>
         /// The maximum number of bytes this buffer can hold.
@@ -306,15 +276,12 @@ namespace Cyxor.Serialization
         void InternalSetBuffer(byte[]? value)
         {
             if (buffer != default)
-#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
             {
                 if (Options.Pooling && buffer.Length >= Options.PoolThreshold)
                     BufferPool.Return(buffer);
-#endif
+
                 MemoryDisposed?.Invoke(this, EventArgs.Empty);
-#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
             }
-#endif
 
             buffer = value;
         }

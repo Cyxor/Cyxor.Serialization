@@ -13,7 +13,7 @@ namespace Cyxor.Serialization
             var count = DeserializeOp();
 
             return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(byte[]).Name))
-                : count == 0 ? Utilities.Array.Empty<byte>()
+                : count == 0 ? Array.Empty<byte>()
                 : DeserializeBytes(count);
         }
 
@@ -25,7 +25,7 @@ namespace Cyxor.Serialization
             var count = DeserializeOp();
 
             return count == -1 ? default
-                : count == 0 ? Utilities.Array.Empty<byte>()
+                : count == 0 ? Array.Empty<byte>()
                 : DeserializeNullableBytes(count);
         }
 
@@ -38,7 +38,7 @@ namespace Cyxor.Serialization
         public byte[] DeserializeBytes(int count)
         {
             if (count == 0)
-                return Utilities.Array.Empty<byte>();
+                return Array.Empty<byte>();
 
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), $"Parameter {nameof(count)} must be a positive value");
@@ -50,7 +50,7 @@ namespace Cyxor.Serialization
             unsafe
             {
                 fixed (byte* src = buffer, dest = value)
-                    Utilities.Memory.Memcpy(src + position, dest, count);
+                    Buffer.MemoryCopy(src + position, dest, count, count);
             }
 
             position += count;
@@ -72,7 +72,7 @@ namespace Cyxor.Serialization
             unsafe
             {
                 fixed (byte* src = buffer, dest = value)
-                    Utilities.Memory.Memcpy(src + position, dest, count);
+                    Buffer.MemoryCopy(src + position, dest, count, count);
             }
 
             position += count;
@@ -131,7 +131,7 @@ namespace Cyxor.Serialization
             EnsureCapacity(bytesToCopy, SerializerOperation.Deserialize);
 
             fixed (byte* src = buffer)
-                Utilities.Memory.Memcpy(src + position, destination, bytesToCopy);
+                Buffer.MemoryCopy(src + position, destination, bytesToCopy, bytesToCopy);
 
             position += bytesToCopy;
         }

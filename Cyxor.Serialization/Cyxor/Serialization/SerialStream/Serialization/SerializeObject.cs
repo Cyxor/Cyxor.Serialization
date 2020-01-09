@@ -1,16 +1,8 @@
 ﻿using System;
 using System.IO;
 
-#if !NET20 && !NET35 && !NET40
-using System.Reflection;
-#endif
-
 namespace Cyxor.Serialization
 {
-#if NET20 || NET35 || NET40
-    using Extensions;
-#endif
-
     partial class Serializer
     {
         void TypeSerializeObject(object? value, Type? type, bool raw, IBackingSerializer? backingSerializer = default, object? backingSerializerOptions = default, Action<Serializer, object?>? action = null)
@@ -132,7 +124,7 @@ namespace Cyxor.Serialization
 
                         prevTypeData = typeData;
                         typeData = typeData.Parent;
-                        type = typeData?.Parent?.Type ?? type.GetTypeInfo().BaseType!;
+                        type = typeData?.Parent?.Type ?? type.BaseType!;
                     }
                 }
 

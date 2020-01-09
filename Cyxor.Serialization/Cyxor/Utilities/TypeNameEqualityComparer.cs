@@ -13,6 +13,6 @@ namespace Cyxor.Serialization
             => x.Name == y.Name && x.FullName == y.FullName;
 
         public int GetHashCode([DisallowNull] Type obj)
-            => RuntimeHelpers.GetHashCode(this);
+            => HashCode.Combine(obj);
     }
 }

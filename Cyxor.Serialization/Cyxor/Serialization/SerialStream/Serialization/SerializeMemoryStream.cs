@@ -1,11 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace Cyxor.Serialization
 {
-#if NETSTANDARD1_0 || NETSTANDARD1_3
-    using Extensions;
-#endif
-
     using BufferOverflowException = EndOfStreamException;
 
     partial class Serializer
@@ -23,7 +21,13 @@ namespace Cyxor.Serialization
             if (value.Length > int.MaxValue)
                 throw new BufferOverflowException();
 
-            InternalSerialize(value.GetBuffer(), 0, (int)value.Length, raw);
+            if (value.TryGetBuffer(out var arraySegment))
+                InternalSerialize(arraySegment.Array, arraySegment.Offset, arraySegment.Count, raw);
+            else
+            {
+                // TODO: Resort to stream.CopyTo(...) Implement Stream
+                throw new NotImplementedException();
+            }
         }
 
         public void Serialize(MemoryStream? value)

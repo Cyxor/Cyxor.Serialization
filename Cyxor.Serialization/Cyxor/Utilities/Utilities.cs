@@ -10,28 +10,6 @@ namespace Cyxor.Serialization
 
     static partial class Utilities
     {
-        //public static class RuntimeF
-        //{
-        //    public static bool IsReferenceOrContainsReferencesX(Type type)
-        //    {
-        //        var methodInfo = typeof(RuntimeHelpers).GetMethodInfo(nameof(RuntimeHelpers.IsReferenceOrContainsReferences), isPublic: true, parametersCount: 0, isGenericMethodDefinition: true, genericArgumentsCount: 1)!;
-
-        //        var genericMethodInfo = methodInfo.MakeGenericMethod(type);
-
-        //        return (bool)genericMethodInfo.Invoke(null, null)!;
-        //    }
-        //}
-
-        public static class Array
-        {
-            public static T[] Empty<T>()
-#if NET20 || NET35 || NET40 || NET45 || NETSTANDARD1_0
-                => new T[0];
-#else
-                => System.Array.Empty<T>();
-#endif
-        }
-
         public static class Unmanaged
         {
 
@@ -121,10 +99,9 @@ namespace Cyxor.Serialization
                 if (value == default)
                     return default;
 
-#if !NET20 && !NET35
                 if (System.Enum.TryParse<TEnum>(value, ignoreCase: true, out var result))
                     return result;
-#endif
+
                 var enumValues = System.Enum.GetValues(typeof(TEnum));
 
                 //return enumValues.Length == 0 ? (default) : System.Enum.Parse<TEnum>(value, ignoreCase: true);
@@ -134,116 +111,6 @@ namespace Cyxor.Serialization
 
         public static class Memory
         {
-            public static unsafe void Memcpy(byte* source, byte* destination, int bytesToCopy)
-#if !NET20 && !NET35 && !NET40 && !NET45 && !NETSTANDARD1_0
-                => System.Buffer.MemoryCopy(source, destination, bytesToCopy, bytesToCopy);
-#else
-            {
-                if (bytesToCopy >= 16)
-                {
-                    do
-                    {
-                        *(int*)destination = *(int*)source;
-                        *(int*)(destination + 4) = *(int*)(source + 4);
-                        *(int*)(destination + 8) = *(int*)(source + 8);
-                        *(int*)(destination + 12) = *(int*)(source + 12);
-
-                        destination += 16;
-                        source += 16;
-                    }
-                    while ((bytesToCopy -= 16) >= 16);
-                }
-
-                if (bytesToCopy <= 0)
-                    return;
-
-                if ((bytesToCopy & 8) != 0)
-                {
-                    *(int*)destination = *(int*)source;
-                    *(int*)(destination + 4) = *(int*)(source + 4);
-
-                    destination += 8;
-                    source += 8;
-                }
-
-                if ((bytesToCopy & 4) != 0)
-                {
-                    *(int*)destination = *(int*)source;
-
-                    destination += 4;
-                    source += 4;
-                }
-
-                if ((bytesToCopy & 2) != 0)
-                {
-                    *(short*)destination = *(short*)source;
-
-                    destination += 2;
-                    source += 2;
-                }
-
-                if ((bytesToCopy & 1) == 0)
-                    return;
-
-                *destination++ = *source++;
-            }
-#endif
-
-            public static unsafe void Wstrcpy(char* source, char* destination, int charsToCopy)
-#if !NET20 && !NET35 && !NET40 && !NET45 && !NETSTANDARD1_0
-                => System.Buffer.MemoryCopy(source, destination, charsToCopy * 2, charsToCopy * 2);
-#else
-            {
-                if (charsToCopy <= 0)
-                    return;
-
-                if (((int)destination & 2) != 0)
-                {
-                    *destination = *source;
-
-                    ++destination;
-                    ++source;
-
-                    --charsToCopy;
-                }
-
-                while (charsToCopy >= 8)
-                {
-                    *(int*)destination = (int)*(uint*)source;
-                    *(int*)(destination + 2) = (int)*(uint*)(source + 2);
-                    *(int*)(destination + 4) = (int)*(uint*)(source + 4);
-                    *(int*)(destination + 6) = (int)*(uint*)(source + 6);
-
-                    destination += 8;
-                    source += 8;
-
-                    charsToCopy -= 8;
-                }
-
-                if ((charsToCopy & 4) != 0)
-                {
-                    *(int*)destination = (int)*(uint*)source;
-                    *(int*)(destination + 2) = (int)*(uint*)(source + 2);
-
-                    destination += 4;
-                    source += 4;
-                }
-
-                if ((charsToCopy & 2) != 0)
-                {
-                    *(int*)destination = (int)*(uint*)source;
-
-                    destination += 2;
-                    source += 2;
-                }
-
-                if ((charsToCopy & 1) == 0)
-                    return;
-
-                *destination = *source;
-            }
-#endif
-
             public static unsafe int Strlen(byte* ptr)
             {
                 var bytePtr = ptr;
@@ -443,71 +310,8 @@ namespace Cyxor.Serialization
 
         public static class Reflection
         {
-//#if NET40 || NET35 || NET20
-//            internal static BindingFlags GenericBindingFlags =
-//                BindingFlags.DeclaredOnly |
-//                BindingFlags.Instance |
-//                BindingFlags.NonPublic |
-//                BindingFlags.Static |
-//                BindingFlags.Public;
-//#endif
-
             public static TAttribute? GetCustomAssemblyAttribute<TAttribute>(Type type) where TAttribute : Attribute
-#if NET20 || NET40 || NET35
-                => (TAttribute)type.Assembly.GetCustomAttributes(typeof(TAttribute), inherit: false).FirstOrDefault();
-#else
-                => type.GetTypeInfo().Assembly.GetCustomAttribute<TAttribute>();
-#endif
-
-//            public static FieldInfo? GetDeclaredField(Type type, string name)
-//#if NET40 || NET35 || NET20
-//                => type.GetField(name, GenericBindingFlags);
-//#else
-//                => type.GetTypeInfo().GetDeclaredField(name);
-//#endif
-
-//            public static IEnumerable<FieldInfo> GetDeclaredFields(Type type)
-//#if NET40 || NET35 || NET20
-//                => type.GetFields(GenericBindingFlags);
-//#else
-//                => type.GetTypeInfo().DeclaredFields;
-//#endif
-
-//            public static IEnumerable<MethodInfo> GetDeclaredPublicMethods(Type type)
-//#if NET40 || NET35 || NET20
-//                => type.GetMethods(GenericBindingFlags);
-//#else
-//                => type.GetTypeInfo().DeclaredMethods.Where(m => m.IsPublic);
-//#endif
-
-//            public static MethodInfo? ConfigSetMethod(Type type, string propertyName)
-//#if NET40 || NET35 || NET20
-//                => type.GetProperty(propertyName).GetSetMethod(nonPublic: false);
-//#else
-//                => type.GetRuntimeProperty(propertyName)?.SetMethod;
-//#endif
-
-//            public static Type[] GetGenericArguments(Type type)
-//#if NET40 || NET35 || NET20
-//                => type.GetGenericArguments();
-//#else
-//                => type.GetTypeInfo().GenericTypeArguments;
-//#endif
-
-//            public static ConstructorInfo GetConstructor(Type type, Type[] parameters)
-//#if NET40 || NET35 || NET20
-//                => type.GetConstructor(parameters);
-//#else
-//                => type.GetTypeInfo().DeclaredConstructors.FirstOrDefault(c =>
-//                    c.GetParameters().Select(p => p.ParameterType).SequenceEqual(parameters));
-//#endif
-
-//            public static PropertyInfo GetAnyDeclaredProperty(Type type, string name)
-//#if NET40 || NET35 || NET20
-//                => type.GetProperty(name, GenericBindingFlags);
-//#else
-//                => type.GetTypeInfo().DeclaredProperties.SingleOrDefault(p => p.Name == name);
-//#endif
+                => type.Assembly.GetCustomAttribute<TAttribute>();
         }
 
         public static class EncodedInteger

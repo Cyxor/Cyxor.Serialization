@@ -1,11 +1,8 @@
-﻿#if !NET20 && !NET35 && !NET40 && !NETSTANDARD1_0
-
-using System;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Cyxor.Serialization
 {
-    using Extensions;
-
     partial class Serializer
     {
         public Span<T> DeserializeSpan<T>() where T: unmanaged
@@ -31,7 +28,7 @@ namespace Cyxor.Serialization
         {
             var span = new Span<byte>(new byte[bytesCount]);
             _ = DeserializeSpan(ref span, bytesCount);
-            return span.Cast<byte, T>();
+            return MemoryMarshal.Cast<byte, T>(span);
         }
 
         public ref Span<T> DeserializeSpan<T>(ref Span<T> span) where T: unmanaged
@@ -59,7 +56,7 @@ namespace Cyxor.Serialization
             EnsureCapacity(bytesCount, SerializerOperation.Deserialize);
 
             var bufferSpan = new Span<byte>(buffer, position, bytesCount);
-            var spanOfT = bufferSpan.Cast<byte, T>();
+            var spanOfT = MemoryMarshal.Cast<byte, T>(bufferSpan);
 
             spanOfT.CopyTo(span);
             position += bytesCount;
@@ -145,7 +142,7 @@ namespace Cyxor.Serialization
 
             position += bytesCount;
 
-            return bufferReadOnlySpan.Cast<byte, T>();
+            return MemoryMarshal.Cast<byte, T>(bufferReadOnlySpan);
         }
 
         public bool TryDeserializeReadOnlySpan<T>(out ReadOnlySpan<T> value) where T : unmanaged
@@ -197,5 +194,3 @@ namespace Cyxor.Serialization
         }
     }
 }
-
-#endif

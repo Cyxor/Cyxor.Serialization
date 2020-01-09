@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Concurrent;
 
 namespace Cyxor.Serialization
 {
@@ -13,8 +14,8 @@ namespace Cyxor.Serialization
         static readonly MethodInfo CreateActionDelegateMethodInfo
             = typeof(SerializerDelegateCache).GetMethodInfo(nameof(CreateActionDelegate), isStatic: true)!;
 
-        static readonly ConcurrentCache<Type, Action<Serializer, object?>> SerializationCache
-            = new ConcurrentCache<Type, Action<Serializer, object?>>();
+        static readonly ConcurrentDictionary<Type, Action<Serializer, object?>> SerializationCache
+            = new ConcurrentDictionary<Type, Action<Serializer, object?>>();
 
         public static Action<Serializer, object?> GetSerializationMethod(Type type)
         {
@@ -44,8 +45,8 @@ namespace Cyxor.Serialization
         static readonly MethodInfo CreateFuncDelegateMethodInfo
             = typeof(SerializerDelegateCache).GetMethodInfo(nameof(CreateFuncDelegate), isStatic: true)!;
 
-        static readonly ConcurrentCache<Type, Func<Serializer, object?>> DeserializationCache
-            = new ConcurrentCache<Type, Func<Serializer, object?>>();
+        static readonly ConcurrentDictionary<Type, Func<Serializer, object?>> DeserializationCache
+            = new ConcurrentDictionary<Type, Func<Serializer, object?>>();
 
         public static Func<Serializer, object?> GetDeserializationMethod(Type type)
         {

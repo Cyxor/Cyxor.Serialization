@@ -8,32 +8,6 @@ namespace Cyxor.Extensions
     public static partial class ReflectionExtensions
     {
         /// <summary>
-        /// Retrieves a collection that represents all the fields defined on the specified <paramref name="type"/>, 
-        /// including inherited, non-public, instance, and static fields.
-        /// </summary>
-        /// <param name="type">The type that contains the fields.</param>
-        /// <returns>A collection of fields for the specified <paramref name="type"/>.</returns>
-        public static IEnumerable<FieldInfo> GetAllRuntimeFields(this Type type)
-#if NET20 || NET35 || NET40 || NET45
-            => type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-#else
-            => type.GetRuntimeFields();
-#endif
-
-        /// <summary>
-        /// Gets a collection of the fields defined by the current <paramref name="type"/>.
-        /// </summary>
-        /// <param name="type">The type that contains the fields.</param>
-        /// <returns>A collection of the fields defined by the current <paramref name="type"/>.</returns>
-        public static IEnumerable<FieldInfo> GetAllDeclaredFields(this Type type)
-#if NET20 || NET35 || NET40 || NET45
-            => type
-                .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly);
-#else
-            => type.GetTypeInfo().DeclaredFields;
-#endif
-
-        /// <summary>
         /// Retrieves a collection that represents all fields defined on a specified type when using the default parameters, 
         /// including inherited, non-public, instance, and static fields. Tweak the desired parameters to filter the result.
         /// </summary>
@@ -134,7 +108,7 @@ namespace Cyxor.Extensions
             IEnumerable<Type>? attributes = default,
             int? genericArgumentsCount = default,
             IEnumerable<Type>? genericArguments = default)
-            => from field in (inheritedFields ?? true) ? type.GetAllRuntimeFields() : type.GetAllDeclaredFields()
+            => from field in (inheritedFields ?? true) ? type.GetRuntimeFields() : type.GetTypeInfo().DeclaredFields
                let fieldGenericArguments = field.FieldType.GetGenericArguments()
                where field.Name == (name ?? field.Name)
                 && (nameStartsWith == default ? true : field.Name.StartsWith(nameStartsWith!, StringComparison.Ordinal))
