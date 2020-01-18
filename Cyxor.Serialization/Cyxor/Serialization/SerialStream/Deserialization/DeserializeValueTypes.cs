@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 
 namespace Cyxor.Serialization
 {
@@ -14,9 +15,9 @@ namespace Cyxor.Serialization
 
             unsafe
             {
-                fixed (byte* ptr = &buffer![position])
+                fixed (byte* ptr = &_buffer![_position])
                 {
-                    position += size;
+                    _position += size;
 
                     var isLittleEndian = littleEndian ?? BitConverter.IsLittleEndian;
                     var swap = BitConverter.IsLittleEndian && !isLittleEndian || !BitConverter.IsLittleEndian && isLittleEndian;
@@ -123,21 +124,31 @@ namespace Cyxor.Serialization
 
         public Guid DeserializeGuid()
         {
-            EnsureCapacity(16, SerializerOperation.Deserialize);
-            return new Guid(DeserializeBytes(count: 16)!);
+            const int guidSize = 16;
+            EnsureCapacity(guidSize, SerializerOperation.Deserialize);
+            var value = new Guid(_buffer.AsSpan(_position, guidSize));
+            _position += guidSize;
+            return value;
         }
 
         public BitSerializer DeserializeBitSerializer()
             => DeserializeInt64();
 
         public TimeSpan DeserializeTimeSpan()
-            => new TimeSpan(DeserializeInt64());
+            => TimeSpan.FromTicks(DeserializeInt64());
 
         public DateTime DeserializeDateTime()
-            => new DateTime(DeserializeInt64());
+            => DateTime.FromBinary(DeserializeUncompressedInt64());
 
         public DateTimeOffset DeserializeDateTimeOffset()
             => new DateTimeOffset(DeserializeDateTime(), DeserializeTimeSpan());
+
+        public BigInteger DeserializeBigInteger()
+        {
+            // TODO: Redesign using new BigInteger(ReadOnlySpan<byte> value)
+            var bytes = DeserializeBytes();
+            return new BigInteger(bytes);
+        }
 
         public T DeserializeEnum<T>() where T : struct, Enum
             => Enum.Parse<T>(DeserializeInt64().ToString(Culture));
@@ -156,11 +167,11 @@ namespace Cyxor.Serialization
 
             unsafe
             {
-                if (!(length - position < size))
+                if (!(_length - _position < size))
                 {
-                    fixed (byte* ptr = &buffer![position])
+                    fixed (byte* ptr = &_buffer![_position])
                     {
-                        position += size;
+                        _position += size;
 
                         var isLittleEndian = littleEndian ?? BitConverter.IsLittleEndian;
                         var swap = BitConverter.IsLittleEndian && !isLittleEndian || !BitConverter.IsLittleEndian && isLittleEndian;
@@ -346,7 +357,7 @@ namespace Cyxor.Serialization
                     return true;
                 }
                 else
-                    position -= sizeof(long);
+                    _position -= sizeof(long);
             }
 
             return false;
@@ -362,7 +373,7 @@ namespace Cyxor.Serialization
             var result = Enum.TryParse(lValue.ToString(Culture), out value);
 
             if (!result)
-                position -= sizeof(long);
+                _position -= sizeof(long);
 
             return result;
         }

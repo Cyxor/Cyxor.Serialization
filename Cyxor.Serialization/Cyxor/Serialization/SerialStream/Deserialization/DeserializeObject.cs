@@ -48,7 +48,7 @@ namespace Cyxor.Serialization
 
             if (IsKnownType(type))
             {
-                if (raw && length == 0)
+                if (raw && _length == 0)
                     return ReturnDefault<T>(type, isNullableValue, isNullableReference);
                 else
                 {
@@ -59,7 +59,7 @@ namespace Cyxor.Serialization
 
             if (isNullableValue)
             {
-                if (raw && length == 0)
+                if (raw && _length == 0)
                     return default!;
 
                 var isNotNull = DeserializeBoolean();
@@ -78,12 +78,13 @@ namespace Cyxor.Serialization
                 if (count == 0)
                     return ReturnDefault<T>(type, isNullableValue, isNullableReference);
 
-                var circularReference = (ObjectProperties.CircularMap & count) == ObjectProperties.CircularMap;
+                var circularReference = (CircularMap & count) == CircularMap;
 
-                lengthPrefixed = (ObjectProperties.EmptyMap & count) != ObjectProperties.EmptyMap;
+                lengthPrefixed = count != (EmptyMap | ObjectLengthMap);
 
-                count = count == ObjectProperties.LengthMap ? DeserializeInt32()
-                    : (((byte)count & ObjectProperties.LengthMap) >> 2);
+                count = count == ObjectLengthMap
+                    ? DeserializeInt32()
+                    : (byte)count & ObjectLengthMap;
 
                 if (Options.HandleCircularReferences && circularReference)
                 {
@@ -94,7 +95,7 @@ namespace Cyxor.Serialization
                 if (lengthPrefixed)
                     EnsureCapacity(count, SerializerOperation.Deserialize);
             }
-            else if (length == 0)
+            else if (_length == 0)
                 return ReturnDefault<T>(type, isNullableValue, isNullableReference);
 
             if (value == null)
@@ -120,7 +121,7 @@ namespace Cyxor.Serialization
 
             try
             {
-                var currentPosition = position;
+                var currentPosition = _position;
 
                 if (value is ISerializable)
                     ((ISerializable)value).Deserialize(this);
@@ -167,7 +168,7 @@ namespace Cyxor.Serialization
                     }
                 }
 
-                if (lengthPrefixed && count != position - currentPosition || raw && position != length)
+                if (lengthPrefixed && count != _position - currentPosition || raw && _position != _length)
                     throw DataException();
 
                 return value;
@@ -239,7 +240,7 @@ namespace Cyxor.Serialization
 
         public bool TryDeserializeObject(Type type, [NotNullWhen(true)] out object? value)
         {
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -248,7 +249,7 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 value = default;
                 return false;
             }
@@ -256,7 +257,7 @@ namespace Cyxor.Serialization
 
         public bool TryDeserializeNullableObject(Type type, out object? value)
         {
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -265,7 +266,7 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 value = default;
                 return false;
             }
@@ -273,13 +274,13 @@ namespace Cyxor.Serialization
 
         public object ToObject(Type type)
         {
-            position = 0;
+            _position = 0;
             return DeserializeRawObject(type);
         }
 
         public object? ToNullableObject(Type type)
         {
-            position = 0;
+            _position = 0;
             return DeserializeNullableRawObject(type);
         }
 
@@ -343,12 +344,12 @@ namespace Cyxor.Serialization
 
         T InternalToObject<T>([AllowNull] T value, IBackingSerializer? backingSerializer, object? backingSerializerOptions = default)
         {
-            var currentPosition = position;
-            position = 0;
+            var currentPosition = _position;
+            _position = 0;
 
             value = InternalDeserializeObject(value, raw: true, isNullableReference: false, backingSerializer, backingSerializerOptions);
 
-            position = currentPosition;
+            _position = currentPosition;
             return value;
         }
 

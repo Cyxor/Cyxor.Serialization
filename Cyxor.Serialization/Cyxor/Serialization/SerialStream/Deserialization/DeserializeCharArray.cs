@@ -10,7 +10,7 @@ namespace Cyxor.Serialization
             if (AutoRaw)
                 return DeserializeRawChars();
 
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(char[]).Name))
                 : count == 0 ? Array.Empty<char>()
@@ -22,7 +22,7 @@ namespace Cyxor.Serialization
             if (AutoRaw)
                 return DeserializeNullableRawChars();
 
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             return count == -1 ? default
                 : count == 0 ? Array.Empty<char>()
@@ -30,10 +30,10 @@ namespace Cyxor.Serialization
         }
 
         public char[] DeserializeRawChars()
-            => DeserializeChars(length - position);
+            => DeserializeChars(_length - _position);
 
         public char[]? DeserializeNullableRawChars()
-            => DeserializeNullableChars(length - position);
+            => DeserializeNullableChars(_length - _position);
 
         public char[] DeserializeChars(int byteCount)
         {
@@ -45,9 +45,9 @@ namespace Cyxor.Serialization
 
             EnsureCapacity(byteCount, SerializerOperation.Deserialize);
 
-            position += byteCount;
+            _position += byteCount;
 
-            return Encoding.GetChars(buffer!, position - byteCount, byteCount);
+            return System.Text.Encoding.UTF8.GetChars(_buffer!, _position - byteCount, byteCount);
         }
 
         public char[]? DeserializeNullableChars(int byteCount)
@@ -60,9 +60,9 @@ namespace Cyxor.Serialization
 
             EnsureCapacity(byteCount, SerializerOperation.Deserialize);
 
-            position += byteCount;
+            _position += byteCount;
 
-            return Encoding.GetChars(buffer!, position - byteCount, byteCount);
+            return System.Text.Encoding.UTF8.GetChars(_buffer!, _position - byteCount, byteCount);
         }
 
         public int DeserializeChars(char[] chars, int offset = 0)
@@ -107,7 +107,7 @@ namespace Cyxor.Serialization
                 if (!zeroBytesToCopy)
                     throw new ArgumentOutOfRangeException(nameof(byteCount), $"{nameof(byteCount)} must be greater than zero. To read the length from data use an overload.");
 
-                byteCount = DeserializeOp();
+                byteCount = DeserializeSequenceHeader();
 
                 if (byteCount <= 0)
                     return result;
@@ -115,10 +115,10 @@ namespace Cyxor.Serialization
 
             EnsureCapacity(byteCount, SerializerOperation.Deserialize);
 
-            fixed (byte* src = buffer)
-                result = Encoding.GetChars(src + position, byteCount, chars, charCount);
+            fixed (byte* src = _buffer)
+                result = System.Text.Encoding.UTF8.GetChars(src + _position, byteCount, chars, charCount);
 
-            position += byteCount;
+            _position += byteCount;
 
             return result;
         }
@@ -126,7 +126,7 @@ namespace Cyxor.Serialization
         public bool TryDeserializeChars([NotNullWhen(true)] out char[]? value)
         {
             value = default;
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -134,7 +134,7 @@ namespace Cyxor.Serialization
 
                 if (value == default)
                 {
-                    position -= 1;
+                    _position -= 1;
                     return false;
                 }
 
@@ -142,7 +142,7 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
@@ -150,7 +150,7 @@ namespace Cyxor.Serialization
         public bool TryDeserializeNullableChars(out char[]? value)
         {
             value = default;
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -159,7 +159,7 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
@@ -171,10 +171,10 @@ namespace Cyxor.Serialization
             if (count <= 0)
                 return false;
 
-            if (length - position < count)
+            if (_length - _position < count)
                 return false;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -183,7 +183,7 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
@@ -195,10 +195,10 @@ namespace Cyxor.Serialization
             if (count <= 0)
                 return false;
 
-            if (length - position < count)
+            if (_length - _position < count)
                 return false;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -207,20 +207,20 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
 
         public char[] ToCharArray()
         {
-            position = 0;
+            _position = 0;
             return DeserializeRawChars();
         }
 
         public char[]? ToNullableCharArray()
         {
-            position = 0;
+            _position = 0;
             return DeserializeNullableRawChars();
         }
     }

@@ -10,7 +10,7 @@ namespace Cyxor.Serialization
             if (AutoRaw)
                 return DeserializeRawSpan<T>();
 
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             return count == -1 ? throw new InvalidOperationException
                 (Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingValueType(typeof(Span<T>).Name))
@@ -19,10 +19,10 @@ namespace Cyxor.Serialization
         }
 
         public Span<T> DeserializeRawSpan<T>() where T: unmanaged
-            => DeserializeSpan<T>(length - position);
+            => DeserializeSpan<T>(_length - _position);
 
         public ref Span<T> DeserializeRawSpan<T>(ref Span<T> span) where T : unmanaged
-            => ref DeserializeSpan(ref span, length - position);
+            => ref DeserializeSpan(ref span, _length - _position);
 
         public Span<T> DeserializeSpan<T>(int bytesCount) where T: unmanaged
         {
@@ -33,7 +33,7 @@ namespace Cyxor.Serialization
 
         public ref Span<T> DeserializeSpan<T>(ref Span<T> span) where T: unmanaged
         {
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             if (count == -1)
                 throw new InvalidOperationException
@@ -55,11 +55,11 @@ namespace Cyxor.Serialization
 
             EnsureCapacity(bytesCount, SerializerOperation.Deserialize);
 
-            var bufferSpan = new Span<byte>(buffer, position, bytesCount);
+            var bufferSpan = new Span<byte>(_buffer, _position, bytesCount);
             var spanOfT = MemoryMarshal.Cast<byte, T>(bufferSpan);
 
             spanOfT.CopyTo(span);
-            position += bytesCount;
+            _position += bytesCount;
 
             return ref span;
         }
@@ -68,7 +68,7 @@ namespace Cyxor.Serialization
         {
             value = Span<T>.Empty;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -77,7 +77,7 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
@@ -89,10 +89,10 @@ namespace Cyxor.Serialization
             if (bytesCount <= 0)
                 return false;
 
-            if (length - position < bytesCount)
+            if (_length - _position < bytesCount)
                 return false;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -101,23 +101,40 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
 
         public Span<T> ToSpan<T>() where T : unmanaged
         {
-            position = 0;
+            _position = 0;
             return DeserializeRawSpan<T>();
         }
+
+        //int _offset;
+
+        public Span<T> AsSpan<T>() where T : unmanaged
+            => _buffer == null ? Span<T>.Empty : MemoryMarshal.Cast<byte, T>(_buffer.AsSpan(0.._length));
+
+        //public Span<T> AsSpan<T>(Index startIndex) where T : unmanaged
+        //    => buffer == null ? Span<T>.Empty : MemoryMarshal.Cast<byte, T>(buffer.AsSpan(startIndex));
+
+        //public Span<T> AsSpan<T>(int start) where T : unmanaged
+        //    => buffer == null ? Span<T>.Empty : MemoryMarshal.Cast<byte, T>(buffer.AsSpan(start));
+
+        //public Span<T> AsSpan<T>(Range range) where T : unmanaged
+        //    => buffer == null ? Span<T>.Empty : MemoryMarshal.Cast<byte, T>(buffer.AsSpan(range));
+
+        //public Span<T> AsSpan<T>(int start, int length) where T : unmanaged
+        //    => buffer == null ? Span<T>.Empty : MemoryMarshal.Cast<byte, T>(buffer.AsSpan(start, length));
 
         public ReadOnlySpan<T> DeserializeReadOnlySpan<T>() where T : unmanaged
         {
             if (AutoRaw)
                 return DeserializeRawReadOnlySpan<T>();
 
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             return count == -1 ? throw new InvalidOperationException
                 (Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingValueType(typeof(ReadOnlySpan<T>).Name))
@@ -126,7 +143,7 @@ namespace Cyxor.Serialization
         }
 
         public ReadOnlySpan<T> DeserializeRawReadOnlySpan<T>() where T : unmanaged
-            => DeserializeReadOnlySpan<T>(length - position);
+            => DeserializeReadOnlySpan<T>(_length - _position);
 
         public ReadOnlySpan<T> DeserializeReadOnlySpan<T>(int bytesCount) where T : unmanaged
         {
@@ -138,9 +155,9 @@ namespace Cyxor.Serialization
 
             EnsureCapacity(bytesCount, SerializerOperation.Deserialize);
 
-            var bufferReadOnlySpan = new ReadOnlySpan<byte>(buffer, position, bytesCount);
+            var bufferReadOnlySpan = new ReadOnlySpan<byte>(_buffer, _position, bytesCount);
 
-            position += bytesCount;
+            _position += bytesCount;
 
             return MemoryMarshal.Cast<byte, T>(bufferReadOnlySpan);
         }
@@ -149,7 +166,7 @@ namespace Cyxor.Serialization
         {
             value = ReadOnlySpan<T>.Empty;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -158,7 +175,7 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
@@ -170,10 +187,10 @@ namespace Cyxor.Serialization
             if (bytesCount <= 0)
                 return false;
 
-            if (length - position < bytesCount)
+            if (_length - _position < bytesCount)
                 return false;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -182,15 +199,18 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
 
         public ReadOnlySpan<T> ToReadOnlySpan<T>() where T : unmanaged
         {
-            position = 0;
+            _position = 0;
             return DeserializeRawReadOnlySpan<T>();
         }
+
+        public ReadOnlySpan<T> AsReadOnlySpan<T>() where T : unmanaged
+            => AsSpan<T>();
     }
 }

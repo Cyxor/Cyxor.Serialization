@@ -23,7 +23,7 @@ namespace Cyxor.Serialization
 
             if (count == 0)
             {
-                Serialize(ObjectProperties.EmptyMap);
+                Serialize(EmptyMap);
                 return;
             }
 
@@ -41,7 +41,7 @@ namespace Cyxor.Serialization
                 }
             }
 
-            SerializeOp(count);
+            SerializeSequenceHeader(count);
 
             if (value == value1)
                 foreach (var item in value1!)

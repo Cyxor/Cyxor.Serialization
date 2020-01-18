@@ -64,13 +64,13 @@ namespace Cyxor.Serialization
 
         public Uri ToUri()
         {
-            position = 0;
+            _position = 0;
             return DeserializeRawUri();
         }
 
         public Uri? ToNullableUri()
         {
-            position = 0;
+            _position = 0;
             return DeserializeNullableRawUri();
         }
     }

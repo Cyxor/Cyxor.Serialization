@@ -12,7 +12,7 @@ namespace Cyxor.Serialization
             if (AutoRaw)
                 return DeserializeRawMemory<T>();
 
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(Memory<T>).Name))
                 : count == 0 ? Memory<T>.Empty
@@ -20,10 +20,10 @@ namespace Cyxor.Serialization
         }
 
         public Memory<T> DeserializeRawMemory<T>() where T: unmanaged
-            => DeserializeMemory<T>(length - position);
+            => DeserializeMemory<T>(_length - _position);
 
         public ref Memory<T> DeserializeRawMemory<T>(ref Memory<T> memory) where T : unmanaged
-            => ref DeserializeMemory(ref memory, length - position);
+            => ref DeserializeMemory(ref memory, _length - _position);
 
         public Memory<T> DeserializeMemory<T>(int bytesCount) where T : unmanaged
         {
@@ -34,7 +34,7 @@ namespace Cyxor.Serialization
 
         public ref Memory<T> DeserializeMemory<T>(ref Memory<T> memory) where T: unmanaged
         {
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             if (count == -1)
                 throw new InvalidOperationException
@@ -56,11 +56,11 @@ namespace Cyxor.Serialization
 
             EnsureCapacity(bytesCount, SerializerOperation.Deserialize);
 
-            var bufferMemory = new Memory<byte>(buffer, position, bytesCount);
+            var bufferMemory = new Memory<byte>(_buffer, _position, bytesCount);
             var memoryOfT = bufferMemory.Cast<byte, T>();
 
             memoryOfT.CopyTo(memory);
-            position += bytesCount;
+            _position += bytesCount;
 
             return ref memory;
         }
@@ -69,7 +69,7 @@ namespace Cyxor.Serialization
         {
             value = Memory<T>.Empty;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -78,7 +78,7 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
@@ -90,10 +90,10 @@ namespace Cyxor.Serialization
             if (bytesCount <= 0)
                 return false;
 
-            if (length - position < bytesCount)
+            if (_length - _position < bytesCount)
                 return false;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -102,14 +102,14 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
 
         public Memory<T> ToMemory<T>() where T : unmanaged
         {
-            position = 0;
+            _position = 0;
             return DeserializeRawMemory<T>();
         }
 
@@ -118,7 +118,7 @@ namespace Cyxor.Serialization
             if (AutoRaw)
                 return DeserializeRawReadOnlyMemory<T>();
 
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             return count == -1 ? throw new InvalidOperationException
                 (Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingValueType(typeof(ReadOnlyMemory<T>).Name))
@@ -127,7 +127,7 @@ namespace Cyxor.Serialization
         }
 
         public ReadOnlyMemory<T> DeserializeRawReadOnlyMemory<T>() where T : unmanaged
-            => DeserializeReadOnlyMemory<T>(length - position);
+            => DeserializeReadOnlyMemory<T>(_length - _position);
 
         public ReadOnlyMemory<T> DeserializeReadOnlyMemory<T>(int bytesCount) where T : unmanaged
         {
@@ -139,9 +139,9 @@ namespace Cyxor.Serialization
 
             EnsureCapacity(bytesCount, SerializerOperation.Deserialize);
 
-            var bufferReadOnlyMemory = new ReadOnlyMemory<byte>(buffer, position, bytesCount);
+            var bufferReadOnlyMemory = new ReadOnlyMemory<byte>(_buffer, _position, bytesCount);
 
-            position += bytesCount;
+            _position += bytesCount;
 
             return bufferReadOnlyMemory.Cast<byte, T>();
         }
@@ -150,7 +150,7 @@ namespace Cyxor.Serialization
         {
             value = ReadOnlyMemory<T>.Empty;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -159,7 +159,7 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
@@ -171,10 +171,10 @@ namespace Cyxor.Serialization
             if (bytesCount <= 0)
                 return false;
 
-            if (length - position < bytesCount)
+            if (_length - _position < bytesCount)
                 return false;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -183,14 +183,14 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
 
         public ReadOnlyMemory<T> ToReadOnlyMemory<T>() where T : unmanaged
         {
-            position = 0;
+            _position = 0;
             return DeserializeRawReadOnlyMemory<T>();
         }
 

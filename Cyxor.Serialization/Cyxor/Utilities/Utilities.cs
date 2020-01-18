@@ -6,13 +6,14 @@ using System.Runtime.CompilerServices;
 
 namespace Cyxor.Serialization
 {
+    using System.ComponentModel;
     using Extensions;
 
     static partial class Utilities
     {
-        public static class Unmanaged
+        public class Unmanaged
         {
-
+            public static Unmanaged Instance = new Unmanaged();
         }
 
         public static class TypeHelper
@@ -106,36 +107,6 @@ namespace Cyxor.Serialization
 
                 //return enumValues.Length == 0 ? (default) : System.Enum.Parse<TEnum>(value, ignoreCase: true);
                 return enumValues.Length == 0 ? (default) : (TEnum)System.Enum.Parse(typeof(TEnum), value, ignoreCase: true);
-            }
-        }
-
-        public static class Memory
-        {
-            public static unsafe int Strlen(byte* ptr)
-            {
-                var bytePtr = ptr;
-
-                while (*bytePtr != 0)
-                    ++bytePtr;
-
-                return (int)(bytePtr - ptr);
-            }
-
-            public static unsafe int Wcslen(char* ptr)
-            {
-                var chPtr = ptr;
-
-                while (((uint)chPtr & 3) != 0 && *chPtr != 0)
-                    chPtr++;
-
-                if (*chPtr != 0)
-                    while ((chPtr[0] & chPtr[1]) != 0 || chPtr[0] != 0 && chPtr[1] != 0)
-                        chPtr += 2;
-
-                for (; *chPtr != 0; chPtr++)
-                    ;
-
-                return (int)(chPtr - ptr);
             }
         }
 
@@ -248,6 +219,7 @@ namespace Cyxor.Serialization
                 return value;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static unsafe T Swap<T>(T value) where T : unmanaged
             {
                 var size = sizeof(T);

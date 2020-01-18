@@ -5,6 +5,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Cyxor.Extensions;
 using BenchmarkDotNet.Attributes;
 using System.Threading;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 namespace Cyxor.Serialization.Test
 {
@@ -82,6 +84,24 @@ namespace Cyxor.Serialization.Test
 
             Assert.AreEqual(product.Name, newProduct.Name);
             Assert.AreEqual(product.Price, newProduct.Price);
+        }
+
+        [TestMethod]
+        public unsafe void SpanTest()
+        {
+            //void* n = null;
+            //var span = new Span<byte>(n, 0);
+
+            //var x = span.Length;
+            //var y = span.IsEmpty;
+            //var z = span.ToArray();
+            //var w = MemoryMarshal.GetReference(span);
+
+            //Unsafe.
+
+            //byte b = MemoryMarshal.AsRef<byte>(span);
+
+            Assert.IsTrue(true);
         }
     }
 }

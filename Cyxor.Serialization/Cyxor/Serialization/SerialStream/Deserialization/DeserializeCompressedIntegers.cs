@@ -17,11 +17,8 @@ namespace Cyxor.Serialization
                 2 => 21,
                 4 => 35,
                 8 => 63,
-                _ => 0
+                _ => throw new ArgumentException("Invalid size", nameof(size))
             };
-
-            if (bitVal == 0)
-                throw new ArgumentException("Invalid size", nameof(size));
 
             while (val2 != bitVal)
             {
@@ -61,7 +58,7 @@ namespace Cyxor.Serialization
         bool InternalTryDeserializeCompressedInt<T>(out T value, int size, bool signed) where T : struct
         {
             var result = false;
-            var startPosition = position;
+            var startPosition = _position;
 
             ulong val1 = 0;
             var val2 = 0;
@@ -100,7 +97,7 @@ namespace Cyxor.Serialization
                     _ => (T)(ValueType)val1,
                 });
 
-            position = result ? position : startPosition;
+            _position = result ? _position : startPosition;
             return result;
         }
 

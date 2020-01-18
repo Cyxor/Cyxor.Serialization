@@ -21,17 +21,17 @@ namespace Cyxor.Serialization
 
         public override long Position
         {
-            get => position;
+            get => _position;
             set
             {
-                if (value < 0 || value > length)
+                if (value < 0 || value > _length)
                     throw new ArgumentOutOfRangeException(nameof(value));
 
-                position = (int)value;
+                _position = (int)value;
             }
         }
 
-        public override long Length => length;
+        public override long Length => _length;
 
         public override int ReadByte()
             => DeserializeByte();
@@ -41,16 +41,16 @@ namespace Cyxor.Serialization
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            count = count > length - position ? length - position : count;
+            count = count > _length - _position ? _length - _position : count;
             DeserializeBytes(buffer, offset, count);
             return count;
         }
 
         public override int Read(Span<byte> buffer)
         {
-            var initialPosition = position;
+            var initialPosition = _position;
             _ = DeserializeRawSpan(ref buffer);
-            return position - initialPosition;
+            return _position - initialPosition;
         }
 
         public override void Write(byte[] buffer, int offset, int count)
@@ -69,11 +69,11 @@ namespace Cyxor.Serialization
             switch (origin)
             {
                 case SeekOrigin.Begin: Position = offset; break;
-                case SeekOrigin.End: Position = length - offset; break;
-                case SeekOrigin.Current: Position = position + offset; break;
+                case SeekOrigin.End: Position = _length - offset; break;
+                case SeekOrigin.Current: Position = _position + offset; break;
             }
 
-            return position;
+            return _position;
         }
     }
 }

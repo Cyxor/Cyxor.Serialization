@@ -47,17 +47,19 @@ namespace Cyxor.Serialization
 
         public T[] DeserializeArray<T>()
         {
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
-            return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(T[]).Name))
-                : count == 0 ? Array.Empty<T>()
-                : InternalDeserializeArray<T>(count);
+            return count == -1
+                ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(T[]).Name))
+                : count == 0
+                    ? Array.Empty<T>()
+                    : InternalDeserializeArray<T>(count);
         }
 
         [SerializerMethodIdentifier(SerializerMethodIdentifier.DeserializeArray)]
         public T[]? DeserializeNullableArray<T>()
         {
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             return count == -1 ? default
                 : count == 0 ? Array.Empty<T>()
@@ -66,10 +68,10 @@ namespace Cyxor.Serialization
 
         public T[] ToArray<T>()
         {
-            position = 0;
+            _position = 0;
             var array = DeserializeArray<T>();
 
-            if (position != length)
+            if (_position != _length)
                 throw new InvalidOperationException(Utilities.ResourceStrings.TheWholeSerialStreamContentIsNotAnObjectOfType(typeof(T).Name));
 
             return array;
@@ -77,10 +79,10 @@ namespace Cyxor.Serialization
 
         public T[]? ToNullableArray<T>()
         {
-            position = 0;
+            _position = 0;
             var array = DeserializeNullableArray<T>();
 
-            if (position != length)
+            if (_position != _length)
                 throw new InvalidOperationException(Utilities.ResourceStrings.TheWholeSerialStreamContentIsNotAnObjectOfType(typeof(T).Name));
 
             return array;
@@ -155,7 +157,7 @@ namespace Cyxor.Serialization
 
         public IEnumerable<T> DeserializeIEnumerable<T>()
         {
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(IEnumerable<T>).Name))
                 : count == 0 ? new List<T>()
@@ -165,7 +167,7 @@ namespace Cyxor.Serialization
         [SerializerMethodIdentifier(SerializerMethodIdentifier.DeserializeIEnumerable)]
         public IEnumerable<T>? DeserializeNullableIEnumerable<T>()
         {
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             return count == -1 ? default
                 : count == 0 ? new List<T>()
@@ -180,10 +182,10 @@ namespace Cyxor.Serialization
 
         public IEnumerable<T> ToIEnumerable<T>()
         {
-            position = 0;
+            _position = 0;
             var items = DeserializeIEnumerable<T>();
 
-            if (position != length)
+            if (_position != _length)
                 throw new InvalidOperationException(Utilities.ResourceStrings.TheWholeSerialStreamContentIsNotAnObjectOfType(typeof(T).Name));
 
             return items;
@@ -191,10 +193,10 @@ namespace Cyxor.Serialization
 
         public IEnumerable<T>? ToNullableIEnumerable<T>()
         {
-            position = 0;
+            _position = 0;
             var items = DeserializeNullableIEnumerable<T>();
 
-            if (position != length)
+            if (_position != _length)
                 throw new InvalidOperationException(Utilities.ResourceStrings.TheWholeSerialStreamContentIsNotAnObjectOfType(typeof(T).Name));
 
             return items;
@@ -227,7 +229,7 @@ namespace Cyxor.Serialization
         public IEnumerable<KeyValuePair<TKey, TValue>> DeserializeIEnumerable<TKey, TValue>()
             where TKey : notnull
         {
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(IEnumerable<KeyValuePair<TKey, TValue>>).Name))
                 : count == 0 ? new Dictionary<TKey, TValue>()
@@ -238,7 +240,7 @@ namespace Cyxor.Serialization
         public IEnumerable<KeyValuePair<TKey, TValue>>? DeserializeNullableIEnumerable<TKey, TValue>()
             where TKey : notnull
         {
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             return count == -1 ? default
                 : count == 0 ? new Dictionary<TKey, TValue>()
@@ -254,10 +256,10 @@ namespace Cyxor.Serialization
         public IEnumerable<KeyValuePair<TKey, TValue>> ToIEnumerable<TKey, TValue>()
             where TKey : notnull
         {
-            position = 0;
+            _position = 0;
             var items = DeserializeIEnumerable<TKey, TValue>();
 
-            if (position != length)
+            if (_position != _length)
             {
                 var keyTypeName = typeof(TKey).Name;
                 var valueTypeName = typeof(TValue).Name;
@@ -272,10 +274,10 @@ namespace Cyxor.Serialization
         public IEnumerable<KeyValuePair<TKey, TValue>>? ToNullableIEnumerable<TKey, TValue>()
             where TKey : notnull
         {
-            position = 0;
+            _position = 0;
             var items = DeserializeNullableIEnumerable<TKey, TValue>();
 
-            if (position != length)
+            if (_position != _length)
             {
                 var keyTypeName = typeof(TKey).Name;
                 var valueTypeName = typeof(TValue).Name;
@@ -328,10 +330,10 @@ namespace Cyxor.Serialization
         public IGrouping<TKey, TElement> ToIGrouping<TKey, TElement>()
             where TKey : notnull
         {
-            position = 0;
+            _position = 0;
             var items = DeserializeIGrouping<TKey, TElement>();
 
-            if (position != length)
+            if (_position != _length)
             {
                 var keyTypeName = typeof(TKey).Name;
                 var valueTypeName = typeof(TElement).Name;
@@ -346,10 +348,10 @@ namespace Cyxor.Serialization
         public IGrouping<TKey, TElement>? ToNullableIGrouping<TKey, TElement>()
             where TKey : notnull
         {
-            position = 0;
+            _position = 0;
             var items = DeserializeNullableIGrouping<TKey, TElement>();
 
-            if (position != length)
+            if (_position != _length)
             {
                 var keyTypeName = typeof(TKey).Name;
                 var valueTypeName = typeof(TElement).Name;

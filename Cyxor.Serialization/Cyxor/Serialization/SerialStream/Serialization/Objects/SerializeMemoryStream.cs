@@ -18,15 +18,25 @@ namespace Cyxor.Serialization
                 return;
             }
 
+            var length = value.Length;
+
+            if (length == 0)
+            {
+                if (!raw)
+                    Serialize(EmptyMap);
+
+                return;
+            }
+
             if (value.Length > int.MaxValue)
                 throw new BufferOverflowException();
 
             if (value.TryGetBuffer(out var arraySegment))
-                InternalSerialize(arraySegment.Array, arraySegment.Offset, arraySegment.Count, raw);
+                InternalSerialize(arraySegment.AsSpan(), raw);
             else
             {
-                // TODO: Resort to stream.CopyTo(...) Implement Stream
-                throw new NotImplementedException();
+                Serialize(length);
+                value.CopyTo(this);
             }
         }
 

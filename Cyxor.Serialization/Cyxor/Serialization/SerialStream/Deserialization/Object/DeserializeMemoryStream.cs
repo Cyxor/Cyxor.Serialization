@@ -64,13 +64,13 @@ namespace Cyxor.Serialization
 
         public MemoryStream ToMemoryStream()
         {
-            position = 0;
+            _position = 0;
             return DeserializeRawMemoryStream();
         }
 
         public MemoryStream? ToNullableMemoryStream()
         {
-            position = 0;
+            _position = 0;
             return DeserializeNullableRawMemoryStream();
         }
     }

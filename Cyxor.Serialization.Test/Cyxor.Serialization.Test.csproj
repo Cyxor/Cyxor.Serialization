@@ -3,10 +3,8 @@
   <PropertyGroup>
     <Nullable>enable</Nullable>
     <LangVersion>8.0</LangVersion>
-    <!--<TargetFrameworks>net45;netstandard1.3;netcoreapp2.1</TargetFrameworks>-->
-    <!--<TargetFrameworks>netstandar</TargetFrameworks>-->
-    <!--<TargetFrameworks>net45;netcoreapp1.1;netcoreapp2.2;netcoreapp3.1</TargetFrameworks>-->
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>

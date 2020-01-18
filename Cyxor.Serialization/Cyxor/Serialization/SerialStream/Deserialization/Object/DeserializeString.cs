@@ -10,7 +10,7 @@ namespace Cyxor.Serialization
             if (AutoRaw)
                 return DeserializeStringRaw();
 
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(string).Name))
                 : count == 0 ? string.Empty
@@ -22,7 +22,7 @@ namespace Cyxor.Serialization
             if (AutoRaw)
                 return DeserializeNullableStringRaw();
 
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             return count == -1 ? default
                 : count == 0 ? string.Empty
@@ -30,10 +30,10 @@ namespace Cyxor.Serialization
         }
 
         public string DeserializeStringRaw()
-            => DeserializeString(length - position);
+            => DeserializeString(_length - _position);
 
         public string? DeserializeNullableStringRaw()
-            => DeserializeNullableString(length - position);
+            => DeserializeNullableString(_length - _position);
 
         /// <summary>
         /// Deserialize a string from the specified number of bytes
@@ -50,9 +50,9 @@ namespace Cyxor.Serialization
 
             EnsureCapacity(byteCount, SerializerOperation.Deserialize);
 
-            position += byteCount;
+            _position += byteCount;
 
-            return Encoding.GetString(buffer!, position - byteCount, byteCount);
+            return System.Text.Encoding.UTF8.GetString(_buffer!, _position - byteCount, byteCount);
             //return System.Text.Encoding.Unicode.GetString(buffer!, position - byteCount, byteCount);
         }
 
@@ -71,16 +71,16 @@ namespace Cyxor.Serialization
 
             EnsureCapacity(byteCount, SerializerOperation.Deserialize);
 
-            position += byteCount;
+            _position += byteCount;
 
-            return Encoding.GetString(buffer!, position - byteCount, byteCount);
+            return System.Text.Encoding.UTF8.GetString(_buffer!, _position - byteCount, byteCount);
             //return System.Text.Encoding.Unicode.GetString(buffer!, position - byteCount, byteCount);
         }
 
         public bool TryDeserializeString([NotNullWhen(true)] out string? value)
         {
             value = default;
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -88,7 +88,7 @@ namespace Cyxor.Serialization
 
                 if (value == default)
                 {
-                    position -= 1;
+                    _position -= 1;
                     return false;
                 }
 
@@ -96,7 +96,7 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
@@ -108,10 +108,10 @@ namespace Cyxor.Serialization
             if (count <= 0)
                 return false;
 
-            if (length - position < count)
+            if (_length - _position < count)
                 return false;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -120,7 +120,7 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
@@ -128,7 +128,7 @@ namespace Cyxor.Serialization
         public bool TryDeserializeNullableString(out string? value)
         {
             value = default;
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -137,7 +137,7 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
@@ -149,10 +149,10 @@ namespace Cyxor.Serialization
             if (count <= 0)
                 return false;
 
-            if (length - position < count)
+            if (_length - _position < count)
                 return false;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -161,20 +161,20 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
 
         public override string ToString()
         {
-            position = 0;
+            _position = 0;
             return DeserializeStringRaw();
         }
 
         public string? ToNullableString()
         {
-            position = 0;
+            _position = 0;
             return DeserializeNullableStringRaw();
         }
     }

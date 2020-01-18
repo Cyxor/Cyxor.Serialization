@@ -1,40 +1,56 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Cyxor.Serialization
 {
     partial class Serializer
     {
-        void InternalSerialize<T>(in ReadOnlySpan<T> readOnlySpan, bool raw) where T : unmanaged
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe void InternalSerialize(in ReadOnlySpan<byte> value, bool raw, bool containsNullPointer = false)
         {
-            if (readOnlySpan.IsEmpty)
+            if (containsNullPointer)
             {
                 if (!raw)
-                    Serialize(ObjectProperties.EmptyMap);
+                    Serialize((byte)0);
 
                 return;
             }
 
-            var bytesReadOnlySpan = MemoryMarshal.Cast<T, byte>(readOnlySpan);
+            if (value.IsEmpty)
+            {
+                if (!raw)
+                    Serialize(EmptyMap);
+
+                return;
+            }
+
+            var count = value.Length;
 
             if (!raw)
-                SerializeOp(bytesReadOnlySpan.Length);
+                SerializeSequenceHeader(count);
 
-            EnsureCapacity(bytesReadOnlySpan.Length, SerializerOperation.Serialize);
+            EnsureCapacity(count, SerializerOperation.Serialize);
 
-            bytesReadOnlySpan.CopyTo(new Span<byte>(buffer, position, bytesReadOnlySpan.Length));
+            value.CopyTo(_buffer.AsSpan(_position..count));
+
+            _position += count;
         }
 
-        public void Serialize<T>(Span<T> span) where T : unmanaged
-            => InternalSerialize((ReadOnlySpan<T>)span, AutoRaw);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void InternalSerialize<T>(in ReadOnlySpan<T> value, bool raw, bool containsNullPointer = false) where T : unmanaged
+            => InternalSerialize(MemoryMarshal.Cast<T, byte>(value), raw, containsNullPointer);
 
-        public void SerializeRaw<T>(Span<T> span) where T : unmanaged
-            => InternalSerialize((ReadOnlySpan<T>)span, raw: true);
+        public void Serialize<T>(Span<T> value) where T : unmanaged
+            => InternalSerialize((ReadOnlySpan<T>)value, AutoRaw);
 
-        public void Serialize<T>(ReadOnlySpan<T> readOnlySpan) where T : unmanaged
-            => InternalSerialize(readOnlySpan, AutoRaw);
+        public void SerializeRaw<T>(Span<T> value) where T : unmanaged
+            => InternalSerialize((ReadOnlySpan<T>)value, raw: true);
 
-        public void SerializeRaw<T>(ReadOnlySpan<T> readOnlySpan) where T : unmanaged
-            => InternalSerialize(readOnlySpan, raw: true);
+        public void Serialize<T>(ReadOnlySpan<T> value) where T : unmanaged
+            => InternalSerialize(value, AutoRaw);
+
+        public void SerializeRaw<T>(ReadOnlySpan<T> value) where T : unmanaged
+            => InternalSerialize(value, raw: true);
     }
 }

@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Reflection.Emit;
+using System.IO;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Cyxor.Extensions;
-
-using System.Buffers;
 
 namespace Cyxor.Serialization
 {
@@ -18,38 +17,66 @@ namespace Cyxor.Serialization
 
             Span<T> span;
 
-            fixed (void* ptr = &buffer![position])
+            fixed (void* ptr = &_buffer![_position])
                 span = new Span<T>(ptr, 1);
 
             span[0] = value;
 
-            position += size;
+            _position += size;
         }
 
-        unsafe void InternalSerializeUnmanaged<T>(T value, bool? littleEndian = default) where T : unmanaged
-        {            
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe void InternalSerializeUnmanaged<T>(T value, bool? littleEndian = null) where T : unmanaged
+        {
             var size = sizeof(T);
 
             EnsureCapacity(size, SerializerOperation.Serialize);
 
-            Span<T> span;
+            // NOTE: value assigned to littleEndian is used to determine if byte order swapping is needed
 
-            fixed (void* ptr = &buffer![position])
-                span = new Span<T>(ptr, 1);
+            if (littleEndian != null)
+                littleEndian = IsLittleEndian && !littleEndian.Value || !IsLittleEndian && littleEndian.Value;
 
-            var isLittleEndian = littleEndian ?? IsLittleEndian;
-            var swap = IsLittleEndian && !isLittleEndian || !IsLittleEndian && isLittleEndian;
+            if (Options.ReverseByteOrder)
+            {
+                if (littleEndian == null)
+                {
+                    var tType = typeof(T);
 
-            span[0] = swap ? Utilities.ByteOrder.Swap(value) : value;
+                    if (tType == typeof(short) || tType == typeof(ushort)
+                        || tType == typeof(int) || tType == typeof(uint)
+                        || tType == typeof(long) || tType == typeof(ulong))
+                        littleEndian = true;
+                }
+                else
+                    littleEndian = !littleEndian;
+            }
 
-            position += size;
+            if (littleEndian ?? false)
+                value = Utilities.ByteOrder.Swap(value);
+
+            if (_stream != null)
+                _stream.Write(new ReadOnlySpan<byte>(&value, size));
+            else
+            {
+                Span<T> span;
+
+                fixed (void* ptr = &_buffer![_position])
+                    span = new Span<T>(ptr, 1);
+
+                span[0] = value;
+            }
+
+            _position += size;
         }
 
-        #region Numeric
+        #region Unmanaged
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Serialize(bool value)
             => InternalSerializeUnmanaged(value);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Serialize(byte value)
             => InternalSerializeUnmanaged(value);
 
@@ -62,6 +89,7 @@ namespace Cyxor.Serialization
         public void Serialize(short value, bool littleEndian)
             => InternalSerializeUnmanaged(value, littleEndian);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Serialize(int value)
             => SerializeCompressedInt((uint)value);
 
@@ -71,6 +99,7 @@ namespace Cyxor.Serialization
         public void SerializeUncompressedInt32(int value, bool littleEndian)
             => InternalSerializeUnmanaged(value, littleEndian);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Serialize(long value)
              => SerializeCompressedInt((ulong)value);
 
@@ -110,12 +139,17 @@ namespace Cyxor.Serialization
         public void Serialize(ulong value, bool littleEndian)
             => InternalSerializeUnmanaged(value, littleEndian);
 
-        #endregion Numeric
+        #endregion Unmanaged
 
         #region Struct
 
         public void Serialize(Guid value)
-            => SerializeRaw(value.ToByteArray());
+        {
+            const int guidSize = 16;
+            EnsureCapacity(guidSize, SerializerOperation.Serialize);
+            _ = value.TryWriteBytes(_buffer.AsSpan(_position, guidSize));
+            _position += guidSize;
+        }
 
         public void Serialize(BitSerializer value)
             => Serialize((long)value);
@@ -124,12 +158,19 @@ namespace Cyxor.Serialization
             => Serialize(value.Ticks);
 
         public void Serialize(DateTime value)
-            => Serialize(value.Ticks);
+            => SerializeUncompressedInt64(value.ToBinary());
 
         public void Serialize(DateTimeOffset value)
         {
             Serialize(value.DateTime);
             Serialize(value.Offset);
+        }
+
+        public void Serialize(BigInteger value)
+        {
+            // TODO: Redesign using value.TryWriteBytes
+            var bytes = value.ToByteArray();
+            Serialize(bytes);
         }
 
         public void SerializeEnum<T>(T value) where T : struct, Enum

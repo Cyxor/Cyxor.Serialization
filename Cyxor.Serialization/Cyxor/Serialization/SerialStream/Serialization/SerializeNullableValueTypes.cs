@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace Cyxor.Serialization
 {
@@ -8,6 +9,7 @@ namespace Cyxor.Serialization
 
         delegate void SerializeSignatureLittleEndian<T>(T value, bool littleEndian) where T : struct;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void SerializeNullableValue<T>(T? value, SerializeSignature<T> serializeDelegate) where T : struct
         {
             if (value == null)
@@ -19,6 +21,7 @@ namespace Cyxor.Serialization
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void SerializeNullableValue<T>(T? value, bool littleEndian, SerializeSignatureLittleEndian<T> serializeDelegate) where T : struct
         {
             if (value == null)

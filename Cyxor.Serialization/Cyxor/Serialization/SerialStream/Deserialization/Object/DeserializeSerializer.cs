@@ -63,13 +63,13 @@ namespace Cyxor.Serialization
 
         public Serializer ToSerialStream()
         {
-            position = 0;
+            _position = 0;
             return DeserializeRawSerialStream();
         }
 
         public Serializer? ToNullableSerialStream()
         {
-            position = 0;
+            _position = 0;
             return DeserializeNullableRawSerialStream();
         }
     }

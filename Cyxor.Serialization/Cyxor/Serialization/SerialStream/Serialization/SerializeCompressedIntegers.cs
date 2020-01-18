@@ -1,4 +1,6 @@
-﻿namespace Cyxor.Serialization
+﻿using System.Runtime.CompilerServices;
+
+namespace Cyxor.Serialization
 {
     partial class Serializer
     {
@@ -14,9 +16,11 @@
         public void SerializeCompressedInt(ushort value)
             => SerializeCompressedInt((ulong)value);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SerializeCompressedInt(uint value)
             => SerializeCompressedInt((ulong)value);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SerializeCompressedInt(ulong value)
         {
             while (value >= 128)

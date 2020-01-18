@@ -4,22 +4,22 @@ namespace Cyxor.Serialization
 {
     partial class Serializer
     {
-        public void Serialize<T>(Memory<T> memory) where T : unmanaged
-            => InternalSerialize((ReadOnlySpan<T>)memory.Span, AutoRaw);
+        public void Serialize<T>(Memory<T> value) where T : unmanaged
+            => InternalSerialize<T>(value.Span, AutoRaw);
 
-        public void SerializeRaw<T>(Memory<T> memory) where T : unmanaged
-            => InternalSerialize((ReadOnlySpan<T>)memory.Span, raw: true);
+        public void SerializeRaw<T>(Memory<T> value) where T : unmanaged
+            => InternalSerialize<T>(value.Span, raw: true);
 
-        public void Serialize<T>(ReadOnlyMemory<T> readOnlyMemory) where T : unmanaged
-            => InternalSerialize(readOnlyMemory.Span, AutoRaw);
+        public void Serialize<T>(ReadOnlyMemory<T> value) where T : unmanaged
+            => InternalSerialize(value.Span, AutoRaw);
 
-        public void SerializeRaw<T>(ReadOnlyMemory<T> readOnlyMemory) where T : unmanaged
-            => InternalSerialize(readOnlyMemory.Span, raw: true);
+        public void SerializeRaw<T>(ReadOnlyMemory<T> value) where T : unmanaged
+            => InternalSerialize(value.Span, raw: true);
 
-        //public void Serialize<T>(Memory<T>? memory) where T : unmanaged
-        //    => SerializeNullableValue(memory, Serialize);
+        //public void Serialize<T>(Memory<T>? value) where T : unmanaged
+        //    => SerializeNullableValue(value, Serialize);
 
-        //public void Serialize<T>(ReadOnlyMemory<T>? readOnlyMemory) where T : unmanaged
-        //    => SerializeNullableValue(readOnlyMemory, Serialize);
+        //public void Serialize<T>(ReadOnlyMemory<T>? value) where T : unmanaged
+        //    => SerializeNullableValue(value, Serialize);
     }
 }

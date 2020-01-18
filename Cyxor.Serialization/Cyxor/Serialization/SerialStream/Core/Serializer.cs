@@ -49,11 +49,12 @@ namespace Cyxor.Serialization
                 }
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Update(Serializer serializer, int size)
             {
-                var count = serializer.position + size - BufferPosition - PositionLenght;
+                var count = serializer._position + size - BufferPosition - PositionLenght;
 
-                if (count < ObjectProperties.MaxLength || Raw)
+                if (count < ObjectLengthMap || Raw)
                     return;
 
                 var positionLenght =
@@ -71,14 +72,14 @@ namespace Cyxor.Serialization
                     serializer.PrefixObjectLengthActive = true;
 
                     Buffer.BlockCopy(
-                        serializer.buffer!,
+                        serializer._buffer!,
                         BufferPosition,
-                        serializer.buffer!,
+                        serializer._buffer!,
                         BufferPosition + offset,
-                        serializer.position - BufferPosition);
+                        serializer._position - BufferPosition);
 
                     PositionLenght += offset;
-                    serializer.position += offset;
+                    serializer._position += offset;
 
                     for (var next = Next; next != null; next = next.Next)
                         next.BufferPosition += offset;
@@ -99,7 +100,7 @@ namespace Cyxor.Serialization
 
         #region Core
 
-        SerializerOptions Options;
+        readonly SerializerOptions Options;
 
 #region Public properties
 
@@ -108,24 +109,22 @@ namespace Cyxor.Serialization
         /// </summary>
         public static readonly Serializer Empty = new Serializer();
 
-        static readonly UTF8Encoding Encoding = new UTF8Encoding(false, true);
+        //static readonly UTF8Encoding Encoding = new UTF8Encoding(false, true);
 
         static readonly CultureInfo Culture = CultureInfo.InvariantCulture;
 
         /// <summary>
-        /// The maximum number of bytes this buffer can hold.
+        /// The maximum number of bytes this buffer can hold. This value is equal to <see cref="
+        /// int.MaxValue"/>.
         /// </summary>
-        /// <remarks>
-        /// This value is never bigger than the maximum value of a signed 32-bit integer.
-        /// </remarks>
         /// <returns>
         /// The maximum number of bytes this buffer can hold.
         /// </returns>
-        public const int MaxCapacity = int.MaxValue - 64;
+        public const int MaxCapacity = int.MaxValue;
 
         readonly bool readOnly;
 
-        int position;
+        int _position;
         /// <summary>
         /// Get and set the current position within the buffer.
         /// </summary>
@@ -134,26 +133,26 @@ namespace Cyxor.Serialization
         /// </returns>
         public int Int32Position
         {
-            get => position;
+            get => _position;
             set
             {
-                if (value < 0 || value > length)
+                if (value < 0 || value > _length)
                     throw new ArgumentOutOfRangeException(nameof(value));
 
-                position = value;
+                _position = value;
             }
         }
 
-        public int Count => length - position;
+        public int Count => _length - _position;
 
 #pragma warning disable IDE0032 // Use auto property
-        int length;
+        int _length;
 #pragma warning restore IDE0032 // Use auto property
 
         /// <summary>
         /// Gets and sets the length of the buffer to the specified value.
         /// </summary>
-        public int Int32Length => length;
+        public int Int32Length => _length;
 
         /// <remarks>
         /// If the value is bigger than the actual Length the buffer will try to expand. The Position within
@@ -178,20 +177,20 @@ namespace Cyxor.Serialization
             if (value < 0 || value > MaxCapacity)
                 throw new ArgumentOutOfRangeException(nameof(value));
 
-            if (length == value)
+            if (_length == value)
                 return;
 
-            var startPosition = position;
+            var startPosition = _position;
 
             if (value > Capacity)
             {
-                position = 0;
+                _position = 0;
                 EnsureCapacity(value, SerializerOperation.Serialize);
             }
             else
-                length = value;
+                _length = value;
 
-            position = startPosition < length ? startPosition : length;
+            _position = startPosition < _length ? startPosition : _length;
         }
 
         /// <summary>
@@ -205,7 +204,11 @@ namespace Cyxor.Serialization
         public int GetCapacity()
             => Capacity;
 
-        byte[]? buffer;
+        Stream? _stream;
+
+        Memory<byte> _memory;
+
+        byte[]? _buffer;
 
         /// <summary>
         /// Gets the underlying array of unsigned bytes of this SerialStream.
@@ -214,42 +217,42 @@ namespace Cyxor.Serialization
         /// The underlying array of unsigned bytes of this SerialStream.
         /// </returns>
         public byte[]? GetBuffer()
-            => buffer;
+            => _buffer;
 
 #endregion
 
-        public event EventHandler? MemoryDisposed;
+        //public event EventHandler? MemoryDisposed;
 
 #region Public
 
         public static bool IsNullOrEmpty(Serializer serializer)
-            => (serializer?.length ?? 0) == 0 ? true : false;
+            => (serializer?._length ?? 0) == 0 ? true : false;
 
         public string ToHexString()
         {
-            var hex = buffer != default ? BitConverter.ToString(buffer, 0, length) : "null";
-            return $"[{position}-{length}-{Capacity}]  {hex}";
+            var hex = _buffer != default ? BitConverter.ToString(_buffer, 0, _length) : "null";
+            return $"[{_position}-{_length}-{Capacity}]  {hex}";
         }
 
         string DebuggerDisplay()
         {
-            var count = length > 20 ? 20 : length;
+            var count = _length > 20 ? 20 : _length;
 
             var sb = new StringBuilder(count * 2 + 3);
 
-            if (length == 0)
-                _ = sb.Append(buffer == default ? "null" : $"byte[{buffer.Length}]");
+            if (_length == 0)
+                _ = sb.Append(_buffer == default ? "null" : $"byte[{_buffer.Length}]");
             else
                 for (var i = 0; i < count; _ = sb.Append('-'))
-                    _ = sb.Append(buffer![i++]);
+                    _ = sb.Append(_buffer![i++]);
 
-            if (length > count)
+            if (_length > count)
                 _ = sb.Insert(sb.Length - 1, "...");
 
-            if (length != 0)
+            if (_length != 0)
                 _ = sb.Remove(sb.Length - 1, 1);
 
-            return $"[{nameof(position)} = {position}]  [{nameof(length)} = {length}]  [{nameof(Capacity)} = {Capacity}]  [Data = {sb}]";
+            return $"[{nameof(_position)} = {_position}]  [{nameof(_length)} = {_length}]  [{nameof(Capacity)} = {Capacity}]  [Data = {sb}]";
         }
 
         public void SetBuffer(byte[] buffer)
@@ -258,34 +261,39 @@ namespace Cyxor.Serialization
         public void SetBuffer(ArraySegment<byte> arraySegment)
             => SetBuffer(arraySegment.Array, arraySegment.Offset, arraySegment.Count);
 
-        public void SetBuffer(byte[]? value, int index, int count)
+        public void SetBuffer(byte[]? value, int start, int length)
         {
-            if (count < 0 || count > (value?.Length ?? 0))
-                throw new ArgumentOutOfRangeException(nameof(count));
+            if (length < 0 || length > (value?.Length ?? 0))
+                throw new ArgumentOutOfRangeException(nameof(length));
 
-            if (index < 0 || index > count)
-                throw new ArgumentOutOfRangeException(nameof(index));
+            if (start < 0 || start > (value?.Length ?? 0))
+                throw new ArgumentOutOfRangeException(nameof(start));
+
+            //var memoryOwner = MemoryPool<byte>.Shared.Rent();
+            //if (_memory != null)
 
             InternalSetBuffer(value);
 
-            length = count;
-            position = index;
-            Capacity = buffer?.Length ?? 0;
+            _length = length;
+            _position = start;
+            Capacity = _buffer?.Length ?? 0;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void InternalSetBuffer(byte[]? value)
         {
-            if (buffer != default)
+            if (_buffer != null)
             {
-                if (Options.Pooling && buffer.Length >= Options.PoolThreshold)
-                    BufferPool.Return(buffer);
+                if (Options.Pooling && _buffer.Length >= Options.PoolThreshold)
+                    BufferPool.Return(_buffer);
 
-                MemoryDisposed?.Invoke(this, EventArgs.Empty);
+                //MemoryDisposed?.Invoke(this, EventArgs.Empty);
             }
 
-            buffer = value;
+            _buffer = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte[] CreateBuffer(int length)
             => Options.Pooling && length >= Options.PoolThreshold
                 ? BufferPool.Rent(length)
@@ -295,7 +303,7 @@ namespace Cyxor.Serialization
         /// Sets the length of the current buffer to the specified value.
         /// </summary>
         /// <remarks>
-        /// This method behaves similar to SetLength() except that it doesn't modified the current <see cref="length"/>
+        /// This method behaves similar to SetLength() except that it doesn't modified the current <see cref="_length"/>
         /// if the <paramref name="value"/> is not smaller than current <see cref="Capacity"/>.
         /// </remarks>
         /// <param name="value">
@@ -313,31 +321,31 @@ namespace Cyxor.Serialization
             if (Capacity == value)
                 return;
 
-            var startLength = length;
-            var startPosition = position;
+            var startLength = _length;
+            var startPosition = _position;
 
             if (value > Capacity)
             {
-                position = 0;
+                _position = 0;
                 EnsureCapacity(value, SerializerOperation.Serialize);
-                length = startLength;
+                _length = startLength;
             }
             else
             {
                 InternalSetBuffer(default);
 
-                Capacity = length = position = 0;
+                Capacity = _length = _position = 0;
                 EnsureCapacity(value, SerializerOperation.Serialize);
 
-                if (length > startLength)
-                    length = startLength;
+                if (_length > startLength)
+                    _length = startLength;
             }
 
-            position = startPosition < length ? startPosition : length;
+            _position = startPosition < _length ? startPosition : _length;
         }
 
         /// <summary>
-        /// Quick reset of the buffer content by setting the <see cref="length"/> and <see cref="Int32Position"/> to 0.
+        /// Quick reset of the buffer content by setting the <see cref="_length"/> and <see cref="Int32Position"/> to 0.
         /// The actual allocated <see cref="Capacity"/> remains intact.
         /// </summary>
         public void Reset()
@@ -366,23 +374,23 @@ namespace Cyxor.Serialization
                 throw new ArgumentOutOfRangeException(nameof(numBytes));
 
             if (Capacity <= numBytes || numBytes == 0)
-                length = position = 0;
+                _length = _position = 0;
             else
             {
-                Capacity = length = position = 0;
+                Capacity = _length = _position = 0;
                 InternalSetBuffer(default);
             }
         }
 
         public void Insert(Serializer value)
         {
-            if (value.length == 0)
+            if (value._length == 0)
                 return;
 
-            EnsureCapacity(value.length, SerializerOperation.Serialize);
+            EnsureCapacity(value._length, SerializerOperation.Serialize);
 
             using var auxBuffer = new Serializer();
-            auxBuffer.SerializeRaw(buffer, position, length - position);
+            auxBuffer.SerializeRaw(_buffer, _position, _length - _position);
             SerializeRaw(value);
             SerializeRaw(auxBuffer);
         }
@@ -402,8 +410,8 @@ namespace Cyxor.Serialization
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), Utilities.ResourceStrings.ExceptionNegativeNumber);
 
-            if (length - index < count)
-                throw new ArgumentException($"{nameof(length)} - {nameof(index)} < {nameof(count)}");
+            if (_length - index < count)
+                throw new ArgumentException($"{nameof(_length)} - {nameof(index)} < {nameof(count)}");
 
             //if (index > Length)
             //    throw new IndexOutOfRangeException();
@@ -416,19 +424,19 @@ namespace Cyxor.Serialization
 
             if (index == 0 && count == 0)
             {
-                Capacity = length = position = 0;
+                Capacity = _length = _position = 0;
                 InternalSetBuffer(default);
             }
-            else if (index == 0 && count == length)
+            else if (index == 0 && count == _length)
             {
-                length = position = 0;
+                _length = _position = 0;
             }
             else
             {
-                System.Buffer.BlockCopy(buffer!, index + count, buffer!, index, length - count);
+                System.Buffer.BlockCopy(_buffer!, index + count, _buffer!, index, _length - count);
 
-                position = index;
-                length -= count;
+                _position = index;
+                _length -= count;
             }
         }
 
@@ -437,22 +445,22 @@ namespace Cyxor.Serialization
 
         public void PopChars(int count)
         {
-            if (count < 0 || count > length)
+            if (count < 0 || count > _length)
                 throw new ArgumentOutOfRangeException(nameof(count));
 
             if (count == 0)
                 return;
 
-            position = 0;
+            _position = 0;
 
             for (var i = 0; i < count; i++)
                 _ = DeserializeChar();
 
-            count = position;
+            count = _position;
 
-            System.Buffer.BlockCopy(buffer!, count, buffer!, 0, length -= count);
+            System.Buffer.BlockCopy(_buffer!, count, _buffer!, 0, _length -= count);
 
-            position = 0;
+            _position = 0;
         }
 
         /// <summary>
@@ -466,69 +474,70 @@ namespace Cyxor.Serialization
         /// A 32-bit signed integer hash code.
         /// </returns>
         public override int GetHashCode()
-            => Utilities.HashCode.GetFrom(buffer!, 0, length);
+            => Utilities.HashCode.GetFrom(_buffer!, 0, _length);
 
         public object Clone()
         {
             var value = new Serializer();
             value.SerializeRaw(this);
 
-            value.length = length;
-            value.position = position;
+            value._length = _length;
+            value._position = _position;
 
             return value;
         }
 
-#endregion Public
+        #endregion Public
 
-#region Private
+        #region Private
 
-        public void EnsureCapacity(int size)
-            => EnsureCapacity(size, SerializerOperation.Serialize);
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void EnsureCapacity(int size, SerializerOperation operation)
         {
             if (size < 0)
                 throw new ArgumentOutOfRangeException(nameof(size));
 
-            if (operation != SerializerOperation.Deserialize && readOnly)
+            if (operation == SerializerOperation.Serialize && readOnly)
                 throw new InvalidOperationException("The buffer is marked as ReadOnly.");
 
-            if ((uint)(position + size) > length)
+            var newPosition = _position + size;
+
+            if (newPosition < 0 || newPosition > MaxCapacity)
+                throw new BufferOverflowException();
+
+            if (newPosition > _length)
             {
                 if (operation == SerializerOperation.Deserialize)
                     throw new BufferOverflowException();
                 else
                 {
-                    if (position + size < 0)
-                        throw new BufferOverflowException();
-                    else if (position + size <= Capacity)
-                        length = position + size;
+                    if (newPosition <= Capacity)
+                        _length = newPosition;
                     else
                     {
-                        if (buffer == default)
+                        if (_buffer == null)
                         {
-                            Capacity = length = size;
-
-                            if (Capacity < 256)
-                                Capacity = 256;
-
-                            buffer = CreateBuffer(Capacity);
+                            _length = size;
+                            Capacity = size > 256 ? size : 256;
+                            _buffer = CreateBuffer(Capacity);
+                            //buffer = Options.Pooling && Capacity >= Options.PoolThreshold
+                            //    ? BufferPool.Rent(Capacity)
+                            //    : new byte[Capacity];
                         }
-                        else if (position + size > Capacity)
+                        else if (newPosition > Capacity)
                         {
-                            if (position + size > (uint)(Capacity + Capacity / 2))
-                                Capacity = position + size;
-                            else if ((uint)(Capacity + Capacity / 2) >= MaxCapacity)
-                                Capacity = MaxCapacity;
-                            else
-                                Capacity += Capacity / 2;
+                            var newCapacity = Capacity + Capacity;
+                            newCapacity = newCapacity < 0 || newCapacity > MaxCapacity ? MaxCapacity : newCapacity;
+                            Capacity = newPosition > newCapacity ? newPosition : newCapacity;
 
                             var newBuffer = CreateBuffer(Capacity);
+                            //newBuffer = Options.Pooling && Capacity >= Options.PoolThreshold
+                            //    ? BufferPool.Rent(Capacity)
+                            //    : new byte[Capacity];
 
-                            Buffer.BlockCopy(buffer, 0, newBuffer, 0, length);
+                            _buffer.AsSpan(0.._length).CopyTo(newBuffer.AsSpan(0.._length));
 
-                            length = position + size;
+                            _length = newPosition;
                             InternalSetBuffer(newBuffer);
                         }
                     }
@@ -544,35 +553,59 @@ namespace Cyxor.Serialization
             }
         }
 
-#endregion Private
+        #endregion Private
 
-#endregion Core
+        #endregion Core
 
-#region Helper
-        void SerializeOp(int count)
+        #region Helper
+
+        const byte ObjectLengthMap = 0b_00_111111; // 63
+        const byte SequenceLengthMap = 0b_0_1111111; // 127
+
+        const byte EmptyMap = 0b_1_0000000; // 128
+
+        const byte PartialMap = 0b_01_000000; // 64
+        const byte CircularMap = 0b_11_000000; // 192
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void SerializeSequenceHeader(int count)
         {
-            if (count < ObjectProperties.MaxLength)
-                Serialize((byte)(count << 2));
+            if (count < SequenceLengthMap)
+                Serialize((byte)count);
             else
-            {
-                Serialize(ObjectProperties.LengthMap);
                 Serialize(count);
-            }
         }
 
-        int DeserializeOp()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        int DeserializeSequenceHeader()
         {
             var op = DeserializeByte();
 
-            return op == 0
-                ? -1
-                : op == ObjectProperties.EmptyMap
-                    ? 0
-                    : op == ObjectProperties.LengthMap
-                        ? DeserializeInt32()
-                        : (op & ObjectProperties.LengthMap) >> 2;
+            if (op == 0)
+                return -1;
+            else if (op == EmptyMap)
+                return 0;
+            else if ((op & EmptyMap) != EmptyMap)
+                return op & SequenceLengthMap;
+            else
+            {
+                var val1 = (uint)op & 127;
+                var val2 = 7;
+
+                while (val2 != 35)
+                {
+                    op = DeserializeByte();
+                    val1 |= ((uint)op & 127) << val2;
+                    val2 += 7;
+
+                    if ((op & 128) == 0)
+                        return (int)(val1 >> 1) ^ -(int)(val1 & 1);
+                }
+
+                throw new InvalidOperationException("Invalid deserialize sequence header");
+            }
         }
 
-#endregion
+        #endregion
     }
 }

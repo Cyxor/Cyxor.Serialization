@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Cyxor.Serialization
 {
@@ -17,7 +15,7 @@ namespace Cyxor.Serialization
         }
 
         public override int GetHashCode()
-            => BackingSerializer.GetHashCode();
+            => System.HashCode.Combine(BackingSerializer);
 
         public override bool Equals(object? value)
             => value == this

@@ -1,90 +1,43 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace Cyxor.Serialization
 {
     partial class Serializer
     {
-        public void Serialize(byte[]? value)
-            => InternalSerialize(value, 0, value?.Length ?? 0, raw: AutoRaw);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static unsafe int Strlen(byte* value)
+        {
+            var pointer = value;
 
-        public void Serialize(byte[]? value, int index, int count)
-            => InternalSerialize(value, index, count, raw: false);
+            while (*pointer != 0)
+                ++pointer;
+
+            return (int)(pointer - value);
+        }
+
+        public void Serialize(byte[]? value)
+            => InternalSerialize(new ReadOnlySpan<byte>(value), raw: AutoRaw, containsNullPointer: value == null);
+
+        public void Serialize(byte[]? value, int start, int length)
+            => InternalSerialize(new ReadOnlySpan<byte>(value, start, length), raw: false, containsNullPointer: value == null);
 
         public void SerializeRaw(byte[]? value)
-            => InternalSerialize(value, 0, value?.Length ?? 0, raw: true);
+            => InternalSerialize(new ReadOnlySpan<byte>(value), raw: true, containsNullPointer: value == null);
 
-        public void SerializeRaw(byte[]? value, int index, int count)
-            => InternalSerialize(value, index, count, raw: true);
+        public void SerializeRaw(byte[]? value, int start, int length)
+            => InternalSerialize(new ReadOnlySpan<byte>(value, start, length), raw: true, containsNullPointer: value == null);
 
         public unsafe void Serialize(byte* value)
-            => InternalSerialize(value, 0, 0, 0, true, raw: AutoRaw);
+            => InternalSerialize(new ReadOnlySpan<byte>(value, value == null ? 0 : Strlen(value)), raw: AutoRaw, containsNullPointer: value == null);
 
-        unsafe public void Serialize(byte* value, int count)
-            => InternalSerialize(value, count, 0, count, false, raw: false);
+        unsafe public void Serialize(byte* value, int length)
+            => InternalSerialize(new ReadOnlySpan<byte>(value, length), raw: false, containsNullPointer: value == null);
 
         public unsafe void SerializeRaw(byte* value)
-            => InternalSerialize(value, 0, 0, 0, true, raw: true);
+            => InternalSerialize(new ReadOnlySpan<byte>(value, value == null ? 0 : Strlen(value)), raw: true, containsNullPointer: value == null);
 
-        public unsafe void SerializeRaw(byte* value, int count)
-            => InternalSerialize(value, count, 0, count, false, raw: true);
-
-        unsafe void InternalSerialize(byte[]? value, int index, int count, bool raw)
-        {
-            if (value == default)
-                InternalSerialize((byte*)IntPtr.Zero, 0, index, count, calculateLength: false, raw: raw);
-            else
-                fixed (byte* ptr = value)
-                    InternalSerialize(ptr, value.Length, index, count, calculateLength: false, raw: raw);
-        }
-
-        unsafe void InternalSerialize(byte* value, int size, int index, int count, bool calculateLength, bool raw)
-        {
-            if (calculateLength)
-                if ((IntPtr)value != IntPtr.Zero)
-                    size = count = Utilities.Memory.Strlen(value);
-
-            if ((IntPtr)value == IntPtr.Zero)
-                if (raw && size == 0 && index == 0 && count == 0)
-                    return;
-                else if (raw || size != 0 || index != 0 || count != 0)
-                    throw new ArgumentNullException(nameof(value));
-                else
-                {
-                    Serialize((byte)0);
-                    return;
-                }
-
-            if (index < 0 || count < 0 || size < 0)
-                throw new ArgumentOutOfRangeException($"{nameof(index)}, {nameof(count)} or {nameof(size)}");
-
-            if (size - index < count)
-                throw new ArgumentException($"{nameof(size)} - {nameof(index)} < {nameof(count)}");
-
-            if (count == 0)
-            {
-                if (!raw)
-                    Serialize(ObjectProperties.EmptyMap);
-
-                return;
-            }
-
-            var varIntSize = 0;
-
-            if (!raw)
-                varIntSize = Utilities.EncodedInteger.RequiredBytes((uint)count);
-
-            if (position + count + varIntSize < 0)
-                throw new InvalidOperationException("Buffer too long.");
-
-            if (!raw)
-                SerializeOp(count);
-
-            EnsureCapacity(count, SerializerOperation.Serialize);
-
-            fixed (byte* ptr = buffer)
-                Buffer.MemoryCopy(value + index, ptr + position, count, count);
-
-            position += count;
-        }
+        public unsafe void SerializeRaw(byte* value, int length)
+            => InternalSerialize(new ReadOnlySpan<byte>(value, length), raw: true, containsNullPointer: value == null);
     }
 }

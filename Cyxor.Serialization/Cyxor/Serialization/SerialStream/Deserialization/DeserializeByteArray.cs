@@ -10,7 +10,7 @@ namespace Cyxor.Serialization
             if (AutoRaw)
                 return DeserializeRawBytes();
 
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(byte[]).Name))
                 : count == 0 ? Array.Empty<byte>()
@@ -22,7 +22,7 @@ namespace Cyxor.Serialization
             if (AutoRaw)
                 return DeserializeNullableRawBytes();
 
-            var count = DeserializeOp();
+            var count = DeserializeSequenceHeader();
 
             return count == -1 ? default
                 : count == 0 ? Array.Empty<byte>()
@@ -30,10 +30,10 @@ namespace Cyxor.Serialization
         }
 
         public byte[] DeserializeRawBytes()
-            => DeserializeBytes(length - position);
+            => DeserializeBytes(_length - _position);
 
         public byte[]? DeserializeNullableRawBytes()
-            => DeserializeNullableBytes(length - position);
+            => DeserializeNullableBytes(_length - _position);
 
         public byte[] DeserializeBytes(int count)
         {
@@ -49,11 +49,11 @@ namespace Cyxor.Serialization
 
             unsafe
             {
-                fixed (byte* src = buffer, dest = value)
-                    Buffer.MemoryCopy(src + position, dest, count, count);
+                fixed (byte* src = _buffer, dest = value)
+                    Buffer.MemoryCopy(src + _position, dest, count, count);
             }
 
-            position += count;
+            _position += count;
             return value;
         }
 
@@ -71,11 +71,11 @@ namespace Cyxor.Serialization
 
             unsafe
             {
-                fixed (byte* src = buffer, dest = value)
-                    Buffer.MemoryCopy(src + position, dest, count, count);
+                fixed (byte* src = _buffer, dest = value)
+                    Buffer.MemoryCopy(src + _position, dest, count, count);
             }
 
-            position += count;
+            _position += count;
             return value;
         }
 
@@ -119,7 +119,7 @@ namespace Cyxor.Serialization
                 if (!zeroBytesToCopy)
                     throw new ArgumentOutOfRangeException(nameof(bytesToCopy), $"{nameof(bytesToCopy)} must be greater than zero. To read the length from data use an overload.");
 
-                bytesToCopy = DeserializeOp();
+                bytesToCopy = DeserializeSequenceHeader();
 
                 if (bytesToCopy <= 0)
                     return;
@@ -130,17 +130,17 @@ namespace Cyxor.Serialization
 
             EnsureCapacity(bytesToCopy, SerializerOperation.Deserialize);
 
-            fixed (byte* src = buffer)
-                Buffer.MemoryCopy(src + position, destination, bytesToCopy, bytesToCopy);
+            fixed (byte* src = _buffer)
+                Buffer.MemoryCopy(src + _position, destination, bytesToCopy, bytesToCopy);
 
-            position += bytesToCopy;
+            _position += bytesToCopy;
         }
 
         public bool TryDeserializeBytes([NotNullWhen(true)] out byte[]? value)
         {
             value = default;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -148,7 +148,7 @@ namespace Cyxor.Serialization
 
                 if (value == default)
                 {
-                    position -= 1;
+                    _position -= 1;
                     return false;
                 }
 
@@ -156,7 +156,7 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
@@ -165,7 +165,7 @@ namespace Cyxor.Serialization
         {
             value = default;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -174,7 +174,7 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
@@ -186,10 +186,10 @@ namespace Cyxor.Serialization
             if (count <= 0)
                 return false;
 
-            if (length - position < count)
+            if (_length - _position < count)
                 return false;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -198,7 +198,7 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
@@ -210,10 +210,10 @@ namespace Cyxor.Serialization
             if (count <= 0)
                 return false;
 
-            if (length - position < count)
+            if (_length - _position < count)
                 return false;
 
-            var currentPosition = position;
+            var currentPosition = _position;
 
             try
             {
@@ -222,20 +222,20 @@ namespace Cyxor.Serialization
             }
             catch
             {
-                position = currentPosition;
+                _position = currentPosition;
                 return false;
             }
         }
 
         public byte[] ToByteArray()
         {
-            position = 0;
+            _position = 0;
             return DeserializeRawBytes();
         }
 
         public byte[]? ToNullableBytes()
         {
-            position = 0;
+            _position = 0;
             return DeserializeNullableRawBytes();
         }
     }

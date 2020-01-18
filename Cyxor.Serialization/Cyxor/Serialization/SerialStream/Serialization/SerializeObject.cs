@@ -57,11 +57,11 @@ namespace Cyxor.Serialization
                 {
                     if (CircularReferencesSerializeDictionary.TryGetValue(value, out var index))
                     {
-                        if (index + 1 < ObjectProperties.MaxLength)
-                            Serialize((byte)(ObjectProperties.CircularMap | ((index + 1) << 2)));
+                        if (index + 1 < ObjectLengthMap)
+                            Serialize((byte)(CircularMap | (index + 1)));
                         else
                         {
-                            Serialize((byte)(ObjectProperties.CircularMap | ObjectProperties.LengthMap));
+                            Serialize((byte)(CircularMap | ObjectLengthMap));
                             Serialize(index + 1);
                         }
 
@@ -78,13 +78,13 @@ namespace Cyxor.Serialization
                     PrefixObjectLengthActive = true;
 
                 var objSerial = SerializationStack.Count > 0 ? SerializationStack.Peek() : default;
-                SerializationStack.Push(new ObjectSerialization(position, raw, previous: objSerial));
+                SerializationStack.Push(new ObjectSerialization(_position, raw, previous: objSerial));
             }
 
             try
             {
                 if (!raw)
-                    Serialize(ObjectProperties.EmptyMap);
+                    Serialize(EmptyMap | ObjectLengthMap);
 
                 if (serializable != default)
                     serializable.Serialize(this);
@@ -130,11 +130,21 @@ namespace Cyxor.Serialization
 
                 if (!raw && PrefixObjectLengthActive)
                 {
-                    var finalPosition = position;
+                    var finalPosition = _position;
                     var serializationObject = SerializationStack.Peek();
-                    position = serializationObject.BufferPosition;
-                    SerializeOp(finalPosition - (position + serializationObject.PositionLenght));
-                    position = finalPosition;
+                    _position = serializationObject.BufferPosition;
+                    
+                    var objectLength = finalPosition - (_position + serializationObject.PositionLenght);
+
+                    if (objectLength < ObjectLengthMap)
+                        Serialize((byte)objectLength);
+                    else
+                    {
+                        Serialize(ObjectLengthMap);
+                        Serialize(objectLength);
+                    }
+
+                    _position = finalPosition;
                 }
             }
             catch (Exception ex) when (!(ex is EndOfStreamException))
