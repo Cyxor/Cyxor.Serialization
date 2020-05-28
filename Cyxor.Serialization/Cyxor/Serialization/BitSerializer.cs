@@ -67,7 +67,7 @@ namespace Cyxor.Serialization
             => new BitSerializer(value);
 
         public override int GetHashCode()
-            => Bits.GetHashCode();
+            => HashCode.Combine(Bits);
 
         public static bool operator ==(BitSerializer value1, BitSerializer value2)
             => value1.Bits == value2.Bits;

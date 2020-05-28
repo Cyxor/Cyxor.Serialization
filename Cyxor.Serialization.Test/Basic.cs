@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Cyxor.Extensions;
-using BenchmarkDotNet.Attributes;
+//using BenchmarkDotNet.Attributes;
 using System.Threading;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
@@ -41,11 +41,11 @@ namespace Cyxor.Serialization.Test
     [TestClass]
     public class BasicTest
     {
-        [Benchmark]
-        public void Benchmarkxc()
-        {
-            Thread.Sleep(5000);
-        }
+        //[Benchmark]
+        //public void Benchmarkxc()
+        //{
+        //    Thread.Sleep(5000);
+        //}
 
         [TestMethod]
         public void Initialization()

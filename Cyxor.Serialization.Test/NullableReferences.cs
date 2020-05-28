@@ -104,7 +104,7 @@ namespace Cyxor.Serialization.Test
 
             ss.Position = 0;
 
-            var qq = ss.DeserializeNullableT<Fuera>();
+            var qq = ss.DeserializeNullableValue<Fuera>();
 
             Assert.AreEqual(fuera, qq);
         }

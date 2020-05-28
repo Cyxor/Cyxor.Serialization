@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Cyxor.Serialization
 {
@@ -10,19 +11,12 @@ namespace Cyxor.Serialization
         T Deserialize<T>(Serializer serialStream, object? backingSerializerOptions);
         object? Deserialize(Serializer serialStream, Type type, object? backingSerializerOptions);
 
-        public static T? CheckOptionsObject<T>(object? backingSerializerOptions) where T: class
+        public static T ValidateOptions<T>(object backingSerializerOptions)
         {
-            var options = default(T);
+            if (backingSerializerOptions is T options)
+                return options;
 
-            if (backingSerializerOptions != default)
-            {
-                options = backingSerializerOptions as T;
-
-                if (options == default)
-                    throw new InvalidOperationException($"Invalid parameter {nameof(backingSerializerOptions)} of type {typeof(T).Name} for {nameof(IBackingSerializer)}");
-            }
-
-            return options;
+            throw new InvalidOperationException($"Invalid serializer options for {nameof(IBackingSerializer)}, expected type is {typeof(T).Name}");
         }
     }
 }

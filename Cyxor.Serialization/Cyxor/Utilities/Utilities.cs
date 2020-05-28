@@ -218,46 +218,6 @@ namespace Cyxor.Serialization
 
                 return value;
             }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static unsafe T Swap<T>(T value) where T : unmanaged
-            {
-                var size = sizeof(T);
-
-                var lValue = (long)&value;
-
-                if (size == sizeof(short))
-                {
-                    lValue = lValue >> 8 | lValue << 8;
-                }
-                else if (size == sizeof(int))
-                {
-                    lValue = (lValue >> 24) | ((lValue & 0x00ff0000) >> 8) |
-                             ((lValue & 0x0000ff00) << 8) | (lValue << 24);
-                }
-                else if (size == sizeof(long))
-                {
-                    lValue = (lValue >> 56) | ((lValue & 0x00ff000000000000L) >> 40) |
-                             ((lValue & 0x0000ff0000000000L) >> 24) | ((lValue & 0x000000ff00000000L) >> 8) |
-                             ((lValue & 0x00000000ff000000L) << 8) | ((lValue & 0x0000000000ff0000L) << 24) |
-                             ((lValue & 0x000000000000ff00L) << 40) | (lValue << 56);
-                }
-                else
-                {
-                    var ptrValue = (byte*)&value;
-
-                    for (var i = 0; i < size; i++)
-                    {
-                        var tmp = ptrValue[size - 1 - i];
-                        ptrValue[size - 1 - i] = ptrValue[i];
-                        ptrValue[i] = tmp;
-                    }
-
-                    return *(T*)ptrValue;
-                }
-
-                return *(T*)&lValue;
-            }
         }
 
         public static class Converter
