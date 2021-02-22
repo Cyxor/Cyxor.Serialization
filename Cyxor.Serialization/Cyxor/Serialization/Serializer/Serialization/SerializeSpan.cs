@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Text.Unicode;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
+using System.IO;
 
 namespace Cyxor.Serialization
 {
@@ -60,8 +61,34 @@ namespace Cyxor.Serialization
                 InternalStartSerializeStringHeader(count);
 
             InternalEnsureSerializeCapacity(count);
-            var serializerSpan = _memory.Span.Slice(_position, _capacity);
-            var operationStatus = Utf8.FromUtf16(value, serializerSpan, out var charsRead, out var bytesWritten);
+
+            int charsRead;
+            int bytesWritten;
+            OperationStatus operationStatus;
+
+            if (_stream == null)
+            {
+                var serializerSpan = _memory.Span[_position.._capacity];
+                operationStatus = Utf8.FromUtf16(value, serializerSpan, out charsRead, out bytesWritten);
+            }
+            else if (InternalTryGetStreamAsMemoryStreamBuffer(out var arraySegment))
+            {
+                var serializerSpan = arraySegment.AsSpan(arraySegment.Offset + _position, arraySegment.Count);
+
+                operationStatus = Utf8.FromUtf16(value, serializerSpan, out charsRead, out bytesWritten);
+
+                _stream.Position += bytesWritten;
+            }
+            else
+            {
+                using var streamWriter = new StreamWriter(_stream, System.Text.Encoding.UTF8, leaveOpen: true);
+
+                streamWriter.Write(value);
+                operationStatus = OperationStatus.Done;
+
+                charsRead = count;
+                bytesWritten = (int)(_stream.Position - startPosition);
+            }
 
             _position += bytesWritten;
 
@@ -76,17 +103,30 @@ namespace Cyxor.Serialization
             {
                 var currentLength = _length;
                 var freeCapacity = MaxCapacity - _position;
-                var requiredCapacity = (count - charsRead) * 2;
-                requiredCapacity = freeCapacity < requiredCapacity ? freeCapacity : requiredCapacity;
+                var maxRequiredCapacity = (count - charsRead) * 2;
+                maxRequiredCapacity = freeCapacity < maxRequiredCapacity ? freeCapacity : maxRequiredCapacity;
 
-                InternalEnsureSerializeCapacity(requiredCapacity);
+                InternalEnsureSerializeCapacity(maxRequiredCapacity);
 
                 value = value.Slice(charsRead);
 
-                serializerSpan = _memory.Span.Slice(_position, _capacity);
-                operationStatus = Utf8.FromUtf16(value, serializerSpan, out _, out bytesWritten);
+                if (_stream == null)
+                {
+                    var serializerSpan = _memory.Span[_position.._capacity];
+                    operationStatus = Utf8.FromUtf16(value, serializerSpan, out _, out bytesWritten);
+                }
+                else if (InternalTryGetStreamAsMemoryStreamBuffer(out var arraySegment))
+                {
+                    var serializerSpan = arraySegment.AsSpan(arraySegment.Offset + _position, arraySegment.Count);
 
-                if (operationStatus != OperationStatus.Done)
+                    operationStatus = Utf8.FromUtf16(value, serializerSpan, out _, out bytesWritten);
+
+                    _stream.Position += bytesWritten;
+                }
+
+                if (operationStatus == OperationStatus.DestinationTooSmall)
+                    throw new ArgumentException($"Insufficient space in the internal buffer to serialize the provided value of {count} UTF16 chars. The buffer has reached its maximum allowed capacity of {maxRequiredCapacity} and cannot be further enlarged. The initial position of the buffer before this particular serialization operation was {startPosition}.");
+                else if (operationStatus != OperationStatus.Done)
                     throw new ArgumentException($"Invalid {nameof(Span<char>)} value", nameof(value));
 
                 _position += bytesWritten;
@@ -99,7 +139,7 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        void InternalSerialize<T>(ReadOnlySpan<T> value, bool raw, bool containsNullPointer = false) where T : unmanaged
+        void InternalSerializeGeneric<T>(ReadOnlySpan<T> value, bool raw, bool containsNullPointer = false) where T : unmanaged
             => InternalSerialize(MemoryMarshal.AsBytes(value), raw, containsNullPointer);
 
         #endregion Internal
@@ -156,19 +196,19 @@ namespace Cyxor.Serialization
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Serialize<T>(Span<T> value) where T : unmanaged
-            => InternalSerialize<T>(value, AutoRaw);
+            => InternalSerializeGeneric<T>(value, AutoRaw);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SerializeRaw<T>(Span<T> value) where T : unmanaged
-            => InternalSerialize<T>(value, raw: true);
+            => InternalSerializeGeneric<T>(value, raw: true);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Serialize<T>(ReadOnlySpan<T> value) where T : unmanaged
-            => InternalSerialize(value, AutoRaw);
+            => InternalSerializeGeneric(value, AutoRaw);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SerializeRaw<T>(ReadOnlySpan<T> value) where T : unmanaged
-            => InternalSerialize(value, raw: true);
+            => InternalSerializeGeneric(value, raw: true);
 
         #endregion t
     }

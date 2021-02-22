@@ -35,7 +35,7 @@ namespace Cyxor.Serialization
         public unsafe void Serialize(byte* value)
             => InternalSerialize(new ReadOnlySpan<byte>(value, value == null ? 0 : Strlen(value)), raw: AutoRaw, containsNullPointer: value == null);
 
-        unsafe public void Serialize(byte* value, int length)
+        public unsafe void Serialize(byte* value, int length)
             => InternalSerialize(new ReadOnlySpan<byte>(value, length), raw: false, containsNullPointer: value == null);
 
         public unsafe void SerializeRaw(byte* value)

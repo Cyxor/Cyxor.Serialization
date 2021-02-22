@@ -13,91 +13,319 @@ namespace Cyxor.Serialization
         #region Internal
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        unsafe Span<byte> InternalDeserializeSpan(Span<byte> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer)
+        bool InternalTryDeserializeSpan(Span<byte> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer, out Span<byte> result)
+            => InternalDeserializeSpan(value, count, raw, readCount, readOnly, containsNullPointer, allowNullableArrayResult: false, out result, out _, tryDeserialize: true);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        Span<byte> InternalDeserializeSpan(Span<byte> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer)
         {
-            if (raw)
+            InternalDeserializeSpan(value, count, raw, readCount, readOnly, containsNullPointer, allowNullableArrayResult: false, out var span, out _, tryDeserialize: false);
+
+            return span;
+        }
+
+        bool InternalDeserializeSpan(Span<byte> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer, bool allowNullableArrayResult, out Span<byte> span, out byte[]? array, bool tryDeserialize)
+        {
+            span = default;
+            array = null;
+            var startPosition = _position;
+
+            try
             {
-                var valueLength = value.Length;
-                var remainingLength = _length - _position;
-                count = valueLength < remainingLength ? valueLength : remainingLength;
-            }
-            else if (readCount)
-            {
-                count = InternalDeserializeSequenceHeader();
+                if (readOnly && !containsNullPointer)
+                    if (tryDeserialize)
+                        return false;
+                    else
+                        throw new ArgumentException($"The parameter '{nameof(containsNullPointer)}' must be true when '{nameof(readOnly)}' is true.", nameof(containsNullPointer));
+
+                if (raw)
+                {
+                    if (readCount)
+                        if (tryDeserialize)
+                            return false;
+                        else
+                            throw new ArgumentException($"The parameter '{nameof(readCount)}' cannot be true when '{nameof(raw)}' is true.", nameof(readCount));
+
+                    if (count != 0)
+                        if (tryDeserialize)
+                            return false;
+                        else
+                            throw new ArgumentException($"The parameter '{nameof(count)}' must be 0 when '{nameof(raw)}' is true.", nameof(count));
+
+                    var valueLength = value.Length;
+                    var remainingLength = _length - _position;
+                    count = !containsNullPointer && valueLength < remainingLength ? valueLength : remainingLength;
+                }
+                else if (readCount)
+                {
+                    if (count != 0)
+                        if (tryDeserialize)
+                            return false;
+                        else
+                            throw new ArgumentException($"The parameter '{nameof(count)}' must be 0 when '{nameof(readCount)}' is true.", nameof(count));
+
+                    if (!tryDeserialize)
+                        count = InternalDeserializeSequenceHeader();
+                    else if (!InternalTryDeserializeSequenceHeader(out count))
+                        return false;
+
+                    if (count == -1 && allowNullableArrayResult)
+                        return true;
+                    else if (count < 0)
+                        if (tryDeserialize)
+                            return false;
+                        else
+                            throw new SerializationException($"Error deserializing '{nameof(Span<byte>)}', the serializer instance may not contains a '{nameof(Span<byte>)}' serialized at position ({_position}).");
+                }
+                else if (!containsNullPointer)
+                {
+                    if (count == 0)
+                        count = value.Length;
+                }
 
                 if (count < 0)
-                    throw new SerializationException($"Error deserializing '{nameof(Span<byte>)}', the serializer instance may not contains a '{nameof(Span<byte>)}' serialized at position ({_position}).");
-            }
+                    if (tryDeserialize)
+                        return false;
+                    else
+                        throw new ArgumentOutOfRangeException(nameof(count), $"Parameter '{nameof(count)}' must be a positive value.");
 
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), $"Parameter '{nameof(count)}' must be a positive value.");
+                if (count == 0)
+                {
+                    array = Array.Empty<byte>();
+                    return true;
+                }
 
-            if (count == 0)
-                return Span<byte>.Empty;
+                if (!containsNullPointer && count > value.Length)
+                    if (tryDeserialize)
+                        return false;
+                    else if (readCount)
+                        throw new ArgumentException($"The supplied '{nameof(value)}.Length' of ({value.Length}) is insufficient to read the next stored {nameof(Span<byte>)} object of length ({count}).", nameof(value));
+                    else
+                        throw new ArgumentOutOfRangeException(nameof(count), $"The supplied '{nameof(value)}.Length' of ({value.Length}) must be equal or greater than the supplied '{nameof(count)}' of ({count}).");
 
-            if (!containsNullPointer && count > value.Length)
-                if (readCount)
-                    throw new ArgumentException($"The supplied '{nameof(value)}.Length' of ({value.Length}) is insufficient to read the next stored {nameof(Span<byte>)} object of length ({count}).", nameof(value));
-                else
-                    throw new ArgumentOutOfRangeException(nameof(count), $"The supplied '{nameof(value)}.Length' of ({value.Length}) must be equal or greater than the supplied '{nameof(count)}' of ({count}).");
+                if (!tryDeserialize)
+                    InternalEnsureDeserializeCapacity(count);
+                else if (!InternalTryEnsureDeserializeCapacity(count))
+                    return false;
 
-            InternalEnsureDeserializeCapacity(count);
+                span = containsNullPointer && !readOnly ? new Span<byte>(array = new byte[count]) : value;
 
-            var span = containsNullPointer && !readOnly ? new Span<byte>(new byte[count]) : value;
+                if (_stream == null)
+                {
+                    if (readOnly)
+                        span = _memory.Span.Slice(_position, count);
+                    else
+                    {
+                        _memory.Span.Slice(_position, count).CopyTo(span);
 
-            if (_stream == null)
-            {
-                if (readOnly)
-                    span = _memory.Span.Slice(_position, count);
-                else
-                    _memory.Span.Slice(_position, count).CopyTo(span);
-            }
-            else
-            {
-                if (readOnly && _stream is MemoryStream memoryStream && memoryStream.TryGetBuffer(out var arraySegment))
+                        if (count != span.Length)
+                            span = span.Slice(0, count);
+                    }
+                }
+                else if (readOnly && InternalTryGetStreamAsMemoryStreamBuffer(out var arraySegment))
+                {
                     span = arraySegment.AsSpan(arraySegment.Offset + _position, count);
+                    _stream.Position += count;
+                }
                 else
                 {
                     if (containsNullPointer && readOnly)
                         span = new Span<byte>(new byte[count]);
-
-                    if (count != span.Length)
+                    else if (count != span.Length)
                         span = span.Slice(0, count);
 
                     if (_stream.Read(span) != count)
-                        throw new SerializationException($"Failed to read the specified '{nameof(Span<byte>)}' with count of ({count}).");
+                        if (tryDeserialize)
+                            return false;
+                        else
+                            throw new SerializationException($"Failed to read the specified '{nameof(Span<byte>)}' with count of ({count}).");
                 }
-            }
 
-            _position += count;
+                _position += count;
+                return true;
+            }
+            catch when (tryDeserialize == true)
+            {
+                if (_stream == null)
+                    _position = startPosition;
+                else if (_stream.CanSeek)
+                    try
+                    {
+                        Position = startPosition;
+                    }
+                    catch { };
+
+                return false;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        bool InternalTryDeserializeSpan(Span<char> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer, bool utf8Encoding, out Span<char> result)
+            => InternalDeserializeSpan(value, count, raw, readCount, readOnly, containsNullPointer, utf8Encoding, allowNullableArrayResult: false, out result, out _, tryDeserialize: true);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        Span<char> InternalDeserializeSpan(Span<char> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer, bool utf8Encoding)
+        {
+            InternalDeserializeSpan(value, count, raw, readCount, readOnly, containsNullPointer, utf8Encoding, allowNullableArrayResult: false, out var span, out _, tryDeserialize: false);
+
             return span;
         }
 
         // TODO: Finish
-        // DUDA: Es necesario el readonly aquí?
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        unsafe Span<char> InternalDeserializeSpan(Span<char> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer)
+        unsafe bool InternalDeserializeSpan(Span<char> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer, bool utf8Encoding, bool allowNullableArrayResult, out Span<char> span, out char[]? array, bool tryDeserialize)
         {
-            var bytesCount = !raw && readCount ? InternalDeserializeStringHeader() : count * sizeof(char);
+            span = default;
+            array = null;
+            var startPosition = _position;
 
-            var spanBytes = InternalDeserializeSpan(MemoryMarshal.AsBytes(value), bytesCount, raw, readCount: false, readOnly: true, containsNullPointer);
+            if (readOnly)
+            {
+                if (utf8Encoding)
+                    throw new ArgumentException($"The parameter '{nameof(utf8Encoding)}' cannot be true when '{nameof(readOnly)}' is true.", nameof(utf8Encoding));
 
-            var estimatedCharsCount = !raw && readCount ? bytesCount * sizeof(char) : count;
+                if (!containsNullPointer)
+                    throw new ArgumentException($"The parameter '{nameof(containsNullPointer)}' must be true when '{nameof(readOnly)}' is true.", nameof(containsNullPointer));
+            }
 
-            value = containsNullPointer ? new Span<char>(new char[estimatedCharsCount]) : value;
+            var remainingBytes = _length - _position;
+            var exactCharsCount = !raw && !readCount;
+            var exactBytesCount = exactCharsCount && !utf8Encoding;
+            var bytesCount = count * sizeof(char) > remainingBytes ? remainingBytes : count * sizeof(char);
+
+            if (raw)
+            {
+                if (readCount)
+                    throw new ArgumentException($"The parameter '{nameof(readCount)}' cannot be true when '{nameof(raw)}' is true.", nameof(readCount));
+
+                if (count != 0)
+                    throw new ArgumentException($"The parameter '{nameof(count)}' must be 0 when '{nameof(raw)}' is true.", nameof(count));
+
+                bytesCount = remainingBytes;
+
+                if (containsNullPointer)
+                    exactBytesCount = true;
+                else if (!utf8Encoding)
+                {
+                    var charsCount = bytesCount / 2;
+                    count = value.Length > charsCount ? charsCount : value.Length;
+                    bytesCount = bytesCount > count * 2 ? count * 2 : bytesCount;
+                    bytesCount -= bytesCount % 2 == 0 ? 0 : -1;
+                    exactCharsCount = true;
+                }
+            }
+            else if (readCount)
+            {
+                if (count != 0)
+                    throw new ArgumentException($"The parameter '{nameof(count)}' must be 0 when '{nameof(readCount)}' is true.", nameof(count));
+
+                bytesCount = utf8Encoding ? InternalDeserializeStringHeader() : InternalDeserializeSequenceHeader();
+                exactBytesCount = true;
+
+                if (bytesCount < 0)
+                    throw new SerializationException($"Error deserializing '{nameof(Span<char>)}', the serializer instance may not contains a '{nameof(Span<char>)}' serialized at position ({_position}).");
+            }
+            else if (!containsNullPointer)
+            {
+                if (count == 0)
+                {
+                    count = value.Length;
+                    bytesCount = count * sizeof(char) > remainingBytes ? remainingBytes : count * sizeof(char);
+                }
+            }
+            else // Si count está seteado pero la cantidad de bytes remaining no alcanza para llenar count chars
+            {
+
+            }
+
+            if (bytesCount < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), $"Parameter '{nameof(count)}' must be a positive value.");
+
+            if (bytesCount == 0)
+                // return Span<char>.Empty;
+                return false;
+
+            if (!containsNullPointer && exactCharsCount && count > value.Length)
+                throw new ArgumentOutOfRangeException(nameof(count), $"The supplied '{nameof(value)}.Length' of ({value.Length}) must be equal or greater than the supplied '{nameof(count)}' of ({count}).");
+
+
+
+            if (_stream != null && _memoryStream == null)
+            {
+                using var streamReader = new StreamReader(_stream, utf8Encoding ? System.Text.Encoding.UTF8 : null, leaveOpen: true);
+
+                if (exactCharsCount)
+                {
+                    value = containsNullPointer
+                        ? new Span<char>(new char[count])
+                        : value.Length > count
+                            ? value.Slice(0, count)
+                            : value;
+                }
+                else if (exactBytesCount)
+                {
+                    var charsCount = bytesCount / 2 + (bytesCount % 2 == 0 ? 0 : 1);
+
+                    value = containsNullPointer
+                        ? new Span<char>(new char[charsCount])
+                        : value.Length > charsCount
+                            ? value.Slice(0, charsCount)
+                            : value;
+                }
+                else
+                {
+
+                }
+
+                //streamReader.ReadBlock()
+
+                //streamWriter.Write(value);
+                //operationStatus = OperationStatus.Done;
+            }
+
+            var spanBytes = InternalDeserializeSpan(default, bytesCount, raw: false, readCount: false, readOnly: true, containsNullPointer: true);
+
+            if (!utf8Encoding)
+            {
+                //var bspan = new byte[] { 1, 2, 3 };
+                //var df = bspan.AsSpan<byte>();
+                //var mspan = new Span<byte>();
+            }
+
+            //value = containsNullPointer ? new Span<char>(new char[bytesCount]) : value;
 
             var operationStatus = Utf8.ToUtf16(spanBytes, value, out var bytesRead, out var charsWritten);
 
-            if (operationStatus != OperationStatus.Done || )
+            //if (operationStatus != OperationStatus.)
+
+            //if (exactBytesCount)
+            //{
+
+            //}
+
+
+
+
+
+            //var operationStatus = Utf8.ToUtf16(spanBytes, value, out var bytesRead, out var charsWritten);
+
+
+
+            //if (operationStatus != OperationStatus.)
+            //{
+            //    if ()
+            //}
+
+            if (operationStatus != OperationStatus.Done)
                 throw new InvalidOperationException(Utilities.ResourceStrings.CyxorInternalException);
             else
                 value = value.Slice(0, charsWritten);
 
-            return value;
+            //return value;
+            return false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        unsafe Span<T> InternalDeserializeSpan<T>(Span<T> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer) where T : unmanaged
+        unsafe Span<T> InternalDeserializeGenericSpan<T>(Span<T> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer) where T : unmanaged
             => MemoryMarshal.Cast<byte, T>(InternalDeserializeSpan(MemoryMarshal.AsBytes(value), count * sizeof(T), raw, readCount, readOnly, containsNullPointer));
 
         #endregion Internal
@@ -105,12 +333,12 @@ namespace Cyxor.Serialization
         #region byte
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> DeserializeSpanByte()
-            => InternalDeserializeSpan(default(Span<byte>), default, raw: AutoRaw, readCount: true, readOnly: false, containsNullPointer: true);
+        public Span<byte> DeserializeSpanByte() //try
+            => InternalDeserializeSpan(default, default, raw: AutoRaw, readCount: true, readOnly: false, containsNullPointer: true);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> DeserializeRawSpanByte()
-            => InternalDeserializeSpan(default(Span<byte>), default, raw: true, readCount: false, readOnly: false, containsNullPointer: true);
+        public Span<byte> DeserializeRawSpanByte() //try
+            => InternalDeserializeSpan(default, default, raw: true, readCount: false, readOnly: false, containsNullPointer: true);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<byte> DeserializeSpanByte(Span<byte> value)
@@ -122,7 +350,7 @@ namespace Cyxor.Serialization
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<byte> DeserializeSpanByte(int count)
-            => InternalDeserializeSpan(default(Span<byte>), count, raw: false, readOnly: false, readCount: false, containsNullPointer: true);
+            => InternalDeserializeSpan(default, count, raw: false, readOnly: false, readCount: false, containsNullPointer: true);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<byte> DeserializeSpanByte(Span<byte> value, int count)
@@ -130,55 +358,84 @@ namespace Cyxor.Serialization
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<byte> DeserializeReadOnlySpanByte()
-            => InternalDeserializeSpan(default(Span<byte>), default, raw: AutoRaw, readOnly: false, readCount: true, containsNullPointer: true);
+            => InternalDeserializeSpan(default, default, raw: AutoRaw, readOnly: false, readCount: true, containsNullPointer: true);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<byte> DeserializeRawReadOnlySpanByte()
-            => InternalDeserializeSpan(default(Span<byte>), default, raw: true, readOnly: false, readCount: false, containsNullPointer: true);
+            => InternalDeserializeSpan(default, default, raw: true, readOnly: false, readCount: false, containsNullPointer: true);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<byte> DeserializeReadOnlySpanByte(int count)
-            => InternalDeserializeSpan(default(Span<byte>), count, raw: false, readCount: false, readOnly: false, containsNullPointer: true);
+            => InternalDeserializeSpan(default, count, raw: false, readCount: false, readOnly: false, containsNullPointer: true);
+
+
+
+
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryDeserializeSpanByte(out Span<byte> value)
+            => InternalTryDeserializeSpan(default, default, raw: AutoRaw, readCount: true, readOnly: false, containsNullPointer: true, result: out value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<byte> DeserializeRawSpanByte()
+            => InternalDeserializeSpan(default, default, raw: true, readCount: false, readOnly: false, containsNullPointer: true);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<byte> DeserializeSpanByte(Span<byte> value)
+            => InternalDeserializeSpan(value, default, raw: false, readCount: true, readOnly: false, containsNullPointer: false);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<byte> DeserializeRawSpanByte(Span<byte> value)
+            => InternalDeserializeSpan(value, default, raw: true, readCount: false, readOnly: false, containsNullPointer: false);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<byte> DeserializeSpanByte(int count)
+            => InternalDeserializeSpan(default, count, raw: false, readOnly: false, readCount: false, containsNullPointer: true);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<byte> DeserializeSpanByte(Span<byte> value, int count)
+            => InternalDeserializeSpan(value, count, raw: false, readCount: false, readOnly: false, containsNullPointer: false);
 
         #endregion byte
 
         #region char
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(Span<char> value)
-            => InternalSerialize(value, AutoRaw);
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void Serialize(Span<char> value)
+        //    => InternalSerialize(value, AutoRaw);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeRaw(Span<char> value)
-            => InternalSerialize(value, raw: true);
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void SerializeRaw(Span<char> value)
+        //    => InternalSerialize(value, raw: true);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(ReadOnlySpan<char> value)
-            => InternalSerialize(value, AutoRaw);
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void Serialize(ReadOnlySpan<char> value)
+        //    => InternalSerialize(value, AutoRaw);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeRaw(ReadOnlySpan<char> value)
-            => InternalSerialize(value, raw: true);
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void SerializeRaw(ReadOnlySpan<char> value)
+        //    => InternalSerialize(value, raw: true);
 
         #endregion char
 
         #region t
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize<T>(Span<T> value) where T : unmanaged
-            => InternalSerialize<T>(value, AutoRaw);
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void Serialize<T>(Span<T> value) where T : unmanaged
+        //    => InternalSerialize<T>(value, AutoRaw);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeRaw<T>(Span<T> value) where T : unmanaged
-            => InternalSerialize<T>(value, raw: true);
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void SerializeRaw<T>(Span<T> value) where T : unmanaged
+        //    => InternalSerialize<T>(value, raw: true);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize<T>(ReadOnlySpan<T> value) where T : unmanaged
-            => InternalSerialize(value, AutoRaw);
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void Serialize<T>(ReadOnlySpan<T> value) where T : unmanaged
+        //    => InternalSerialize(value, AutoRaw);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeRaw<T>(ReadOnlySpan<T> value) where T : unmanaged
-            => InternalSerialize(value, raw: true);
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void SerializeRaw<T>(ReadOnlySpan<T> value) where T : unmanaged
+        //    => InternalSerialize(value, raw: true);
 
         #endregion t
 
@@ -302,7 +559,7 @@ namespace Cyxor.Serialization
             if (_stream == null)
                 return MemoryMarshal.Cast<byte, T>(_memory.Span.Slice(start, length));
 
-            if (_stream is MemoryStream memoryStream && memoryStream.TryGetBuffer(out var arraySegment))
+            if (InternalTryGetStreamAsMemoryStreamBuffer(out var arraySegment))
                 return MemoryMarshal.Cast<byte, T>(arraySegment.AsSpan(arraySegment.Offset + start, length));
 
             throw new InvalidOperationException($"Can't cast the current serializer as a {nameof(Span<T>)}");
@@ -399,17 +656,19 @@ namespace Cyxor.Serialization
             Span<byte> span;
 
             if (_stream == null)
-            {
                 span = _memory.Span.Slice(_position, bytesCount);
-                _position += bytesCount;
-            }
-            else if (_stream is MemoryStream memoryStream && memoryStream.TryGetBuffer(out var arraySegment))
+            else if (InternalTryGetStreamAsMemoryStreamBuffer(out var arraySegment))
             {
-                span = arraySegment.AsSpan(arraySegment.Offset, arraySegment.Count);
-                Position += bytesCount;
+                span = arraySegment.AsSpan(arraySegment.Offset + _position, bytesCount);
+                _stream.Position += bytesCount;
             }
             else
+            {
+                // Do we need to try to read from stream here?
                 return false;
+            }
+
+            _position += bytesCount;
 
             value = MemoryMarshal.Cast<byte, T>(span);
             return true;

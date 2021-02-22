@@ -120,6 +120,17 @@ namespace Cyxor.Serialization
         readonly bool _needDisposeBuffer;
         IMemoryOwner<byte>? _memoryOwner;
         readonly SerializerOptions _options;
+        readonly MemoryStream? _memoryStream;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        bool InternalTryGetStreamAsMemoryStreamBuffer(out ArraySegment<byte> arraySegment)
+        {
+            if (_memoryStream != null)
+                return _memoryStream.TryGetBuffer(out arraySegment);
+
+            arraySegment = default;
+            return false;
+        }
 
         public Span<byte> Span => AsSpan<byte>();
 

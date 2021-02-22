@@ -11,7 +11,7 @@ namespace Cyxor.Serialization
 
         delegate void SerializeSignature<T>(T value) where T : struct;
 
-        delegate void SerializeSignatureLittleEndian<T>(T value, bool littleEndian) where T : struct;
+        delegate void SerializeSignatureWithCondition<T>(T value, bool condition) where T : struct;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void InternalSerializeNullableValue<T>(T? value, SerializeSignature<T> serializeDelegate) where T : struct
@@ -26,14 +26,14 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        void InternalSerializeNullableValue<T>(T? value, bool littleEndian, SerializeSignatureLittleEndian<T> serializeDelegate) where T : struct
+        void InternalSerializeNullableValue<T>(T? value, bool condition, SerializeSignatureWithCondition<T> serializeDelegate) where T : struct
         {
             if (value == null)
                 Serialize(false);
             else
             {
                 Serialize(true);
-                serializeDelegate((T)value, littleEndian);
+                serializeDelegate((T)value, condition);
             }
         }
 

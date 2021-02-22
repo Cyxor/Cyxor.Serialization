@@ -222,10 +222,10 @@ namespace Cyxor.Serialization
                 return BigInteger.Zero;
             else if (_stream == null)
                 value = new BigInteger(_memory.Span.Slice(_position, length));
-            else if (_stream is MemoryStream memoryStream && memoryStream.TryGetBuffer(out var arraySegment))
+            else if (InternalTryGetStreamAsMemoryStreamBuffer(out var arraySegment))
             {
-                value = new BigInteger(arraySegment.AsSpan((int)memoryStream.Position, length));
-                memoryStream.Position += length;
+                value = new BigInteger(arraySegment.AsSpan(arraySegment.Offset + _position, length));
+                _stream.Position += length;
             }
             else if (length > 1536)
             {
@@ -273,9 +273,10 @@ namespace Cyxor.Serialization
             {
                 if (_stream == null)
                     return ref MemoryMarshal.AsRef<T>(_memory.Span.Slice(_position, size));
-                else if (_stream is MemoryStream memoryStream && memoryStream.TryGetBuffer(out var arraySegment))
+                else if (InternalTryGetStreamAsMemoryStreamBuffer(out var arraySegment))
                 {
-                    var span = arraySegment.AsSpan(arraySegment.Offset, size);
+                    var span = arraySegment.AsSpan(arraySegment.Offset + _position, size);
+                    _stream.Position += size;
                     return ref MemoryMarshal.AsRef<T>(span);
                 }
                 else
@@ -587,10 +588,10 @@ namespace Cyxor.Serialization
                 value = BigInteger.Zero;
             else if (_stream == null)
                 value = new BigInteger(_memory.Span.Slice(_position, length));
-            else if (_stream is MemoryStream memoryStream && memoryStream.TryGetBuffer(out var arraySegment))
+            else if (InternalTryGetStreamAsMemoryStreamBuffer(out var arraySegment))
             {
-                value = new BigInteger(arraySegment.AsSpan((int)memoryStream.Position, length));
-                memoryStream.Position += length;
+                value = new BigInteger(arraySegment.AsSpan(arraySegment.Offset + _position,length));
+                _stream.Position += length;
             }
             else if (length > 1536)
             {

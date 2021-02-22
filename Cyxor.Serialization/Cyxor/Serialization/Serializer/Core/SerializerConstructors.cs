@@ -19,6 +19,7 @@ namespace Cyxor.Serialization
         {
             _stream = stream;
             _needDisposeBuffer = !leaveOpen;
+            _memoryStream = _stream as MemoryStream;
         }
 
         public Serializer(in ArraySegment<byte> arraySegment, in SerializerOptions options = default, bool sharedPoolBuffer = false)

@@ -1,210 +1,148 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿// Licensed under the MIT license
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace Cyxor.Serialization
 {
-    using Extensions;
-
     partial class Serializer
     {
-        public Memory<T> DeserializeMemory<T>() where T: unmanaged
+        #region Memory<byte>
+
+        #region Deserialize Memory<byte>
+
+        private static readonly bool s_eraseMe = false;
+
+        public Memory<byte> DeserializeMemoryByte()
+            => InternalDeserializeByteArray(default, count: 0, AutoRaw, readCount: true, readOnly: false, containsNullPointer: true);
+
+        public Memory<byte>? DeserializeNullableMemoryByte()
+            => InternalDeserializeNullableByteArray(default, count: 0, AutoRaw, readCount: true, readOnly: false, containsNullPointer: true);
+
+        public Memory<byte> DeserializeRawMemoryByte()
+            => InternalDeserializeByteArray(default, count: 0, raw: true, readCount: true, readOnly: false, containsNullPointer: true);
+
+        public Memory<byte>? DeserializeNullableRawMemoryByte()
+            => InternalDeserializeNullableByteArray(default, count: 0, raw: true, readCount: true, readOnly: false, containsNullPointer: true);
+
+        public Memory<byte> DeserializeMemoryByte(int bytesCountToDeserialize)
+            => InternalDeserializeByteArray(default, bytesCountToDeserialize, raw: false, readCount: false, readOnly: false, containsNullPointer: true);
+
+        public Memory<byte>? DeserializeNullableMemoryByte(int bytesCountToDeserialize)
+            => InternalDeserializeNullableByteArray(default, bytesCountToDeserialize, raw: false, readCount: false, readOnly: false, containsNullPointer: true);
+
+        public void DeserializeMemoryByte(Memory<byte> destination)
+            => InternalDeserializeNullableByteArray(destination.Span, count: 0, raw: false, readCount: true, readOnly: false, containsNullPointer: false);
+
+        public void DeserializeMemoryByte(Memory<byte> destination, int bytesCountToDeserialize)
+            => InternalDeserializeNullableByteArray(destination.Span, bytesCountToDeserialize, raw: false, readCount: false, readOnly: false, containsNullPointer: false);
+
+        public void DeserializeRawMemoryByte(Memory<byte> destination)
+            => InternalDeserializeNullableByteArray(destination.Span, count: 0, raw: true, readCount: true, readOnly: false, containsNullPointer: false);
+
+        #endregion Deserialize Memory<byte>
+
+        #region Try deserialize Memory<byte>
+
+        #region Internal
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe bool InternalTryDeserializeMemoryByte(Span<byte> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer, out Memory<byte>? result)
         {
-            if (AutoRaw)
-                return DeserializeRawMemory<T>();
+            var opResult = InternalDeserializeSpan(value, count, raw, readCount, readOnly, containsNullPointer, allowNullableArrayResult: false, out _, out var byteResult, tryDeserialize: true);
 
-            var count = InternalDeserializeSequenceHeader();
-
-            return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(Memory<T>).Name))
-                : count == 0 ? Memory<T>.Empty
-                : DeserializeMemory<T>(count);
+            result = byteResult;
+            return opResult;
         }
 
-        public Memory<T> DeserializeRawMemory<T>() where T: unmanaged
-            => DeserializeMemory<T>(_length - _position);
-
-        public ref Memory<T> DeserializeRawMemory<T>(ref Memory<T> memory) where T : unmanaged
-            => ref DeserializeMemory(ref memory, _length - _position);
-
-        public Memory<T> DeserializeMemory<T>(int bytesCount) where T : unmanaged
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe bool InternalTryDeserializeNullableMemoryByte(Span<byte> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer, out Memory<byte>? result)
         {
-            var memory = new Memory<byte>(new byte[bytesCount]);
-            _ = DeserializeMemory(ref memory, bytesCount);
-            return memory.Cast<byte, T>();
+            byte[]? byteResult;
+
+            var opResult = InternalDeserializeSpan(value, count, raw, readCount, readOnly, containsNullPointer, allowNullableArrayResult: true, out _, out byteResult, tryDeserialize: true);
+
+            result = byteResult;
+            return opResult;
         }
 
-        public ref Memory<T> DeserializeMemory<T>(ref Memory<T> memory) where T: unmanaged
+        #endregion Internal
+
+        public bool TryDeserializeMemoryByte([NotNullWhen(true)] out Memory<byte>? result)
+            => InternalTryDeserializeMemoryByte(default, count: 0, raw: false, readCount: true, readOnly: false, containsNullPointer: true, out result!);
+
+        public bool TryDeserializeNullableMemoryByte(out Memory<byte>? result)
+            => InternalTryDeserializeNullableMemoryByte(default, count: 0, raw: false, readCount: true, readOnly: false, containsNullPointer: true, out result);
+
+        public bool TryDeserializeRawMemoryByte([NotNullWhen(true)] out Memory<byte>? result)
+            => InternalTryDeserializeMemoryByte(default, count: 0, raw: true, readCount: true, readOnly: false, containsNullPointer: true, out result!);
+
+        public bool TryDeserializeNullableRawMemoryByte(out Memory<byte>? result)
+            => InternalTryDeserializeNullableMemoryByte(default, count: 0, raw: true, readCount: true, readOnly: false, containsNullPointer: true, out result);
+
+        public bool TryDeserializeMemoryByte([NotNullWhen(true)] out Memory<byte>? result, int bytesCountToDeserialize)
+            => InternalTryDeserializeMemoryByte(default, bytesCountToDeserialize, raw: false, readCount: true, readOnly: false, containsNullPointer: true, out result!);
+
+        public bool TryDeserializeNullableMemoryByte(out Memory<byte>? result, int bytesCountToDeserialize)
+            => InternalTryDeserializeNullableMemoryByte(default, bytesCountToDeserialize, raw: false, readCount: true, readOnly: false, containsNullPointer: true, out result);
+
+        public bool TryDeserializeMemoryByte(Memory<byte> destination)
+            => InternalTryDeserializeNullableByteArray(destination.Span, count: 0, raw: false, readCount: true, readOnly: false, containsNullPointer: false, result: out _);
+
+        public bool TryDeserializeMemoryByte(Memory<byte> destination, int bytesCountToDeserialize)
+            => InternalTryDeserializeNullableByteArray(destination.Span, bytesCountToDeserialize, raw: false, readCount: false, readOnly: false, containsNullPointer: false, result: out _);
+
+        public bool TryDeserializeRawMemoryByte(Memory<byte> destination)
+            => InternalTryDeserializeNullableByteArray(destination.Span, count: 0, raw: true, readCount: true, readOnly: false, containsNullPointer: false, result: out _);
+
+        #endregion Try deserialize Memory<byte>
+
+        #region To Memory<byte>
+
+        public Memory<byte> ToMemoryByte()
+            => ToByteArray();
+
+        public Memory<byte> ToMemoryByte(Index startIndex)
+            => ToByteArray(startIndex.IsFromEnd ? _length - startIndex.Value : startIndex.Value);
+
+        public Memory<byte> ToMemoryByte(int start)
+            => ToByteArray(start);
+
+        public Memory<byte> ToMemoryByte(Range range)
+            => ToByteArray(range);
+
+        public Memory<byte> ToMemoryByte(int start, int length)
+            => ToByteArray(start, length);
+
+        #endregion To Memory<byte>
+
+        #region As Memory<byte>
+
+        public Memory<byte> AsMemoryByte()
         {
-            var count = InternalDeserializeSequenceHeader();
+            if (InternalTryGetStreamAsMemoryStreamBuffer(out var arraySegment))
+                return arraySegment.AsMemory();
+            else if (_stream != null)
+                return ToByteArray();
 
-            if (count == -1)
-                throw new InvalidOperationException
-                    (Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingValueType(typeof(Span<T>).Name));
-
-            return ref count == 0 ? ref memory : ref DeserializeMemory(ref memory, count);
+            return _memory;
         }
 
-        public ref Memory<T> DeserializeMemory<T>(ref Memory<T> memory, int bytesCount) where T: unmanaged
-        {
-            if (bytesCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(bytesCount), $"Parameter {nameof(bytesCount)} must be a positive value");
+        #endregion To Memory<byte>
 
-            if (bytesCount > memory.Length)
-                throw new ArgumentOutOfRangeException(nameof(bytesCount));
+        #endregion Memory<byte>
 
-            if (bytesCount == 0)
-                return ref memory;
+        #region Char
 
-            InternalEnsureDeserializeCapacity(bytesCount);
+        // TODO:
 
-            var bufferMemory = new Memory<byte>(_buffer, _position, bytesCount);
-            var memoryOfT = bufferMemory.Cast<byte, T>();
+        #endregion Char
 
-            memoryOfT.CopyTo(memory);
-            _position += bytesCount;
+        #region T
 
-            return ref memory;
-        }
+        // TODO:
 
-        public bool TryDeserializeMemory<T>(out Memory<T> value) where T : unmanaged
-        {
-            value = Memory<T>.Empty;
-
-            var currentPosition = _position;
-
-            try
-            {
-                value = DeserializeMemory<T>();
-                return true;
-            }
-            catch
-            {
-                _position = currentPosition;
-                return false;
-            }
-        }
-
-        public bool TryDeserializeMemory<T>(out Memory<T> value, int bytesCount) where T : unmanaged
-        {
-            value = Memory<T>.Empty;
-
-            if (bytesCount <= 0)
-                return false;
-
-            if (_length - _position < bytesCount)
-                return false;
-
-            var currentPosition = _position;
-
-            try
-            {
-                value = DeserializeMemory<T>(bytesCount);
-                return true;
-            }
-            catch
-            {
-                _position = currentPosition;
-                return false;
-            }
-        }
-
-        public Memory<T> ToMemory<T>() where T : unmanaged
-        {
-            _position = 0;
-            return DeserializeRawMemory<T>();
-        }
-
-        public ReadOnlyMemory<T> DeserializeReadOnlyMemory<T>() where T : unmanaged
-        {
-            if (AutoRaw)
-                return DeserializeRawReadOnlyMemory<T>();
-
-            var count = InternalDeserializeSequenceHeader();
-
-            return count == -1 ? throw new InvalidOperationException
-                (Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingValueType(typeof(ReadOnlyMemory<T>).Name))
-                : count == 0 ? ReadOnlyMemory<T>.Empty
-                : DeserializeReadOnlyMemory<T>(count);
-        }
-
-        public ReadOnlyMemory<T> DeserializeRawReadOnlyMemory<T>() where T : unmanaged
-            => DeserializeReadOnlyMemory<T>(_length - _position);
-
-        public ReadOnlyMemory<T> DeserializeReadOnlyMemory<T>(int bytesCount) where T : unmanaged
-        {
-            if (bytesCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(bytesCount), $"Parameter {nameof(bytesCount)} must be a positive value");
-
-            if (bytesCount == 0)
-                return ReadOnlyMemory<T>.Empty;
-
-            InternalEnsureDeserializeCapacity(bytesCount);
-
-            var bufferReadOnlyMemory = new ReadOnlyMemory<byte>(_buffer, _position, bytesCount);
-
-            _position += bytesCount;
-
-            return bufferReadOnlyMemory.Cast<byte, T>();
-        }
-
-        public bool TryDeserializeReadOnlyMemory<T>(out ReadOnlyMemory<T> value) where T : unmanaged
-        {
-            value = ReadOnlyMemory<T>.Empty;
-
-            var currentPosition = _position;
-
-            try
-            {
-                value = DeserializeReadOnlyMemory<T>();
-                return true;
-            }
-            catch
-            {
-                _position = currentPosition;
-                return false;
-            }
-        }
-
-        public bool TryDeserializeReadOnlyMemory<T>(out ReadOnlyMemory<T> value, int bytesCount) where T : unmanaged
-        {
-            value = ReadOnlyMemory<T>.Empty;
-
-            if (bytesCount <= 0)
-                return false;
-
-            if (_length - _position < bytesCount)
-                return false;
-
-            var currentPosition = _position;
-
-            try
-            {
-                value = DeserializeReadOnlyMemory<T>(bytesCount);
-                return true;
-            }
-            catch
-            {
-                _position = currentPosition;
-                return false;
-            }
-        }
-
-        public ReadOnlyMemory<T> ToReadOnlyMemory<T>() where T : unmanaged
-        {
-            _position = 0;
-            return DeserializeRawReadOnlyMemory<T>();
-        }
-
-
-
-
-
-        // TODO: NULLABLE HERE
-
-
-
-
-
-
-
+        #endregion T
     }
 }

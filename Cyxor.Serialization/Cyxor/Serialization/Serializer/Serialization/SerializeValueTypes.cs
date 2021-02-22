@@ -278,9 +278,9 @@ namespace Cyxor.Serialization
             }
             else
             {
-                if (_stream is MemoryStream memoryStream && memoryStream.TryGetBuffer(out var arraySegment))
+                if (InternalTryGetStreamAsMemoryStreamBuffer(out var arraySegment))
                 {
-                    var span = arraySegment.AsSpan(arraySegment.Offset, length);
+                    var span = arraySegment.AsSpan(arraySegment.Offset + _position, length);
 
                     if (!value.TryWriteBytes(span, out _))
                         throw new SerializationException(Utilities.ResourceStrings.CyxorInternalException);
@@ -324,7 +324,7 @@ namespace Cyxor.Serialization
 
             InternalEnsureSerializeCapacity(size);
 
-            ref T refValue = ref Unsafe.AsRef(value);
+            ref var refValue = ref Unsafe.AsRef(value);
 
             if (_stream == null)
                 MemoryMarshal.Write(_memory.Span.Slice(_position), ref refValue);

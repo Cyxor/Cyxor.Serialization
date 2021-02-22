@@ -1,242 +1,163 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace Cyxor.Serialization
 {
     partial class Serializer
     {
-        public byte[] DeserializeBytes()
+        #region Deserialize ByteArray
+
+        #region Internal
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        byte[] InternalDeserializeByteArray(Span<byte> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer)
         {
-            if (AutoRaw)
-                return DeserializeRawBytes();
+            InternalDeserializeSpan(value, count, raw, readCount, readOnly, containsNullPointer, allowNullableArrayResult: false, out _, out var array, tryDeserialize: false);
 
-            var count = InternalDeserializeSequenceHeader();
-
-            return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(byte[]).Name))
-                : count == 0 ? Array.Empty<byte>()
-                : DeserializeBytes(count);
+            return array!;
         }
 
-        public byte[]? DeserializeNullableBytes()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        byte[]? InternalDeserializeNullableByteArray(Span<byte> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer)
         {
-            if (AutoRaw)
-                return DeserializeNullableRawBytes();
+            InternalDeserializeSpan(value, count, raw, readCount, readOnly, containsNullPointer, allowNullableArrayResult: true, out _, out var array, tryDeserialize: false);
 
-            var count = InternalDeserializeSequenceHeader();
-
-            return count == -1 ? default
-                : count == 0 ? Array.Empty<byte>()
-                : DeserializeNullableBytes(count);
+            return array;
         }
 
-        public byte[] DeserializeRawBytes()
-            => DeserializeBytes(_length - _position);
+        #endregion Internal
 
-        public byte[]? DeserializeNullableRawBytes()
-            => DeserializeNullableBytes(_length - _position);
+        public byte[] DeserializeByteArray()
+            => InternalDeserializeByteArray(default, count: 0, AutoRaw, readCount: true, readOnly: false, containsNullPointer: true);
 
-        public byte[] DeserializeBytes(int count)
-        {
-            if (count == 0)
-                return Array.Empty<byte>();
+        public byte[]? DeserializeNullableByteArray()
+            => InternalDeserializeNullableByteArray(default, count: 0, AutoRaw, readCount: true, readOnly: false, containsNullPointer: true);
 
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), $"Parameter {nameof(count)} must be a positive value");
+        public byte[] DeserializeRawByteArray()
+            => InternalDeserializeByteArray(default, count: 0, raw: true, readCount: true, readOnly: false, containsNullPointer: true);
 
-            InternalEnsureDeserializeCapacity(count);
+        public byte[]? DeserializeNullableRawByteArray()
+            => InternalDeserializeNullableByteArray(default, count: 0, raw: true, readCount: true, readOnly: false, containsNullPointer: true);
 
-            var value = new byte[count];
+        public byte[] DeserializeByteArray(int bytesCountToDeserialize)
+            => InternalDeserializeByteArray(default, bytesCountToDeserialize, raw: false, readCount: false, readOnly: false, containsNullPointer: true);
 
-            unsafe
-            {
-                fixed (byte* src = _buffer, dest = value)
-                    Buffer.MemoryCopy(src + _position, dest, count, count);
-            }
+        public byte[]? DeserializeNullableByteArray(int bytesCountToDeserialize)
+            => InternalDeserializeNullableByteArray(default, bytesCountToDeserialize, raw: false, readCount: false, readOnly: false, containsNullPointer: true);
 
-            _position += count;
-            return value;
-        }
+        public void DeserializeByteArray(byte[] destination, int destinationOffset = 0)
+            => InternalDeserializeNullableByteArray(destination.AsSpan(destinationOffset), count: 0, raw: false, readCount: true, readOnly: false, containsNullPointer: false);
 
-        public byte[]? DeserializeNullableBytes(int count)
-        {
-            if (count == 0)
-                return default;
+        public void DeserializeByteArray(byte[] destination, int destinationOffset, int bytesCountToDeserialize)
+            => InternalDeserializeNullableByteArray(destination.AsSpan(destinationOffset), bytesCountToDeserialize, raw: false, readCount: false, readOnly: false, containsNullPointer: false);
 
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), $"Parameter {nameof(count)} must be a positive value");
+        public void DeserializeRawByteArray(byte[] destination, int destinationOffset = 0)
+            => InternalDeserializeNullableByteArray(destination.AsSpan(destinationOffset), count: 0, raw: true, readCount: true, readOnly: false, containsNullPointer: false);
 
-            InternalEnsureDeserializeCapacity(count);
+        public unsafe void DeserializeBytes(byte* destination, int destinationLength)
+            => InternalDeserializeNullableByteArray(new Span<byte>(destination, destinationLength), count: 0, raw: false, readCount: true, readOnly: false, containsNullPointer: destination == null);
 
-            var value = new byte[count];
+        public unsafe void DeserializeBytes(byte* destination, int destinationLength, int bytesCountToDeserialize)
+            => InternalDeserializeNullableByteArray(new Span<byte>(destination, destinationLength), bytesCountToDeserialize, raw: false, readCount: false, readOnly: false, containsNullPointer: destination == null);
 
-            unsafe
-            {
-                fixed (byte* src = _buffer, dest = value)
-                    Buffer.MemoryCopy(src + _position, dest, count, count);
-            }
+        #endregion Deserialize ByteArray
 
-            _position += count;
-            return value;
-        }
+        #region Try deserialize ByteArray
 
-        public void DeserializeBytes(byte[] dest, int offset = 0)
-        {
-            unsafe
-            {
-                fixed (byte* ptr = dest)
-                    DeserializeBytes(ptr + offset, dest.Length - offset, 0, zeroBytesToCopy: true);
-            }
-        }
+        #region Internal
 
-        public void DeserializeBytes(byte[] dest, int offset, int count)
-        {
-            unsafe
-            {
-                fixed (byte* ptr = dest)
-                    DeserializeBytes(ptr + offset, dest.Length - offset, count, zeroBytesToCopy: false);
-            }
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        bool InternalTryDeserializeByteArray(Span<byte> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer, out byte[]? result)
+            => InternalDeserializeSpan(value, count, raw, readCount, readOnly, containsNullPointer, allowNullableArrayResult: false, out _, out result, tryDeserialize: true);
 
-        public unsafe void DeserializeBytes(byte* destination, int destinationSize)
-            => DeserializeBytes(destination, destinationSize, 0, zeroBytesToCopy: true);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        bool InternalTryDeserializeNullableByteArray(Span<byte> value, int count, bool raw, bool readCount, bool readOnly, bool containsNullPointer, out byte[]? result)
+            => InternalDeserializeSpan(value, count, raw, readCount, readOnly, containsNullPointer, allowNullableArrayResult: true, out _, out result, tryDeserialize: true);
 
-        public unsafe void DeserializeBytes(byte* destination, int destinationSize, int bytesToCopy)
-            => DeserializeBytes(destination, destinationSize, bytesToCopy, zeroBytesToCopy: false);
+        #endregion Internal
 
-        unsafe void DeserializeBytes(byte* destination, int destinationSize, int bytesToCopy, bool zeroBytesToCopy)
-        {
-            if ((IntPtr)destination == IntPtr.Zero)
-                throw new ArgumentNullException(nameof(destination));
+        public bool TryDeserializeByteArray([NotNullWhen(true)] out byte[]? result)
+            => InternalTryDeserializeByteArray(default, count: 0, raw: false, readCount: true, readOnly: false, containsNullPointer: true, out result!);
 
-            if (destinationSize < 0)
-                throw new ArgumentOutOfRangeException(nameof(destinationSize), $"{nameof(destinationSize)} must be a positive value");
+        public bool TryDeserializeNullableByteArray(out byte[]? result)
+            => InternalTryDeserializeNullableByteArray(default, count: 0, raw: false, readCount: true, readOnly: false, containsNullPointer: true, out result);
 
-            if (bytesToCopy < 0)
-                throw new ArgumentOutOfRangeException(nameof(bytesToCopy), $"{nameof(bytesToCopy)} must be a positive value");
+        public bool TryDeserializeRawByteArray([NotNullWhen(true)] out byte[]? result)
+            => InternalTryDeserializeByteArray(default, count: 0, raw: true, readCount: true, readOnly: false, containsNullPointer: true, out result!);
 
-            if (bytesToCopy == 0)
-            {
-                if (!zeroBytesToCopy)
-                    throw new ArgumentOutOfRangeException(nameof(bytesToCopy), $"{nameof(bytesToCopy)} must be greater than zero. To read the length from data use an overload.");
+        public bool TryDeserializeNullableRawByteArray(out byte[]? result)
+            => InternalTryDeserializeNullableByteArray(default, count: 0, raw: true, readCount: true, readOnly: false, containsNullPointer: true, out result);
 
-                bytesToCopy = InternalDeserializeSequenceHeader();
+        public bool TryDeserializeByteArray([NotNullWhen(true)] out byte[]? result, int bytesCountToDeserialize)
+            => InternalTryDeserializeByteArray(default, bytesCountToDeserialize, raw: false, readCount: true, readOnly: false, containsNullPointer: true, out result!);
 
-                if (bytesToCopy <= 0)
-                    return;
-            }
+        public bool TryDeserializeNullableByteArray(out byte[]? result, int bytesCountToDeserialize)
+            => InternalTryDeserializeNullableByteArray(default, bytesCountToDeserialize, raw: false, readCount: true, readOnly: false, containsNullPointer: true, out result);
 
-            if (destinationSize - bytesToCopy < 0)
-                throw new ArgumentOutOfRangeException(nameof(bytesToCopy), $"{nameof(bytesToCopy)} is greater than {nameof(destinationSize)}");
+        public bool TryDeserializeByteArray(byte[] destination, int destinationOffset = 0)
+            => InternalTryDeserializeNullableByteArray(destination.AsSpan(destinationOffset), count: 0, raw: false, readCount: true, readOnly: false, containsNullPointer: false, result: out _);
 
-            InternalEnsureDeserializeCapacity(bytesToCopy);
+        public bool TryDeserializeByteArray(byte[] destination, int destinationOffset, int bytesCountToDeserialize)
+            => InternalTryDeserializeNullableByteArray(destination.AsSpan(destinationOffset), bytesCountToDeserialize, raw: false, readCount: false, readOnly: false, containsNullPointer: false, result: out _);
 
-            fixed (byte* src = _buffer)
-                Buffer.MemoryCopy(src + _position, destination, bytesToCopy, bytesToCopy);
+        public bool TryDeserializeRawByteArray(byte[] destination, int destinationOffset = 0)
+            => InternalTryDeserializeNullableByteArray(destination.AsSpan(destinationOffset), count: 0, raw: true, readCount: true, readOnly: false, containsNullPointer: false, result: out _);
 
-            _position += bytesToCopy;
-        }
+        public unsafe bool TryDeserializeBytes(byte* destination, int destinationLength)
+            => InternalTryDeserializeNullableByteArray(new Span<byte>(destination, destinationLength), count: 0, raw: false, readCount: true, readOnly: false, containsNullPointer: destination == null, result: out _);
 
-        public bool TryDeserializeBytes([NotNullWhen(true)] out byte[]? value)
-        {
-            value = default;
+        public unsafe bool TryDeserializeBytes(byte* destination, int destinationLength, int bytesCountToDeserialize)
+            => InternalTryDeserializeNullableByteArray(new Span<byte>(destination, destinationLength), bytesCountToDeserialize, raw: false, readCount: false, readOnly: false, containsNullPointer: destination == null, result: out _);
 
-            var currentPosition = _position;
+        #endregion Try deserialize ByteArray
 
-            try
-            {
-                value = DeserializeNullableBytes();
-
-                if (value == default)
-                {
-                    _position -= 1;
-                    return false;
-                }
-
-                return true;
-            }
-            catch
-            {
-                _position = currentPosition;
-                return false;
-            }
-        }
-
-        public bool TryDeserializeNullableBytes(out byte[]? value)
-        {
-            value = default;
-
-            var currentPosition = _position;
-
-            try
-            {
-                value = DeserializeNullableBytes();
-                return true;
-            }
-            catch
-            {
-                _position = currentPosition;
-                return false;
-            }
-        }
-
-        public bool TryDeserializeBytes([NotNullWhen(true)] out byte[]? value, int count)
-        {
-            value = default;
-
-            if (count <= 0)
-                return false;
-
-            if (_length - _position < count)
-                return false;
-
-            var currentPosition = _position;
-
-            try
-            {
-                value = DeserializeBytes(count);
-                return true;
-            }
-            catch
-            {
-                _position = currentPosition;
-                return false;
-            }
-        }
-
-        public bool TryDeserializeNullableBytes(out byte[]? value, int count)
-        {
-            value = default;
-
-            if (count <= 0)
-                return false;
-
-            if (_length - _position < count)
-                return false;
-
-            var currentPosition = _position;
-
-            try
-            {
-                value = DeserializeNullableBytes(count);
-                return true;
-            }
-            catch
-            {
-                _position = currentPosition;
-                return false;
-            }
-        }
+        #region To ByteArray
 
         public byte[] ToByteArray()
         {
-            _position = 0;
-            return DeserializeRawBytes();
+            var startPosition = _position;
+            Position = 0;
+            var bytes = DeserializeRawByteArray();
+            Position = _position;
+            return bytes;
         }
 
-        public byte[]? ToNullableBytes()
+        public byte[] ToByteArray(Index startIndex)
+            => ToByteArray(startIndex.IsFromEnd ? _length - startIndex.Value : startIndex.Value);
+
+        public byte[] ToByteArray(int start)
         {
-            _position = 0;
-            return DeserializeNullableRawBytes();
+            if (start < 0 || start > _length)
+                throw new ArgumentOutOfRangeException(nameof(start), start, $"{nameof(start)} is less than 0 or greater than {nameof(Serializer)}.{nameof(Serializer.Length)}");
+
+            var startPosition = _position;
+            Position = start;
+            var bytes = DeserializeByteArray(_length - start);
+            Position = _position;
+            return bytes;
         }
+
+        public byte[] ToByteArray(Range range)
+        {
+            var start = range.Start.IsFromEnd ? _length - range.Start.Value : range.Start.Value;
+            var length = range.End.IsFromEnd ? _length - start - range.End.Value : range.End.Value;
+            
+            return ToByteArray(start, length);
+        }
+
+        public byte[] ToByteArray(int start, int length)
+        {
+            if (start < 0 || length < 0 || start + length > _length || start + length < 0)
+                throw new ArgumentOutOfRangeException(nameof(start), start, $"{nameof(start)}, {nameof(length)}, or {nameof(start)} + {nameof(length)} is not in the range of {nameof(Serializer)}.");
+
+            var startPosition = _position;
+            Position = start;
+            var bytes = DeserializeByteArray(length);
+            Position = _position;
+            return bytes;
+        }
+
+        #endregion To ByteArray
     }
 }

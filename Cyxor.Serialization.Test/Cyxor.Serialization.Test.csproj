@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <Folder Include="Serializer\Deserialization\" />
+    <Folder Include="Serializer\Serialization\" />
   </ItemGroup>
 
 </Project>

@@ -1,24 +1,26 @@
-[![cyxor-dev MyGet Build Status](https://www.myget.org/BuildSource/Badge/cyxor-dev?identifier=2c22776d-5b7e-4070-86e7-cbfceb2ced5b)](https://www.myget.org/) &nbsp; [![Build status](https://ci.appveyor.com/api/projects/status/f7rdfvsjj69bsk9x/branch/master?svg=true)](https://ci.appveyor.com/project/YandyZaldivar/cyxor-serialization/branch/master) &nbsp; ![Nuget](https://img.shields.io/nuget/v/Cyxor.Serialization.svg?color=ff69b4&logo=nuget)
-
 # Cyxor.Serialization
 
-#### Effective binary object serialization class library for low-overhead network transmissions
+[![cyxor-dev MyGet Build Status](https://www.myget.org/BuildSource/Badge/cyxor-dev?identifier=2c22776d-5b7e-4070-86e7-cbfceb2ced5b)](https://www.myget.org/) &nbsp; [![Build status](https://ci.appveyor.com/api/projects/status/f7rdfvsjj69bsk9x/branch/master?svg=true)](https://ci.appveyor.com/project/YandyZaldivar/cyxor-serialization/branch/master) &nbsp; ![Nuget](https://img.shields.io/nuget/v/Cyxor.Serialization.svg?color=ff69b4&logo=nuget)
+
+Effective binary object serialization class library for low-overhead network transmissions
 
 ## Introduction
 
 **Serialization** is the process of converting objects into a sequence of bytes. The reverse, turning those bytes into objects in memory, is called **Deserialization**.
 
 Serialization serves two main purposes:
- 1. Persist object state to a file.
- 2. Send data over the network.
+
+1. Persist object state to a file.
+2. Send data over the network.
 
 We can also say there are two main formats for the task:
- 1. Text
- 2. Binary
+
+1. Text
+2. Binary
 
 Text format is desirable when you want to produce human-readable output. Binary format on the contrary, can be adapted to produce a more compact output.
 
-Serialization is a well covered topic. There are already a few good articles and libraries available on Internet that you can learn from, each one with it's pros and cons. What has *Cyxor.Serialization* to offer?
+Serialization is a well covered topic. There are already a few good articles and libraries available on Internet that you can learn from, each one with it's pros and cons. What has _Cyxor.Serialization_ to offer?
 
 Let's take the following class model as example:
 
@@ -34,22 +36,22 @@ If we serialize a given product using `json` we get something like this:
 
 ```json
 {
-    "Name": "PC",
-    "Price": 450.00
+  "Name": "PC",
+  "Price": 450.0
 }
 ```
 
 It is very common and desirable to include metadata or the structure of the model we are serializing along with the data. But if both sides (producer and consumer, or client and server) shares that model structure, can we serialize only the data: `PC 450.00`?
 
-*Cyxor.Serialization* aims to do exactly that, and we have experienced great results in our network protocols by reducing the amount of data on the wire.
+_Cyxor.Serialization_ aims to do exactly that, and we have experienced great results in our network protocols by reducing the amount of data on the wire.
 
 ## Using the code
 
 The main class in the library is `SerialStream`. As the name suggest, `SerialStream` is a stream (inherits from `System.IO.Stream`) and serve for both serialization and deserialization.
 
-***[Work In Progress]...***
+**_[Work In Progress]..._**
 
-#### Demo
+### Demo
 
 ```CSharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;

@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Cyxor.Serialization.Test.ValueTypes
+namespace Cyxor.Serialization.Test
 {
     class BooleanModel
     {
@@ -32,10 +32,10 @@ namespace Cyxor.Serialization.Test.ValueTypes
             var valueArray = new bool[] { true, false, false, true, false };
             var nullableValueArray = new bool?[] { true, null, false, true, false };
 
-            var nullIEnumerable = default(Queue<bool>);
-            var emptyIEnumrable = new ConcurrentStack<bool>();
-            var valueArray = new bool[] { true, false, false, true, false };
-            var nullableValueArray = new bool?[] { true, null, false, true, false };
+            //var nullIEnumerable = default(Queue<bool>);
+            //var emptyIEnumrable = new ConcurrentStack<bool>();
+            //var valueArray = new bool[] { true, false, false, true, false };
+            //var nullableValueArray = new bool?[] { true, null, false, true, false };
 
             using var serializer = new Serializer();
 
