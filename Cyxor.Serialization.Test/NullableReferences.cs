@@ -11,8 +11,6 @@ namespace Cyxor.Serialization.Test
         {
             using var ss = new Serializer();
 
-
-
             var xx = ss.DeserializeRawObject<string>();
 
             Assert.IsNotNull(ss);
@@ -20,7 +18,6 @@ namespace Cyxor.Serialization.Test
 
         public struct Fuera
         {
-
         }
 
         [TestMethod]
@@ -88,7 +85,6 @@ namespace Cyxor.Serialization.Test
             var qq = ss.DeserializeObject<int?>();
             ss.Position = 0;
             var ww = ss.DeserializeObject<int?>();
-
 
             Assert.AreEqual(ni, qq);
             Assert.AreEqual(ni, ww);

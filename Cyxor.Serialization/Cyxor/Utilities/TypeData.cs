@@ -23,8 +23,7 @@ namespace Cyxor.Serialization
 
             var fieldList = new List<FieldData>();
 
-            foreach (var field in fields)
-                fieldList.Add(new FieldData(field, ShouldSerializeField(field)));
+            foreach (var field in fields)fieldList.Add(new FieldData(field, ShouldSerializeField(field)));
 
             Fields = fieldList.ToArray();
             Array.Sort(Fields);
@@ -53,11 +52,9 @@ namespace Cyxor.Serialization
             HashCode = Utilities.HashCode.GetFrom(type.FullName);
         }
 
-        public override int GetHashCode()
-            => HashCode;
+        public override int GetHashCode() => HashCode;
 
-        public bool Equals(TypeData other)
-            => HashCode == other.HashCode;
+        public bool Equals(TypeData other) => HashCode == other.HashCode;
 
         public override bool Equals(object? obj)
         {
@@ -87,7 +84,7 @@ namespace Cyxor.Serialization
             return ShouldSerializeProperty(property);
         }
 
-        static bool ShouldSerializeProperty(PropertyInfo property)
-            => !property.IsDefined(typeof(CyxorIgnoreAttribute), inherit: false);
+        static bool ShouldSerializeProperty(PropertyInfo property) =>
+            !property.IsDefined(typeof(CyxorIgnoreAttribute), inherit: false);
     }
 }

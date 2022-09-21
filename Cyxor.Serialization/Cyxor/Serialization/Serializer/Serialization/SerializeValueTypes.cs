@@ -13,7 +13,8 @@ namespace Cyxor.Serialization
         #region Internal
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        unsafe void InternalSerializeUnmanaged<T>(T value) where T : unmanaged
+        unsafe void InternalSerializeUnmanaged<T>(T value)
+            where T : unmanaged
         {
             var size = sizeof(T);
             InternalEnsureSerializeCapacity(size);
@@ -27,7 +28,8 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        unsafe void InternalSerializeUnmanaged<T>(T value, bool littleEndian) where T : unmanaged
+        unsafe void InternalSerializeUnmanaged<T>(T value, bool littleEndian)
+            where T : unmanaged
         {
             var size = sizeof(T);
             InternalEnsureSerializeCapacity(size);
@@ -89,20 +91,19 @@ namespace Cyxor.Serialization
         #region Primitive types
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(bool value)
-            => Serialize((byte)(value ? 1 : 0));
+        public void Serialize(bool value) => Serialize((byte)(value ? 1 : 0));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(char value)
-            => InternalSerializeUnmanaged(value);
+        public void Serialize(char value) => InternalSerializeUnmanaged(value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(float value)
-            => InternalSerializeUnmanaged(value);
+        public void Serialize(Half value) => InternalSerializeUnmanaged(value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(double value)
-            => InternalSerializeUnmanaged(value);
+        public void Serialize(float value) => InternalSerializeUnmanaged(value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Serialize(double value) => InternalSerializeUnmanaged(value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Serialize(byte value)
@@ -118,8 +119,7 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(sbyte value)
-            => Serialize((byte)value);
+        public void Serialize(sbyte value) => Serialize((byte)value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Serialize(short value)
@@ -131,8 +131,7 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(short value, bool littleEndian)
-            => InternalSerializeUnmanaged(value, littleEndian);
+        public void Serialize(short value, bool littleEndian) => InternalSerializeUnmanaged(value, littleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Serialize(ushort value)
@@ -144,12 +143,10 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(ushort value, bool littleEndian)
-            => InternalSerializeUnmanaged(value, littleEndian);
+        public void Serialize(ushort value, bool littleEndian) => InternalSerializeUnmanaged(value, littleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(int value)
-            => SerializeCompressedInt((uint)value);
+        public void Serialize(int value) => SerializeCompressedInt((uint)value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SerializeUncompressedInt32(int value)
@@ -161,8 +158,8 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeUncompressedInt32(int value, bool littleEndian)
-            => InternalSerializeUnmanaged(value, littleEndian);
+        public void SerializeUncompressedInt32(int value, bool littleEndian) =>
+            InternalSerializeUnmanaged(value, littleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Serialize(uint value)
@@ -174,12 +171,10 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(uint value, bool littleEndian)
-            => InternalSerializeUnmanaged(value, littleEndian);
+        public void Serialize(uint value, bool littleEndian) => InternalSerializeUnmanaged(value, littleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(long value)
-             => SerializeCompressedInt((ulong)value);
+        public void Serialize(long value) => SerializeCompressedInt((ulong)value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SerializeUncompressedInt64(long value)
@@ -191,8 +186,8 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeUncompressedInt64(long value, bool littleEndian)
-            => InternalSerializeUnmanaged(value, littleEndian);
+        public void SerializeUncompressedInt64(long value, bool littleEndian) =>
+            InternalSerializeUnmanaged(value, littleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Serialize(ulong value)
@@ -204,20 +199,17 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(ulong value, bool littleEndian)
-            => InternalSerializeUnmanaged(value, littleEndian);
+        public void Serialize(ulong value, bool littleEndian) => InternalSerializeUnmanaged(value, littleEndian);
 
         #endregion Primitive types
 
         #region Struct types
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(decimal value)
-            => InternalSerializeUnmanaged(value);
+        public void Serialize(decimal value) => InternalSerializeUnmanaged(value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(BitSerializer value)
-            => Serialize((long)value);
+        public void Serialize(BitSerializer value) => Serialize((long)value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Serialize(Guid value)
@@ -244,12 +236,10 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(TimeSpan value)
-            => SerializeUncompressedInt64(value.Ticks);
+        public void Serialize(TimeSpan value) => SerializeUncompressedInt64(value.Ticks);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(DateTime value)
-            => SerializeUncompressedInt64(value.ToBinary());
+        public void Serialize(DateTime value) => SerializeUncompressedInt64(value.ToBinary());
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Serialize(DateTimeOffset value)
@@ -313,12 +303,13 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeEnum<T>(T value) where T : unmanaged, Enum
-            => Serialize(Unsafe.As<T, long>(ref value));
+        public void SerializeEnum<T>(T value)
+            where T : unmanaged, Enum => Serialize(Unsafe.As<T, long>(ref value));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [SerializerMethodIdentifier(SerializerMethodIdentifier.SerializeUnmanaged)]
-        public unsafe void Serialize<T>(in T value) where T : unmanaged
+        public unsafe void Serialize<T>(in T value)
+            where T : unmanaged
         {
             var size = sizeof(T);
 
@@ -333,7 +324,6 @@ namespace Cyxor.Serialization
 
             _position += size;
         }
-
         #endregion Struct types
     }
 }

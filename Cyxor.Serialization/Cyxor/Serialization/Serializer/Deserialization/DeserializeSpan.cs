@@ -142,45 +142,45 @@ namespace Cyxor.Serialization
 
         #endregion byte
 
-        #region char
+        // #region char
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(Span<char> value)
-            => InternalSerialize(value, AutoRaw);
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // public void Serialize(Span<char> value)
+        //     => InternalSerialize(value, AutoRaw);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeRaw(Span<char> value)
-            => InternalSerialize(value, raw: true);
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // public void SerializeRaw(Span<char> value)
+        //     => InternalSerialize(value, raw: true);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(ReadOnlySpan<char> value)
-            => InternalSerialize(value, AutoRaw);
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // public void Serialize(ReadOnlySpan<char> value)
+        //     => InternalSerialize(value, AutoRaw);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeRaw(ReadOnlySpan<char> value)
-            => InternalSerialize(value, raw: true);
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // public void SerializeRaw(ReadOnlySpan<char> value)
+        //     => InternalSerialize(value, raw: true);
 
-        #endregion char
+        // #endregion char
 
-        #region t
+        // #region t
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize<T>(Span<T> value) where T : unmanaged
-            => InternalSerialize<T>(value, AutoRaw);
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // public void Serialize<T>(Span<T> value) where T : unmanaged
+        //     => InternalSerialize<T>(value, AutoRaw);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeRaw<T>(Span<T> value) where T : unmanaged
-            => InternalSerialize<T>(value, raw: true);
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // public void SerializeRaw<T>(Span<T> value) where T : unmanaged
+        //     => InternalSerialize<T>(value, raw: true);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize<T>(ReadOnlySpan<T> value) where T : unmanaged
-            => InternalSerialize(value, AutoRaw);
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // public void Serialize<T>(ReadOnlySpan<T> value) where T : unmanaged
+        //     => InternalSerialize(value, AutoRaw);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeRaw<T>(ReadOnlySpan<T> value) where T : unmanaged
-            => InternalSerialize(value, raw: true);
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // public void SerializeRaw<T>(ReadOnlySpan<T> value) where T : unmanaged
+        //     => InternalSerialize(value, raw: true);
 
-        #endregion t
+        // #endregion t
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<T> DeserializeSpan<T>() where T : unmanaged

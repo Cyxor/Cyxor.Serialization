@@ -12,9 +12,13 @@ namespace Cyxor.Serialization
 
             var count = InternalDeserializeSequenceHeader();
 
-            return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(byte[]).Name))
-                : count == 0 ? Array.Empty<byte>()
-                : DeserializeBytes(count);
+            return count == -1
+                ? throw new InvalidOperationException(
+                        Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(
+                            typeof(byte[]).Name
+                        )
+                    )
+                : count == 0 ? Array.Empty<byte>() : DeserializeBytes(count);
         }
 
         public byte[]? DeserializeNullableBytes()
@@ -24,16 +28,12 @@ namespace Cyxor.Serialization
 
             var count = InternalDeserializeSequenceHeader();
 
-            return count == -1 ? default
-                : count == 0 ? Array.Empty<byte>()
-                : DeserializeNullableBytes(count);
+            return count == -1 ? default : count == 0 ? Array.Empty<byte>() : DeserializeNullableBytes(count);
         }
 
-        public byte[] DeserializeRawBytes()
-            => DeserializeBytes(_length - _position);
+        public byte[] DeserializeRawBytes() => DeserializeBytes(_length - _position);
 
-        public byte[]? DeserializeNullableRawBytes()
-            => DeserializeNullableBytes(_length - _position);
+        public byte[]? DeserializeNullableRawBytes() => DeserializeNullableBytes(_length - _position);
 
         public byte[] DeserializeBytes(int count)
         {
@@ -41,16 +41,20 @@ namespace Cyxor.Serialization
                 return Array.Empty<byte>();
 
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), $"Parameter {nameof(count)} must be a positive value");
+                throw new ArgumentOutOfRangeException(
+                    nameof(count),
+                    $"Parameter {nameof(count)} must be a positive value"
+                );
 
             InternalEnsureDeserializeCapacity(count);
 
             var value = new byte[count];
-
             unsafe
             {
-                fixed (byte* src = _buffer, dest = value)
-                    Buffer.MemoryCopy(src + _position, dest, count, count);
+                fixed (
+                    byte* src = _buffer,
+                        dest = value
+                )Buffer.MemoryCopy(src + _position, dest, count, count);
             }
 
             _position += count;
@@ -63,16 +67,20 @@ namespace Cyxor.Serialization
                 return default;
 
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), $"Parameter {nameof(count)} must be a positive value");
+                throw new ArgumentOutOfRangeException(
+                    nameof(count),
+                    $"Parameter {nameof(count)} must be a positive value"
+                );
 
             InternalEnsureDeserializeCapacity(count);
 
             var value = new byte[count];
-
             unsafe
             {
-                fixed (byte* src = _buffer, dest = value)
-                    Buffer.MemoryCopy(src + _position, dest, count, count);
+                fixed (
+                    byte* src = _buffer,
+                        dest = value
+                )Buffer.MemoryCopy(src + _position, dest, count, count);
             }
 
             _position += count;
@@ -83,8 +91,7 @@ namespace Cyxor.Serialization
         {
             unsafe
             {
-                fixed (byte* ptr = dest)
-                    DeserializeBytes(ptr + offset, dest.Length - offset, 0, zeroBytesToCopy: true);
+                fixed (byte* ptr = dest)DeserializeBytes(ptr + offset, dest.Length - offset, 0, zeroBytesToCopy: true);
             }
         }
 
@@ -92,16 +99,20 @@ namespace Cyxor.Serialization
         {
             unsafe
             {
-                fixed (byte* ptr = dest)
-                    DeserializeBytes(ptr + offset, dest.Length - offset, count, zeroBytesToCopy: false);
+                fixed (byte* ptr = dest)DeserializeBytes(
+                    ptr + offset,
+                    dest.Length - offset,
+                    count,
+                    zeroBytesToCopy: false
+                );
             }
         }
 
-        public unsafe void DeserializeBytes(byte* destination, int destinationSize)
-            => DeserializeBytes(destination, destinationSize, 0, zeroBytesToCopy: true);
+        public unsafe void DeserializeBytes(byte* destination, int destinationSize) =>
+            DeserializeBytes(destination, destinationSize, 0, zeroBytesToCopy: true);
 
-        public unsafe void DeserializeBytes(byte* destination, int destinationSize, int bytesToCopy)
-            => DeserializeBytes(destination, destinationSize, bytesToCopy, zeroBytesToCopy: false);
+        public unsafe void DeserializeBytes(byte* destination, int destinationSize, int bytesToCopy) =>
+            DeserializeBytes(destination, destinationSize, bytesToCopy, zeroBytesToCopy: false);
 
         unsafe void DeserializeBytes(byte* destination, int destinationSize, int bytesToCopy, bool zeroBytesToCopy)
         {
@@ -109,15 +120,24 @@ namespace Cyxor.Serialization
                 throw new ArgumentNullException(nameof(destination));
 
             if (destinationSize < 0)
-                throw new ArgumentOutOfRangeException(nameof(destinationSize), $"{nameof(destinationSize)} must be a positive value");
+                throw new ArgumentOutOfRangeException(
+                    nameof(destinationSize),
+                    $"{nameof(destinationSize)} must be a positive value"
+                );
 
             if (bytesToCopy < 0)
-                throw new ArgumentOutOfRangeException(nameof(bytesToCopy), $"{nameof(bytesToCopy)} must be a positive value");
+                throw new ArgumentOutOfRangeException(
+                    nameof(bytesToCopy),
+                    $"{nameof(bytesToCopy)} must be a positive value"
+                );
 
             if (bytesToCopy == 0)
             {
                 if (!zeroBytesToCopy)
-                    throw new ArgumentOutOfRangeException(nameof(bytesToCopy), $"{nameof(bytesToCopy)} must be greater than zero. To read the length from data use an overload.");
+                    throw new ArgumentOutOfRangeException(
+                        nameof(bytesToCopy),
+                        $"{nameof(bytesToCopy)} must be greater than zero. To read the length from data use an overload."
+                    );
 
                 bytesToCopy = InternalDeserializeSequenceHeader();
 
@@ -126,12 +146,14 @@ namespace Cyxor.Serialization
             }
 
             if (destinationSize - bytesToCopy < 0)
-                throw new ArgumentOutOfRangeException(nameof(bytesToCopy), $"{nameof(bytesToCopy)} is greater than {nameof(destinationSize)}");
+                throw new ArgumentOutOfRangeException(
+                    nameof(bytesToCopy),
+                    $"{nameof(bytesToCopy)} is greater than {nameof(destinationSize)}"
+                );
 
             InternalEnsureDeserializeCapacity(bytesToCopy);
 
-            fixed (byte* src = _buffer)
-                Buffer.MemoryCopy(src + _position, destination, bytesToCopy, bytesToCopy);
+            fixed (byte* src = _buffer)Buffer.MemoryCopy(src + _position, destination, bytesToCopy, bytesToCopy);
 
             _position += bytesToCopy;
         }

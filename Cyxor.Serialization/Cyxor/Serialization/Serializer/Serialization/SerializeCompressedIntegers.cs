@@ -6,24 +6,20 @@ namespace Cyxor.Serialization
     partial class Serializer
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeCompressedInt(short value)
-            => SerializeCompressedInt((ulong)((value << 1) ^ (value >> 15)));
+        public void SerializeCompressedInt(short value) =>
+            SerializeCompressedInt((ulong)((value << 1) ^ (value >> 15)));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeCompressedInt(int value)
-            => SerializeCompressedInt((ulong)((value << 1) ^ (value >> 31)));
+        public void SerializeCompressedInt(int value) => SerializeCompressedInt((ulong)((value << 1) ^ (value >> 31)));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeCompressedInt(long value)
-            => SerializeCompressedInt((ulong)((value << 1) ^ (value >> 63)));
+        public void SerializeCompressedInt(long value) => SerializeCompressedInt((ulong)((value << 1) ^ (value >> 63)));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeCompressedInt(ushort value)
-            => SerializeCompressedInt((ulong)value);
+        public void SerializeCompressedInt(ushort value) => SerializeCompressedInt((ulong)value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeCompressedInt(uint value)
-            => SerializeCompressedInt((ulong)value);
+        public void SerializeCompressedInt(uint value) => SerializeCompressedInt((ulong)value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SerializeCompressedInt(ulong value)

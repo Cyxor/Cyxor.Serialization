@@ -11,12 +11,16 @@ namespace Cyxor.Serialization
         #region Internal
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe void InternalSerialize(Span<byte> value, bool raw, bool containsNullPointer = false) =>
+            InternalSerialize((ReadOnlySpan<byte>)value, raw, containsNullPointer);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         unsafe void InternalSerialize(ReadOnlySpan<byte> value, bool raw, bool containsNullPointer = false)
         {
             if (containsNullPointer)
             {
                 if (!raw)
-                    Serialize((byte)0);
+                    Serialize(NullMap);
 
                 return;
             }
@@ -45,7 +49,20 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void InternalSerialize(ReadOnlySpan<char> value, bool raw, bool containsNullPointer = false, bool utf8Encoding = true)
+        void InternalSerialize(
+            Span<char> value,
+            bool raw,
+            bool containsNullPointer = false,
+            bool utf8Encoding = true
+        ) => InternalSerialize((ReadOnlySpan<char>)value, raw, containsNullPointer = false, utf8Encoding);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void InternalSerialize(
+            ReadOnlySpan<char> value,
+            bool raw,
+            bool containsNullPointer = false,
+            bool utf8Encoding = true
+        )
         {
             if (!utf8Encoding || containsNullPointer || value.IsEmpty)
             {
@@ -72,7 +89,8 @@ namespace Cyxor.Serialization
 
             if (operationStatus != OperationStatus.Done && operationStatus != OperationStatus.DestinationTooSmall)
                 throw new ArgumentException($"Invalid {nameof(Span<char>)} value", nameof(value));
-            else if (operationStatus == OperationStatus.DestinationTooSmall)
+
+            if (operationStatus == OperationStatus.DestinationTooSmall)
             {
                 var currentLength = _length;
                 var freeCapacity = MaxCapacity - _position;
@@ -81,7 +99,7 @@ namespace Cyxor.Serialization
 
                 InternalEnsureSerializeCapacity(requiredCapacity);
 
-                value = value.Slice(charsRead);
+                value = value[charsRead..];
 
                 serializerSpan = _memory.Span.Slice(_position, _capacity);
                 operationStatus = Utf8.FromUtf16(value, serializerSpan, out _, out bytesWritten);
@@ -99,77 +117,74 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        void InternalSerialize<T>(ReadOnlySpan<T> value, bool raw, bool containsNullPointer = false) where T : unmanaged
-            => InternalSerialize(MemoryMarshal.AsBytes(value), raw, containsNullPointer);
+        void InternalSerializeT<T>(Span<T> value, bool raw, bool containsNullPointer = false)
+            where T : unmanaged => InternalSerialize(MemoryMarshal.AsBytes(value), raw, containsNullPointer);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void InternalSerializeT<T>(ReadOnlySpan<T> value, bool raw, bool containsNullPointer = false)
+            where T : unmanaged => InternalSerialize(MemoryMarshal.AsBytes(value), raw, containsNullPointer);
 
         #endregion Internal
 
         #region byte
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(Span<byte> value)
-            => InternalSerialize(value, AutoRaw);
+        public void Serialize(Span<byte> value) => InternalSerialize(value, AutoRaw);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeRaw(Span<byte> value)
-            => InternalSerialize(value, raw: true);
+        public void SerializeRaw(Span<byte> value) => InternalSerialize(value, raw: true);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(ReadOnlySpan<byte> value)
-            => InternalSerialize(value, AutoRaw);
+        public void Serialize(ReadOnlySpan<byte> value) => InternalSerialize(value, AutoRaw);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeRaw(ReadOnlySpan<byte> value)
-            => InternalSerialize(value, raw: true);
+        public void SerializeRaw(ReadOnlySpan<byte> value) => InternalSerialize(value, raw: true);
 
         #endregion byte
 
         #region char
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(Span<char> value)
-            => InternalSerialize(value, AutoRaw);
+        public void Serialize(Span<char> value) => InternalSerialize(value, AutoRaw);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(Span<char> value, bool utf8Encoding)
-            => InternalSerialize(value, AutoRaw, utf8Encoding: utf8Encoding);
+        public void Serialize(Span<char> value, bool utf8Encoding) =>
+            InternalSerialize(value, AutoRaw, utf8Encoding: utf8Encoding);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeRaw(Span<char> value, bool utf8Encoding = true)
-            => InternalSerialize(value, raw: true, utf8Encoding: utf8Encoding);
+        public void SerializeRaw(Span<char> value, bool utf8Encoding = true) =>
+            InternalSerialize(value, raw: true, utf8Encoding: utf8Encoding);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(ReadOnlySpan<char> value)
-            => InternalSerialize(value, AutoRaw);
+        public void Serialize(ReadOnlySpan<char> value) => InternalSerialize(value, AutoRaw);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize(ReadOnlySpan<char> value, bool utf8Encoding)
-            => InternalSerialize(value, AutoRaw, utf8Encoding: utf8Encoding);
+        public void Serialize(ReadOnlySpan<char> value, bool utf8Encoding) =>
+            InternalSerialize(value, AutoRaw, utf8Encoding: utf8Encoding);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeRaw(ReadOnlySpan<char> value, bool utf8Encoding = true)
-            => InternalSerialize(value, raw: true, utf8Encoding: utf8Encoding);
+        public void SerializeRaw(ReadOnlySpan<char> value, bool utf8Encoding = true) =>
+            InternalSerialize(value, raw: true, utf8Encoding: utf8Encoding);
 
         #endregion char
 
         #region t
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize<T>(Span<T> value) where T : unmanaged
-            => InternalSerialize<T>(value, AutoRaw);
+        public void Serialize<T>(Span<T> value)
+            where T : unmanaged => InternalSerializeT(value, AutoRaw);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeRaw<T>(Span<T> value) where T : unmanaged
-            => InternalSerialize<T>(value, raw: true);
+        public void SerializeRaw<T>(Span<T> value)
+            where T : unmanaged => InternalSerializeT(value, raw: true);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Serialize<T>(ReadOnlySpan<T> value) where T : unmanaged
-            => InternalSerialize(value, AutoRaw);
+        public void Serialize<T>(ReadOnlySpan<T> value)
+            where T : unmanaged => InternalSerializeT(value, AutoRaw);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeRaw<T>(ReadOnlySpan<T> value) where T : unmanaged
-            => InternalSerialize(value, raw: true);
-
+        public void SerializeRaw<T>(ReadOnlySpan<T> value)
+            where T : unmanaged => InternalSerializeT(value, raw: true);
         #endregion t
     }
 }

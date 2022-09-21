@@ -64,8 +64,6 @@ namespace Cyxor.Serialization.Test
             //Logger.LogMessage($"{declaredMethods}/{runtimeMethods}");
 
             Assert.IsTrue(true);
-
-
             //var publicPoperty = typeof(MyProperties).GetProperty(nameof(MyProperties.Public));
             //var mixPoperty = typeof(MyProperties).GetProperty(nameof(MyProperties.Mix));
             //var privatePoperty = typeof(MyProperties).GetProperty("Private", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);

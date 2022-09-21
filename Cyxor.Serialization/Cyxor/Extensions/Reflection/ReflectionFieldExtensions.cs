@@ -91,7 +91,8 @@ namespace Cyxor.Extensions
         /// Type, IEnumerable{Type}, int?, IEnumerable{Type}, int?, IEnumerable{Type})"/>
         /// <seealso cref="GetMethodsInfo(Type, string, string, string, string, bool?, bool?, bool?, bool?, bool?, bool?,
         /// Type, IEnumerable{Type}, int?, IEnumerable{Type}, int?, IEnumerable{Type})"/>
-        public static IEnumerable<FieldInfo> GetFieldsInfo(this Type type,
+        public static IEnumerable<FieldInfo> GetFieldsInfo(
+            this Type type,
             string? name = default,
             string? nameStartsWith = default,
             string? nameEndsWith = default,
@@ -107,26 +108,32 @@ namespace Cyxor.Extensions
             Type? fieldType = default,
             IEnumerable<Type>? attributes = default,
             int? genericArgumentsCount = default,
-            IEnumerable<Type>? genericArguments = default)
-            => from field in (inheritedFields ?? true) ? type.GetRuntimeFields() : type.GetTypeInfo().DeclaredFields
-               let fieldGenericArguments = field.FieldType.GetGenericArguments()
-               where field.Name == (name ?? field.Name)
-                && (nameStartsWith == default ? true : field.Name.StartsWith(nameStartsWith!, StringComparison.Ordinal))
-                && (nameEndsWith == default ? true : field.Name.EndsWith(nameEndsWith!, StringComparison.Ordinal))
-                && (nameContains == default ? true : field.Name.Contains(nameContains!, StringComparison.Ordinal))
-                && field.IsPublic == (publicFields ?? field.IsPublic)
-                && field.IsPrivate == (privateFields ?? field.IsPrivate)
-                && field.IsStatic == (staticFields ?? field.IsStatic)
-                && field.FieldType.GetTypeInfo().IsGenericType == (genericFieldType ?? field.FieldType.GetTypeInfo().IsGenericType)
-                && field.FieldType.GetTypeInfo().IsGenericTypeDefinition
+            IEnumerable<Type>? genericArguments = default
+        ) =>
+
+                from field in (inheritedFields ?? true) ? type.GetRuntimeFields() : type.GetTypeInfo().DeclaredFields
+                let fieldGenericArguments = field.FieldType.GetGenericArguments()
+                where
+                    field.Name == (name ?? field.Name)
+                    && (nameStartsWith == default
+                        ? true
+                        : field.Name.StartsWith(nameStartsWith!, StringComparison.Ordinal))
+                    && (nameEndsWith == default ? true : field.Name.EndsWith(nameEndsWith!, StringComparison.Ordinal))
+                    && (nameContains == default ? true : field.Name.Contains(nameContains!, StringComparison.Ordinal))
+                    && field.IsPublic == (publicFields ?? field.IsPublic)
+                    && field.IsPrivate == (privateFields ?? field.IsPrivate)
+                    && field.IsStatic == (staticFields ?? field.IsStatic)
+                    && field.FieldType.GetTypeInfo().IsGenericType
+                    == (genericFieldType ?? field.FieldType.GetTypeInfo().IsGenericType)
+                    && field.FieldType.GetTypeInfo().IsGenericTypeDefinition
                     == (genericFieldTypeDefinition ?? field.FieldType.GetTypeInfo().IsGenericTypeDefinition)
-                && field.IsLiteral == (literalFields ?? field.IsLiteral)
-                && field.IsInitOnly == (initOnlyFields ?? field.IsInitOnly)
-                && field.FieldType == (fieldType ?? field.FieldType)
-                && (attributes == default ? true : attributes.All(p => field.IsDefined(p, inheritedFields ?? true)))
-                && fieldGenericArguments.Length == (genericArgumentsCount ?? fieldGenericArguments.Length)
-                && (genericArguments == default ? true : fieldGenericArguments.SequenceEqual(genericArguments))
-               select field;
+                    && field.IsLiteral == (literalFields ?? field.IsLiteral)
+                    && field.IsInitOnly == (initOnlyFields ?? field.IsInitOnly)
+                    && field.FieldType == (fieldType ?? field.FieldType)
+                    && (attributes == default ? true : attributes.All(p => field.IsDefined(p, inheritedFields ?? true)))
+                    && fieldGenericArguments.Length == (genericArgumentsCount ?? fieldGenericArguments.Length)
+                    && (genericArguments == default ? true : fieldGenericArguments.SequenceEqual(genericArguments))
+                select field;
 
         /// <summary>
         /// Retrieves an object that represents a specified field. Tweak the desired parameters to filter the result.
@@ -212,7 +219,8 @@ namespace Cyxor.Extensions
         /// Type, IEnumerable{Type}, int?, IEnumerable{Type}, int?, IEnumerable{Type})"/>
         /// <seealso cref="GetMethodsInfo(Type, string, string, string, string, bool?, bool?, bool?, bool?, bool?, bool?,
         /// Type, IEnumerable{Type}, int?, IEnumerable{Type}, int?, IEnumerable{Type})"/>
-        public static FieldInfo? GetFieldInfo(this Type type,
+        public static FieldInfo? GetFieldInfo(
+            this Type type,
             string? name = default,
             string? nameStartsWith = default,
             string? nameEndsWith = default,
@@ -228,11 +236,27 @@ namespace Cyxor.Extensions
             Type? fieldType = default,
             IEnumerable<Type>? attributes = default,
             int? genericArgumentsCount = default,
-            IEnumerable<Type>? genericArguments = default)
-        {
-            var fields = GetFieldsInfo(type, name, nameStartsWith, nameEndsWith, nameContains, isInherited,
-                isPublic, isPrivate, isStatic, hasGenericFieldType, hasGenericFieldTypeDefinition, isLiteral, isInitOnly,
-                fieldType, attributes, genericArgumentsCount, genericArguments);
+            IEnumerable<Type>? genericArguments = default
+        ) {
+            var fields = GetFieldsInfo(
+                type,
+                name,
+                nameStartsWith,
+                nameEndsWith,
+                nameContains,
+                isInherited,
+                isPublic,
+                isPrivate,
+                isStatic,
+                hasGenericFieldType,
+                hasGenericFieldTypeDefinition,
+                isLiteral,
+                isInitOnly,
+                fieldType,
+                attributes,
+                genericArgumentsCount,
+                genericArguments
+            );
 
             if (fields.Count() > 1)
                 throw new AmbiguousMatchException("More than one field is found with the specified parameters.");

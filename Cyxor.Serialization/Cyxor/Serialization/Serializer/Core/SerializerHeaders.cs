@@ -8,8 +8,8 @@ namespace Cyxor.Serialization
         const byte ObjectLengthMap = 0b_00_111111; // 63
         const byte SequenceLengthMap = 0b_0_1111111; // 127
 
-        const byte EmptyMap = 0b_1_0000000; // 128
-
+        const byte NullMap = 0b_00_000000; // 0
+        const byte EmptyMap = 0b_10_000000; // 128
         const byte PartialMap = 0b_01_000000; // 64
         const byte CircularMap = 0b_11_000000; // 192
 
@@ -31,7 +31,7 @@ namespace Cyxor.Serialization
         {
             var op = DeserializeByte();
 
-            if (op == 0)
+            if (op == NullMap)
                 return -1;
             else if (op == EmptyMap)
                 return 0;
@@ -175,10 +175,8 @@ namespace Cyxor.Serialization
             return count == (EmptyMap | 127)
                 ? DeserializeUncompressedInt32()
                 : count == (EmptyMap | 126)
-                    ? DeserializeInt16()
-                    : count == (EmptyMap | 125)
-                        ? DeserializeByte()
-                        : count & SequenceLengthMap;
+                        ? DeserializeInt16()
+                        : count == (EmptyMap | 125) ? DeserializeByte() : count & SequenceLengthMap;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -229,17 +227,13 @@ namespace Cyxor.Serialization
         /// </list>
         /// </returns>
         /// <seealso cref="PeekNextObjectLength(bool)"/>
-        public int ReadNextObjectLength()
-            => InternalDeserializeSequenceHeader();
+        public int ReadNextObjectLength() => InternalDeserializeSequenceHeader();
 
-        public int ReadNextStringLength()
-            => InternalDeserializeStringHeader();
+        public int ReadNextStringLength() => InternalDeserializeStringHeader();
 
-        public bool TryReadNextObjectLength(out int length)
-            => InternalTryDeserializeSequenceHeader(out length);
+        public bool TryReadNextObjectLength(out int length) => InternalTryDeserializeSequenceHeader(out length);
 
-        public bool TryReadNextStringLength(out int length)
-            => InternalTryDeserializeStringHeader(out length);
+        public bool TryReadNextStringLength(out int length) => InternalTryDeserializeStringHeader(out length);
 
         /// <summary>
         /// Peeks the next object length in bytes without advancing the internal position.
@@ -299,22 +293,20 @@ namespace Cyxor.Serialization
                 length = -2;
                 return false;
             }
-            else
+
+            var initialPosition = _position;
+
+            if (TryReadNextObjectLength(out length))
             {
-                var initialPosition = _position;
+                if (_stream == null)
+                    _position = initialPosition;
+                else
+                    Position = initialPosition;
 
-                if (TryReadNextObjectLength(out length))
-                {
-                    if (_stream == null)
-                        _position = initialPosition;
-                    else
-                        Position = initialPosition;
-
-                    return true;
-                }
-
-                return false;
+                return true;
             }
+
+            return false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -325,22 +317,20 @@ namespace Cyxor.Serialization
                 length = -2;
                 return false;
             }
-            else
+
+            var initialPosition = _position;
+
+            if (TryPeekNextStringLength(out length))
             {
-                var initialPosition = _position;
+                if (_stream == null)
+                    _position = initialPosition;
+                else
+                    Position = initialPosition;
 
-                if (TryPeekNextStringLength(out length))
-                {
-                    if (_stream == null)
-                        _position = initialPosition;
-                    else
-                        Position = initialPosition;
-
-                    return true;
-                }
-
-                return false;
+                return true;
             }
+
+            return false;
         }
     }
 }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Cyxor.Serialization
+﻿namespace Cyxor.Serialization
 {
     enum SerializerOperation
     {

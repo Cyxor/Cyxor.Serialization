@@ -4,8 +4,7 @@ namespace Cyxor.Serialization
 {
     partial class Serializer
     {
-        public Serializer DeserializeSerialStream()
-            => new Serializer(DeserializeBytes());
+        public Serializer DeserializeSerialStream() => new Serializer(DeserializeBytes());
 
         public Serializer? DeserializeNullableSerialStream()
         {
@@ -13,8 +12,7 @@ namespace Cyxor.Serialization
             return bytes == default ? default : new Serializer(bytes);
         }
 
-        public Serializer DeserializeRawSerialStream()
-            => new Serializer(DeserializeRawBytes());
+        public Serializer DeserializeRawSerialStream() => new Serializer(DeserializeRawBytes());
 
         public Serializer? DeserializeNullableRawSerialStream()
         {

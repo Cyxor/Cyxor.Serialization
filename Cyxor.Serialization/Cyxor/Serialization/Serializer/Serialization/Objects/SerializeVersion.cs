@@ -49,10 +49,8 @@ namespace Cyxor.Serialization
             }
         }
 
-        public void Serialize(System.Version? value)
-            => InternalSerialize(value, AutoRaw);
+        public void Serialize(System.Version? value) => InternalSerialize(value, AutoRaw);
 
-        public void SerializeRaw(System.Version? value)
-            => InternalSerialize(value, raw: true);
+        public void SerializeRaw(System.Version? value) => InternalSerialize(value, raw: true);
     }
 }

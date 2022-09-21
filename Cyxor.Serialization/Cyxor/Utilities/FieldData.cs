@@ -21,14 +21,11 @@ namespace Cyxor.Serialization
         public readonly Func<Serializer, object?> DeserializeFunc;
         public readonly Action<Serializer, object?> SerializeAction;
 
-        public override int GetHashCode()
-            => HashCode;
+        public override int GetHashCode() => HashCode;
 
-        public int CompareTo(FieldData other)
-            => string.Compare(Name, other.Name, StringComparison.Ordinal);
+        public int CompareTo(FieldData other) => string.Compare(Name, other.Name, StringComparison.Ordinal);
 
-        public bool Equals(FieldData other)
-            => CompareTo(other) == 0;
+        public bool Equals(FieldData other) => CompareTo(other) == 0;
 
         public override bool Equals(object? obj)
         {
@@ -40,10 +37,11 @@ namespace Cyxor.Serialization
             return fieldData == default ? false : Equals(fieldData);
         }
 
-        private static void Map<T>(out T dest, T src)
-            => dest = src;
+        private static void Map<T>(out T dest, T src) => dest = src;
 
-        static readonly MethodInfo MapMethodInfo = typeof(FieldData).GetMethodInfo(nameof(Map), isStatic: true, isInherited: false) ?? throw new InvalidOperationException(Utilities.ResourceStrings.CyxorInternalException);
+        static readonly MethodInfo MapMethodInfo =
+            typeof(FieldData).GetMethodInfo(nameof(Map), isStatic: true, isInherited: false)
+            ?? throw new InvalidOperationException(Utilities.ResourceStrings.CyxorInternalException);
 
         public FieldData(FieldInfo fieldInfo, bool shouldSerialize)
         {
@@ -60,7 +58,12 @@ namespace Cyxor.Serialization
             if (FieldInfo.FieldType.GetTypeInfo().IsGenericType)
                 if (!FieldInfo.FieldType.GetTypeInfo().IsInterface)
                     if (FieldInfo.FieldType.IsInterfaceImplemented<IEnumerable>())
-                        if (!FieldInfo.FieldType.FullName.StartsWith($"{typeof(List<>).Namespace}.{typeof(List<>).Name}", StringComparison.Ordinal))
+                        if (
+                            !FieldInfo.FieldType.FullName.StartsWith(
+                                $"{typeof(List<>).Namespace}.{typeof(List<>).Name}",
+                                StringComparison.Ordinal
+                            )
+                        )
                             NeedChangeCollection = true;
 
             HashCode = Utilities.HashCode.GetFrom(FieldInfo.Name);
@@ -71,23 +74,33 @@ namespace Cyxor.Serialization
             var objectParameter = FieldInfo.IsStatic ? null : Expression.Parameter(typeof(object), "object");
 
             var valueConverted = Expression.Convert(valueParameter, FieldInfo.FieldType);
-            var objectConverted = FieldInfo.IsStatic ? null : Expression.Convert(objectParameter, FieldInfo.DeclaringType);
+            var objectConverted = FieldInfo.IsStatic
+                ? null
+                : Expression.Convert(objectParameter, FieldInfo.DeclaringType);
 
             var fieldExpression = default(MemberExpression);
 
-            var memberExpression = ((Func<Expression?, MemberExpression>)
-                (p => fieldExpression = Expression.Field(p, FieldInfo)))(objectConverted);
+            var memberExpression = ((Func<Expression?, MemberExpression>)(p =>
+                fieldExpression = Expression.Field(p, FieldInfo)))(objectConverted);
 
             var getterExpression = FieldInfo.FieldType.GetTypeInfo().IsValueType
                 ? Expression.Convert(memberExpression, typeof(object))
                 : (Expression)memberExpression;
 
-            var setterExpression = ((Func<Expression?, Expression, MethodCallExpression>)
-                ((p, value) => Expression.Call(mapMethodInfo, fieldExpression, value)))(objectConverted, valueConverted);
+            var setterExpression = ((Func<Expression?, Expression, MethodCallExpression>)((p, value) => Expression.Call(
+                mapMethodInfo,
+                fieldExpression,
+                value
+            )))(objectConverted, valueConverted);
 
             GetValueDelegate = Expression.Lambda<Func<object?, object>>(getterExpression, objectParameter).Compile();
 
-            SetValueDelegate = Expression.Lambda<Action<object?, object?>>(setterExpression, objectParameter, valueParameter).Compile();
+            SetValueDelegate = Expression.Lambda<Action<object?, object?>>(
+                    setterExpression,
+                    objectParameter,
+                    valueParameter
+                )
+                .Compile();
         }
     }
 }

@@ -16,7 +16,9 @@ namespace Cyxor.Serialization
             if (backingSerializerOptions is T options)
                 return options;
 
-            throw new InvalidOperationException($"Invalid serializer options for {nameof(IBackingSerializer)}, expected type is {typeof(T).Name}");
+            throw new InvalidOperationException(
+                $"Invalid serializer options for {nameof(IBackingSerializer)}, expected type is {typeof(T).Name}"
+            );
         }
     }
 }

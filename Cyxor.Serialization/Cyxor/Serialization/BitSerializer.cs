@@ -4,85 +4,67 @@ namespace Cyxor.Serialization
 {
     public struct BitSerializer : IComparable, IComparable<BitSerializer>, IEquatable<BitSerializer>
     {
-        long Bits;
-        public const int Capacity = 64;
-        static readonly long[] Mask = new long[Capacity];
+        long _bits;
+        public const int MaxCapacity = 64;
+        static readonly long[] s_mask = new long[MaxCapacity];
 
         static BitSerializer()
         {
-            Mask[0] = 1;
+            s_mask[0] = 1;
 
-            for (var i = 0; i < Capacity - 1; i++)
-                Mask[i + 1] = Mask[i] * 2;
+            for (var i = 0; i < MaxCapacity - 1; i++)
+                s_mask[i + 1] = s_mask[i] * 2;
         }
 
-        public BitSerializer(long value) { Bits = value; }
+        public BitSerializer(long value)
+        {
+            _bits = value;
+        }
 
-        public static implicit operator long(BitSerializer value)
-            => value.Bits;
+        public static implicit operator long(BitSerializer value) => value._bits;
 
-        public long ToInt64()
-            => Bits;
+        public long ToInt64() => _bits;
 
-        public static implicit operator int(BitSerializer value)
-            => (int)value.Bits;
+        public static implicit operator int(BitSerializer value) => (int)value._bits;
 
-        public int ToInt32()
-            => (int)Bits;
+        public int ToInt32() => (int)_bits;
 
-        public static implicit operator byte(BitSerializer value)
-            => (byte)value.Bits;
+        public static implicit operator byte(BitSerializer value) => (byte)value._bits;
 
-        public byte ToByte()
-            => (byte)Bits;
+        public byte ToByte() => (byte)_bits;
 
-        public static implicit operator short(BitSerializer value)
-            => (short)value.Bits;
+        public static implicit operator short(BitSerializer value) => (short)value._bits;
 
-        public int ToInt16()
-            => (short)Bits;
+        public int ToInt16() => (short)_bits;
 
-        public static implicit operator BitSerializer(int value)
-            => new BitSerializer(value);
+        public static implicit operator BitSerializer(int value) => new BitSerializer(value);
 
-        public static BitSerializer FromInt32(int value)
-            => new BitSerializer(value);
+        public static BitSerializer FromInt32(int value) => new BitSerializer(value);
 
-        public static implicit operator BitSerializer(byte value)
-            => new BitSerializer(value);
+        public static implicit operator BitSerializer(byte value) => new BitSerializer(value);
 
-        public static BitSerializer FromByte(byte value)
-            => new BitSerializer(value);
+        public static BitSerializer FromByte(byte value) => new BitSerializer(value);
 
-        public static implicit operator BitSerializer(long value)
-            => new BitSerializer(value);
+        public static implicit operator BitSerializer(long value) => new BitSerializer(value);
 
-        public static BitSerializer FromInt64(long value)
-            => new BitSerializer(value);
+        public static BitSerializer FromInt64(long value) => new BitSerializer(value);
 
-        public static implicit operator BitSerializer(short value)
-            => new BitSerializer(value);
+        public static implicit operator BitSerializer(short value) => new BitSerializer(value);
 
-        public static BitSerializer FromInt16(short value)
-            => new BitSerializer(value);
+        public static BitSerializer FromInt16(short value) => new BitSerializer(value);
 
-        public override int GetHashCode()
-            => HashCode.Combine(Bits);
+        public override int GetHashCode() => HashCode.Combine(_bits);
 
-        public static bool operator ==(BitSerializer value1, BitSerializer value2)
-            => value1.Bits == value2.Bits;
+        public static bool operator ==(BitSerializer value1, BitSerializer value2) => value1._bits == value2._bits;
 
-        public static bool operator !=(BitSerializer value1, BitSerializer value2)
-            => value1.Bits != value2.Bits;
+        public static bool operator !=(BitSerializer value1, BitSerializer value2) => value1._bits != value2._bits;
 
-        public bool Equals(BitSerializer obj)
-            => Bits == obj.Bits;
+        public bool Equals(BitSerializer obj) => _bits == obj._bits;
 
-        public int CompareTo(BitSerializer value)
-            => Bits.CompareTo(value.Bits);
+        public int CompareTo(BitSerializer value) => _bits.CompareTo(value._bits);
 
-        public override bool Equals(object? obj)
-            => !(obj is BitSerializer) ? false : Bits == ((BitSerializer)obj).Bits;
+        public override bool Equals(object? obj) =>
+            !(obj is BitSerializer) ? false : _bits == ((BitSerializer)obj)._bits;
 
         public int CompareTo(object? value)
         {
@@ -90,15 +72,18 @@ namespace Cyxor.Serialization
                 return 1;
 
             if (value is BitSerializer bitSerializer)
-                return Bits.CompareTo(bitSerializer.Bits);
+                return _bits.CompareTo(bitSerializer._bits);
 
             throw new ArgumentException($"Argument must be a {nameof(BitSerializer)}.", nameof(value));
         }
 
         public bool this[int index]
         {
-            get => (Bits & Mask[index]) == Mask[index];
-            set => Bits = value ? Bits | Mask[index] : (Bits & Mask[index]) == Mask[index] ? Bits ^ Mask[index] : Bits;
+            get => (_bits & s_mask[index]) == s_mask[index];
+            set =>
+                _bits = value
+                    ? _bits | s_mask[index]
+                    : (_bits & s_mask[index]) == s_mask[index] ? _bits ^ s_mask[index] : _bits;
         }
 
         public int Count
@@ -106,10 +91,9 @@ namespace Cyxor.Serialization
             get
             {
                 var count = 1;
-                var value = Bits;
+                var value = _bits;
 
-                while ((value >>= 1) != 0)
-                    count++;
+                while ((value >>= 1) != 0) count++;
 
                 return count;
             }
@@ -118,11 +102,14 @@ namespace Cyxor.Serialization
         public int Serialize(long value, int offset)
         {
             if (offset < 0)
-                throw new ArgumentOutOfRangeException(nameof(offset), Utilities.ResourceStrings.ExceptionNegativeNumber);
+                throw new ArgumentOutOfRangeException(
+                    nameof(offset),
+                    Utilities.ResourceStrings.ExceptionNegativeNumber
+                );
 
             var count = Utilities.Bits.Required(value);
 
-            if (Capacity - offset < count)
+            if (MaxCapacity - offset < count)
                 throw new ArgumentException("The values provided exceed the capacity of the BitBuffer.");
 
             var valueBits = (BitSerializer)value;
@@ -136,16 +123,19 @@ namespace Cyxor.Serialization
         public long Deserialize(int offset, int count)
         {
             if (offset == 0 && count == 0)
-                return Bits;
+                return _bits;
 
             if (offset < 0)
-                throw new ArgumentOutOfRangeException(nameof(offset), Utilities.ResourceStrings.ExceptionNegativeNumber);
+                throw new ArgumentOutOfRangeException(
+                    nameof(offset),
+                    Utilities.ResourceStrings.ExceptionNegativeNumber
+                );
 
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), Utilities.ResourceStrings.ExceptionNegativeNumber);
 
-            if (Capacity - offset < count)
-                throw new ArgumentException("The values provided exceed the capacity of the BitSerializer.");
+            if (MaxCapacity - offset < count)
+                throw new ArgumentException("The values provided exceed the maximum capacity of the BitSerializer.");
 
             var result = 0;
 
@@ -160,19 +150,15 @@ namespace Cyxor.Serialization
             var bitCount = Count;
             var bitString = bitCount == 1 ? "bit" : "bits";
 
-            return $"{Bits} [{bitCount}{bitString}] {{{Convert.ToString(Bits, 2)}}}";
+            return $"{_bits} [{bitCount}{bitString}] {{{Convert.ToString(_bits, 2)}}}";
         }
 
-        public static bool operator <(BitSerializer left, BitSerializer right)
-            => left.CompareTo(right) < 0;
+        public static bool operator <(BitSerializer left, BitSerializer right) => left.CompareTo(right) < 0;
 
-        public static bool operator <=(BitSerializer left, BitSerializer right)
-            => left.CompareTo(right) <= 0;
+        public static bool operator <=(BitSerializer left, BitSerializer right) => left.CompareTo(right) <= 0;
 
-        public static bool operator >(BitSerializer left, BitSerializer right)
-            => left.CompareTo(right) > 0;
+        public static bool operator >(BitSerializer left, BitSerializer right) => left.CompareTo(right) > 0;
 
-        public static bool operator >=(BitSerializer left, BitSerializer right)
-            => left.CompareTo(right) >= 0;
+        public static bool operator >=(BitSerializer left, BitSerializer right) => left.CompareTo(right) >= 0;
     }
 }

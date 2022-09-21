@@ -15,15 +15,12 @@ namespace Cyxor.Extensions
             _memory = memory;
         }
 
-        public override Span<TTo> GetSpan()
-            => MemoryMarshal.Cast<TFrom, TTo>(_memory.Span);
+        public override Span<TTo> GetSpan() => MemoryMarshal.Cast<TFrom, TTo>(_memory.Span);
 
         protected override void Dispose(bool disposing) { }
 
-        public override MemoryHandle Pin(int elementIndex = 0)
-            => throw new NotSupportedException();
+        public override MemoryHandle Pin(int elementIndex = 0) => throw new NotSupportedException();
 
-        public override void Unpin()
-            => throw new NotSupportedException();
+        public override void Unpin() => throw new NotSupportedException();
     }
 }

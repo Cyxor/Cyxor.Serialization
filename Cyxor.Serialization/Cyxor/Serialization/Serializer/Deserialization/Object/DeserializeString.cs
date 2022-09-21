@@ -12,9 +12,13 @@ namespace Cyxor.Serialization
 
             var count = InternalDeserializeSequenceHeader();
 
-            return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(string).Name))
-                : count == 0 ? string.Empty
-                : DeserializeString(count);
+            return count == -1
+                ? throw new InvalidOperationException(
+                        Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(
+                            typeof(string).Name
+                        )
+                    )
+                : count == 0 ? string.Empty : DeserializeString(count);
         }
 
         public string? DeserializeNullableString()
@@ -24,16 +28,12 @@ namespace Cyxor.Serialization
 
             var count = InternalDeserializeSequenceHeader();
 
-            return count == -1 ? default
-                : count == 0 ? string.Empty
-                : DeserializeNullableString(count);
+            return count == -1 ? default : count == 0 ? string.Empty : DeserializeNullableString(count);
         }
 
-        public string DeserializeRawString()
-            => DeserializeString(_length - _position);
+        public string DeserializeRawString() => DeserializeString(_length - _position);
 
-        public string? DeserializeNullableStringRaw()
-            => DeserializeNullableString(_length - _position);
+        public string? DeserializeNullableStringRaw() => DeserializeNullableString(_length - _position);
 
         /// <summary>
         /// Deserialize a string from the specified number of bytes
@@ -46,7 +46,10 @@ namespace Cyxor.Serialization
                 return string.Empty;
 
             if (byteCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(byteCount), $"Parameter {nameof(byteCount)} must be a positive value");
+                throw new ArgumentOutOfRangeException(
+                    nameof(byteCount),
+                    $"Parameter {nameof(byteCount)} must be a positive value"
+                );
 
             InternalEnsureDeserializeCapacity(byteCount);
 
@@ -67,7 +70,10 @@ namespace Cyxor.Serialization
                 return default;
 
             if (byteCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(byteCount), $"Parameter {nameof(byteCount)} must be a positive value");
+                throw new ArgumentOutOfRangeException(
+                    nameof(byteCount),
+                    $"Parameter {nameof(byteCount)} must be a positive value"
+                );
 
             InternalEnsureDeserializeCapacity(byteCount);
 

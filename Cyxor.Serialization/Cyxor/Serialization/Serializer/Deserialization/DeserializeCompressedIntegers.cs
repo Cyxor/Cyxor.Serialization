@@ -34,29 +34,28 @@ namespace Cyxor.Serialization
             throw new InvalidOperationException("Bad7BitEncodedInteger");
         }
 
-        public short DeserializeCompressedInt16()
-            => (short)InternalDeserializeCompressedInt(sizeof(short), isSigned: true);
+        public short DeserializeCompressedInt16() =>
+            (short)InternalDeserializeCompressedInt(sizeof(short), isSigned: true);
 
-        public int DeserializeCompressedInt32()
-            => (int)InternalDeserializeCompressedInt(sizeof(int), isSigned: true);
+        public int DeserializeCompressedInt32() => (int)InternalDeserializeCompressedInt(sizeof(int), isSigned: true);
 
-        public long DeserializeCompressedInt64()
-            => (long)InternalDeserializeCompressedInt(sizeof(long), isSigned: true);
+        public long DeserializeCompressedInt64() =>
+            (long)InternalDeserializeCompressedInt(sizeof(long), isSigned: true);
 
-        public ushort DeserializeCompressedUInt16()
-            => (ushort)InternalDeserializeCompressedInt(sizeof(ushort), isSigned: false);
+        public ushort DeserializeCompressedUInt16() =>
+            (ushort)InternalDeserializeCompressedInt(sizeof(ushort), isSigned: false);
 
-        public uint DeserializeCompressedUInt32()
-            => (uint)InternalDeserializeCompressedInt(sizeof(uint), isSigned: false);
+        public uint DeserializeCompressedUInt32() =>
+            (uint)InternalDeserializeCompressedInt(sizeof(uint), isSigned: false);
 
-        public ulong DeserializeCompressedUInt64()
-            => InternalDeserializeCompressedInt(sizeof(ulong), isSigned: false);
+        public ulong DeserializeCompressedUInt64() => InternalDeserializeCompressedInt(sizeof(ulong), isSigned: false);
 
         #endregion CompressedIntegers
 
         #region CompressedIntegersTry
 
-        bool InternalTryDeserializeCompressedInt<T>(out T value, int size, bool signed) where T : unmanaged
+        bool InternalTryDeserializeCompressedInt<T>(out T value, int size, bool signed)
+            where T : unmanaged
         {
             var result = false;
             var startPosition = _position;
@@ -95,24 +94,23 @@ namespace Cyxor.Serialization
             return result;
         }
 
-        public bool TryDeserializeCompressedInt16(out short value)
-            => InternalTryDeserializeCompressedInt(out value, sizeof(short), signed: true);
+        public bool TryDeserializeCompressedInt16(out short value) =>
+            InternalTryDeserializeCompressedInt(out value, sizeof(short), signed: true);
 
-        public bool TryDeserializeCompressedInt32(out int value)
-            => InternalTryDeserializeCompressedInt(out value, sizeof(int), signed: true);
+        public bool TryDeserializeCompressedInt32(out int value) =>
+            InternalTryDeserializeCompressedInt(out value, sizeof(int), signed: true);
 
-        public bool TryDeserializeCompressedInt64(out long value)
-            => InternalTryDeserializeCompressedInt(out value, sizeof(long), signed: true);
+        public bool TryDeserializeCompressedInt64(out long value) =>
+            InternalTryDeserializeCompressedInt(out value, sizeof(long), signed: true);
 
-        public bool TryDeserializeCompressedUInt16(out ushort value)
-            => InternalTryDeserializeCompressedInt(out value, sizeof(ushort), signed: false);
+        public bool TryDeserializeCompressedUInt16(out ushort value) =>
+            InternalTryDeserializeCompressedInt(out value, sizeof(ushort), signed: false);
 
-        public bool TryDeserializeCompressedUInt32(out uint value)
-            => InternalTryDeserializeCompressedInt(out value, sizeof(uint), signed: false);
+        public bool TryDeserializeCompressedUInt32(out uint value) =>
+            InternalTryDeserializeCompressedInt(out value, sizeof(uint), signed: false);
 
-        public bool TryDeserializeCompressedUInt64(out ulong value)
-            => InternalTryDeserializeCompressedInt(out value, sizeof(ulong), signed: false);
-
+        public bool TryDeserializeCompressedUInt64(out ulong value) =>
+            InternalTryDeserializeCompressedInt(out value, sizeof(ulong), signed: false);
         #endregion CompressedIntegersTry
     }
 }

@@ -6,7 +6,8 @@ namespace Cyxor.Serialization
     partial class Serializer
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe T ReverseEndianness<T>(T value) where T : unmanaged
+        public static unsafe T ReverseEndianness<T>(T value)
+            where T : unmanaged
         {
             var size = sizeof(T);
 

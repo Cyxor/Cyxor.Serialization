@@ -4,6 +4,8 @@ namespace Cyxor.Serialization
 {
     public readonly struct SerializerOptions : IEquatable<SerializerOptions>
     {
+        internal bool Ala => true;
+
 #pragma warning disable CA1051 // Do not declare visible instance fields
         public readonly bool Pooling;
         public readonly bool ReadOnly;
@@ -31,7 +33,8 @@ namespace Cyxor.Serialization
             bool handleCircularReferences = false,
             int maxCapacity = int.MaxValue,
             int poolThreshold = 0,
-            int initialCapacity = 0)
+            int initialCapacity = 0
+        )
         {
             Pooling = pooling;
             ReadOnly = readOnly;
@@ -63,8 +66,7 @@ namespace Cyxor.Serialization
             InitialCapacity = options.InitialCapacity;
         }
 
-        public override bool Equals(object? obj)
-            => obj == null ? false : Equals((SerializerOptions)obj);
+        public override bool Equals(object? obj) => obj == null ? false : Equals((SerializerOptions)obj);
 
         public override int GetHashCode()
         {
@@ -78,21 +80,15 @@ namespace Cyxor.Serialization
             bitSerializer[6] = HandleCircularReferences;
             bitSerializer[7] = NeedDisposeBuffer;
 
-            return HashCode.Combine(
-                bitSerializer,
-                MaxCapacity,
-                PoolThreshold,
-                InitialCapacity);
+            return HashCode.Combine(bitSerializer, MaxCapacity, PoolThreshold, InitialCapacity);
         }
 
-        public static bool operator ==(SerializerOptions left, SerializerOptions right)
-            => left.Equals(right);
+        public static bool operator ==(SerializerOptions left, SerializerOptions right) => left.Equals(right);
 
-        public static bool operator !=(SerializerOptions left, SerializerOptions right)
-            => !(left == right);
+        public static bool operator !=(SerializerOptions left, SerializerOptions right) => !(left == right);
 
-        public bool Equals(SerializerOptions other)
-            => Pooling == other.Pooling
+        public bool Equals(SerializerOptions other) =>
+            Pooling == other.Pooling
             && ReadOnly == other.ReadOnly
             && FixedBuffer == other.FixedBuffer
             && ClearMemory == other.ClearMemory

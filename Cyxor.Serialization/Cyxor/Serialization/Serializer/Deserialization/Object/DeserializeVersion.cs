@@ -23,7 +23,11 @@ namespace Cyxor.Serialization
                 else if (length == -1)
                 {
                     if (throwOnNullReference ?? false)
-                        throw new SerializationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(string).Name));
+                        throw new SerializationException(
+                            Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(
+                                typeof(string).Name
+                            )
+                        );
 
                     return null;
                 }
@@ -42,17 +46,15 @@ namespace Cyxor.Serialization
             return new System.Version(major, minor, build, revision);
         }
 
-        public System.Version DeserializeVersion()
-            => InternalDeserializeNullableVersion(AutoRaw, throwOnNullReference: true);
+        public System.Version DeserializeVersion() =>
+            InternalDeserializeNullableVersion(AutoRaw, throwOnNullReference: true);
 
-        public System.Version? DeserializeNullableVersion()
-            => InternalDeserializeNullableVersion(raw: false);
+        public System.Version? DeserializeNullableVersion() => InternalDeserializeNullableVersion(raw: false);
 
-        public System.Version DeserializeRawVersion()
-            => InternalDeserializeNullableVersion(raw: true, throwOnNullReference: true);
+        public System.Version DeserializeRawVersion() =>
+            InternalDeserializeNullableVersion(raw: true, throwOnNullReference: true);
 
-        public System.Version? DeserializeNullableRawVersion()
-            => InternalDeserializeNullableVersion(raw: true);
+        public System.Version? DeserializeNullableRawVersion() => InternalDeserializeNullableVersion(raw: true);
 
         public bool TryDeserializeVersion([NotNullWhen(true)] out System.Version? value)
         {

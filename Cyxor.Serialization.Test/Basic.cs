@@ -56,7 +56,6 @@ namespace Cyxor.Serialization.Test
             using var serialStream = new Serializer();
             var schema = Serializer.GenerateSerializationSchema();
             Assert.IsTrue(schema.Length > 0);
-
             //var genericTypes = SerialStream.SupportedTypes.Where(p => p.IsGenericType).Where(p => !p.GenericTypeArguments.First().IsGenericParameter);
 
             //var autoTypes = SerialStream.SupportedTypes.Where(p => !p.IsGenericType);

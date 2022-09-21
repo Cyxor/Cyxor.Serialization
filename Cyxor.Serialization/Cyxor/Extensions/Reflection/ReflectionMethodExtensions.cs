@@ -91,7 +91,8 @@ namespace Cyxor.Extensions
         /// Type, IEnumerable{Type}, int?, IEnumerable{Type})"/>
         /// <seealso cref="GetPropertiesInfo(Type, string, string, string, string, bool?, bool?, bool?, bool?, bool?, bool?, bool?, bool?,
         /// Type, IEnumerable{Type}, int?, IEnumerable{Type})"/>
-        public static IEnumerable<MethodInfo> GetMethodsInfo(this Type type,
+        public static IEnumerable<MethodInfo> GetMethodsInfo(
+            this Type type,
             string? name = default,
             string? nameStartsWith = default,
             string? nameEndsWith = default,
@@ -107,26 +108,38 @@ namespace Cyxor.Extensions
             int? parametersCount = default,
             IEnumerable<Type>? parameters = default,
             int? genericArgumentsCount = default,
-            IEnumerable<Type>? genericArguments = default)
-            => from method in (inheritedMethods ?? true) ? type.GetRuntimeMethods() : type.GetTypeInfo().DeclaredMethods
-               let methodParameters = method.GetParameters()
-               let methodGenericArguments = method.GetGenericArguments()
-               where method.Name == (name ?? method.Name)
-                && (nameStartsWith == default ? true : method.Name.StartsWith(nameStartsWith!, StringComparison.Ordinal))
-                && (nameEndsWith == default ? true : method.Name.EndsWith(nameEndsWith!, StringComparison.Ordinal))
-                && (nameContains == default ? true : method.Name.Contains(nameContains!, StringComparison.Ordinal))
-                && method.IsPublic == (publicMethods ?? method.IsPublic)
-                && method.IsPrivate == (privateMethods ?? method.IsPrivate)
-                && method.IsStatic == (staticMethods ?? method.IsStatic)
-                && method.IsGenericMethod == (genericMethods ?? method.IsGenericMethod)
-                && method.IsGenericMethodDefinition == (genericMethodsDefinition ?? method.IsGenericMethodDefinition)
-                && method.ReturnType == (returnType ?? method.ReturnType)
-                && (attributes == default ? true : attributes.All(p => method.IsDefined(p, inheritedMethods ?? true)))
-                && methodParameters.Length == (parametersCount ?? methodParameters.Length)
-                && (parameters == default ? true : methodParameters.Select(p => p.ParameterType).SequenceEqual(parameters))
-                && methodGenericArguments.Length == (genericArgumentsCount ?? methodGenericArguments.Length)
-                && (genericArguments == default ? true : methodGenericArguments.SequenceEqual(genericArguments))
-               select method;
+            IEnumerable<Type>? genericArguments = default
+        ) =>
+
+                from method in (inheritedMethods ?? true)
+                    ? type.GetRuntimeMethods()
+                    : type.GetTypeInfo().DeclaredMethods
+                let methodParameters = method.GetParameters()
+                let methodGenericArguments = method.GetGenericArguments()
+                where
+                    method.Name == (name ?? method.Name)
+                    && (nameStartsWith == default
+                        ? true
+                        : method.Name.StartsWith(nameStartsWith!, StringComparison.Ordinal))
+                    && (nameEndsWith == default ? true : method.Name.EndsWith(nameEndsWith!, StringComparison.Ordinal))
+                    && (nameContains == default ? true : method.Name.Contains(nameContains!, StringComparison.Ordinal))
+                    && method.IsPublic == (publicMethods ?? method.IsPublic)
+                    && method.IsPrivate == (privateMethods ?? method.IsPrivate)
+                    && method.IsStatic == (staticMethods ?? method.IsStatic)
+                    && method.IsGenericMethod == (genericMethods ?? method.IsGenericMethod)
+                    && method.IsGenericMethodDefinition
+                    == (genericMethodsDefinition ?? method.IsGenericMethodDefinition)
+                    && method.ReturnType == (returnType ?? method.ReturnType)
+                    && (attributes == default
+                        ? true
+                        : attributes.All(p => method.IsDefined(p, inheritedMethods ?? true)))
+                    && methodParameters.Length == (parametersCount ?? methodParameters.Length)
+                    && (parameters == default
+                        ? true
+                        : methodParameters.Select(p => p.ParameterType).SequenceEqual(parameters))
+                    && methodGenericArguments.Length == (genericArgumentsCount ?? methodGenericArguments.Length)
+                    && (genericArguments == default ? true : methodGenericArguments.SequenceEqual(genericArguments))
+                select method;
 
         /// <summary>
         /// Retrieves an object that represents a specified method. Tweak the desired parameters to filter the result.
@@ -212,7 +225,8 @@ namespace Cyxor.Extensions
         /// Type, IEnumerable{Type}, int?, IEnumerable{Type})"/>
         /// <seealso cref="GetPropertiesInfo(Type, string, string, string, string, bool?, bool?, bool?, bool?, bool?, bool?, bool?, bool?,
         /// Type, IEnumerable{Type}, int?, IEnumerable{Type})"/>
-        public static MethodInfo? GetMethodInfo(this Type type,
+        public static MethodInfo? GetMethodInfo(
+            this Type type,
             string? name = default,
             string? nameStartsWith = default,
             string? nameEndsWith = default,
@@ -228,11 +242,28 @@ namespace Cyxor.Extensions
             int? parametersCount = default,
             IEnumerable<Type>? parameters = default,
             int? genericArgumentsCount = default,
-            IEnumerable<Type>? genericArguments = default)
+            IEnumerable<Type>? genericArguments = default
+        )
         {
-            var methods = GetMethodsInfo(type, name, nameStartsWith, nameEndsWith, nameContains, isInherited, 
-                isPublic, isPrivate, isStatic, isGenericMethod, isGenericMethodDefinition, returnType, attributes,
-                parametersCount, parameters, genericArgumentsCount, genericArguments);
+            var methods = GetMethodsInfo(
+                type,
+                name,
+                nameStartsWith,
+                nameEndsWith,
+                nameContains,
+                isInherited,
+                isPublic,
+                isPrivate,
+                isStatic,
+                isGenericMethod,
+                isGenericMethodDefinition,
+                returnType,
+                attributes,
+                parametersCount,
+                parameters,
+                genericArgumentsCount,
+                genericArguments
+            );
 
             if (methods.Count() > 1)
                 throw new AmbiguousMatchException("More than one method is found with the specified parameters.");

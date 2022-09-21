@@ -5,8 +5,7 @@ namespace Cyxor.Serialization
 {
     partial class Serializer
     {
-        public Uri DeserializeUri()
-            => new Uri(DeserializeString());
+        public Uri DeserializeUri() => new Uri(DeserializeString());
 
         public Uri? DeserializeNullableUri()
         {
@@ -14,8 +13,7 @@ namespace Cyxor.Serialization
             return str == default ? default : new Uri(str);
         }
 
-        public Uri DeserializeRawUri()
-            => new Uri(DeserializeRawString());
+        public Uri DeserializeRawUri() => new Uri(DeserializeRawString());
 
         public Uri? DeserializeNullableRawUri()
         {

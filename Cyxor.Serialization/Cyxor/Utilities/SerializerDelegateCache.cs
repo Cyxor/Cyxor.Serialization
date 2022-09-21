@@ -11,11 +11,12 @@ namespace Cyxor.Serialization
     {
         #region Serialization
 
-        static readonly MethodInfo CreateActionDelegateMethodInfo
-            = typeof(SerializerDelegateCache).GetMethodInfo(nameof(CreateActionDelegate), isStatic: true)!;
+        static readonly MethodInfo CreateActionDelegateMethodInfo =
+            typeof(SerializerDelegateCache).GetMethodInfo(nameof(CreateActionDelegate), isStatic: true)!;
 
-        static readonly ConcurrentDictionary<Type, Action<Serializer, object?>> SerializationCache
-            = new ConcurrentDictionary<Type, Action<Serializer, object?>>();
+        static readonly ConcurrentDictionary<Type,
+            Action<Serializer, object?>> SerializationCache = new ConcurrentDictionary<Type,
+            Action<Serializer, object?>>();
 
         public static Action<Serializer, object?> GetSerializationMethod(Type type)
         {
@@ -42,11 +43,12 @@ namespace Cyxor.Serialization
         #endregion
 
         #region Deserialization
-        static readonly MethodInfo CreateFuncDelegateMethodInfo
-            = typeof(SerializerDelegateCache).GetMethodInfo(nameof(CreateFuncDelegate), isStatic: true)!;
+        static readonly MethodInfo CreateFuncDelegateMethodInfo =
+            typeof(SerializerDelegateCache).GetMethodInfo(nameof(CreateFuncDelegate), isStatic: true)!;
 
-        static readonly ConcurrentDictionary<Type, Func<Serializer, object?>> DeserializationCache
-            = new ConcurrentDictionary<Type, Func<Serializer, object?>>();
+        static readonly ConcurrentDictionary<Type,
+            Func<Serializer, object?>> DeserializationCache = new ConcurrentDictionary<Type,
+            Func<Serializer, object?>>();
 
         public static Func<Serializer, object?> GetDeserializationMethod(Type type)
         {

@@ -20,11 +20,9 @@ namespace Cyxor.Serialization.Test
             public float Price { get; set; }
             public ProductCategory Category { get; set; }
 
-            public override int GetHashCode()
-                => $"{Name}{Price}{Category}".GetHashCode(StringComparison.Ordinal);
+            public override int GetHashCode() => $"{Name}{Price}{Category}".GetHashCode(StringComparison.Ordinal);
 
-            public override bool Equals(object? obj)
-                => obj is Product other ? Equals(other) : false;
+            public override bool Equals(object? obj) => obj is Product other ? Equals(other) : false;
 
             public bool Equals(Product other)
             {
@@ -61,12 +59,13 @@ namespace Cyxor.Serialization.Test
 
             var productsGroupedByCategory = products.GroupBy(p => p.Category);
 
-            var productsGroupedByCategoryThenByPrice = from product in products
-                                                       group product by product.Category into categoryGroup
-                                                       from categoryProduct in
-                                                           from product in categoryGroup
-                                                           group product by product.Price
-                                                       group categoryProduct by categoryGroup.Key;
+            var productsGroupedByCategoryThenByPrice =
+                from product in products
+                group product by product.Category into categoryGroup
+                from categoryProduct in
+                    from product in categoryGroup
+                    group product by product.Price
+                group categoryProduct by categoryGroup.Key;
 
             using var serializer = new Serializer();
             serializer.Serialize(productsGroupedByCategory.First());
@@ -77,21 +76,30 @@ namespace Cyxor.Serialization.Test
 
             //todo: error in the deserialization of the enum.
 
-            var deserializedProductsGroupedByFirstCategory = deserializer.DeserializeIGrouping<ProductCategory, Product>();
+            var deserializedProductsGroupedByFirstCategory = deserializer.DeserializeIGrouping<ProductCategory,
+                Product>();
 
             TestIGrouping(productsGroupedByCategory.First(), deserializedProductsGroupedByFirstCategory);
 
-            var deserializedProductsGroupedByCategory = deserializer.DeserializeIEnumerable<IGrouping<ProductCategory, Product>>();
+            var deserializedProductsGroupedByCategory = deserializer.DeserializeIEnumerable<IGrouping<ProductCategory,
+                    Product>>();
 
             TestIEnumerableIGrouping(productsGroupedByCategory, deserializedProductsGroupedByCategory);
 
-            var deserializedProductsGroupedByCategoryThenByPrice = deserializer.DeserializeIEnumerable<IGrouping<ProductCategory, IGrouping<float, Product>>>();
+            var deserializedProductsGroupedByCategoryThenByPrice = deserializer.DeserializeIEnumerable<IGrouping<ProductCategory,
+                    IGrouping<float, Product>>>();
 
-            TestIEnumerableIGroupingIGrouping(productsGroupedByCategoryThenByPrice, deserializedProductsGroupedByCategoryThenByPrice);
+            TestIEnumerableIGroupingIGrouping(
+                productsGroupedByCategoryThenByPrice,
+                deserializedProductsGroupedByCategoryThenByPrice
+            );
 
-            static void TestIEnumerableIGroupingIGrouping<TFirstKey, TSecondKey, TElement>(IEnumerable<IGrouping<TFirstKey, IGrouping<TSecondKey, TElement>>> first, IEnumerable<IGrouping<TFirstKey, IGrouping<TSecondKey, TElement>>> second)
-                //where TFirstKey: notnull
-                //where TSecondKey: notnull
+            static void TestIEnumerableIGroupingIGrouping<TFirstKey, TSecondKey, TElement>(
+                IEnumerable<IGrouping<TFirstKey, IGrouping<TSecondKey, TElement>>> first,
+                IEnumerable<IGrouping<TFirstKey, IGrouping<TSecondKey, TElement>>> second
+            )
+            //where TFirstKey: notnull
+            //where TSecondKey: notnull
             {
                 TestIEnumerableIGrouping(first, second);
 
@@ -99,8 +107,11 @@ namespace Cyxor.Serialization.Test
                     TestIEnumerableIGrouping(first.ElementAt(i), second.ElementAt(i));
             }
 
-            static void TestIEnumerableIGrouping<TKey, TElement>(IEnumerable<IGrouping<TKey, TElement>> first, IEnumerable<IGrouping<TKey, TElement>> second)
-                //where TKey: notnull
+            static void TestIEnumerableIGrouping<TKey, TElement>(
+                IEnumerable<IGrouping<TKey, TElement>> first,
+                IEnumerable<IGrouping<TKey, TElement>> second
+            )
+            //where TKey: notnull
             {
                 var firstCount = first.Count();
 
@@ -113,13 +124,13 @@ namespace Cyxor.Serialization.Test
 
                     Assert.AreEqual(firstElementAti.Key, secondElementAti.Key);
 
-                    if (typeof(TElement).Name != typeof(IGrouping<,>).Name)
+                    if (typeof(TElement).Name != typeof(IGrouping<, >).Name)
                         TestIGrouping(firstElementAti, secondElementAti);
                 }
             }
 
             static void TestIGrouping<TKey, TElement>(IGrouping<TKey, TElement> first, IGrouping<TKey, TElement> second)
-                //where TKey: notnull
+            //where TKey: notnull
             {
                 var firstCount = first.Count();
 

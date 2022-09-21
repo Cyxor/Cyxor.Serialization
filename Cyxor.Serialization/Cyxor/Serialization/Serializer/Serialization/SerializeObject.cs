@@ -6,7 +6,14 @@ namespace Cyxor.Serialization
 {
     partial class Serializer
     {
-        void TypeSerializeObject(object? value, Type? type, bool raw, IBackingSerializer? backingSerializer = default, object? backingSerializerOptions = default, Action<Serializer, object?>? action = null)
+        void TypeSerializeObject(
+            object? value,
+            Type? type,
+            bool raw,
+            IBackingSerializer? backingSerializer = default,
+            object? backingSerializerOptions = default,
+            Action<Serializer, object?>? action = null
+        )
         {
             if (backingSerializer != default)
             {
@@ -20,7 +27,12 @@ namespace Cyxor.Serialization
             AutoRaw = false;
         }
 
-        void InternalSerializeObject<T>(T value, bool raw, IBackingSerializer? backingSerializer = default, object? backingSerializerOptions = default)
+        void InternalSerializeObject<T>(
+            T value,
+            bool raw,
+            IBackingSerializer? backingSerializer = default,
+            object? backingSerializerOptions = default
+        )
         {
             AutoRaw = false;
 
@@ -41,7 +53,9 @@ namespace Cyxor.Serialization
             var type = value.GetType();
             var serializable = value as ISerializable;
 
-            if (serializable == default && IsKnownType(type))
+            // TODO: is knowntype can be moved to MyClass<T>
+            //if (serializable == default && IsKnownType(type))
+            if (serializable == default)
             {
                 TypeSerializeObject(value, type, raw);
                 return;
@@ -115,7 +129,12 @@ namespace Cyxor.Serialization
                             {
                                 var fieldValue = typeData.Fields[i].GetValueDelegate(value);
 
-                                TypeSerializeObject(fieldValue, typeData.Fields[i].FieldInfo.FieldType, raw: false, action: typeData.Fields[i].SerializeAction);
+                                TypeSerializeObject(
+                                    fieldValue,
+                                    typeData.Fields[i].FieldInfo.FieldType,
+                                    raw: false,
+                                    action: typeData.Fields[i].SerializeAction
+                                );
 
                                 serializedFieldsCount++;
                             }
@@ -179,11 +198,19 @@ namespace Cyxor.Serialization
             }
         }
 
-        public void Serialize(object? value, Type? type = default, IBackingSerializer? backingSerializer = default, object? backingSerializerOptions = default)
-            => TypeSerializeObject(value, type, raw: false, backingSerializer, backingSerializerOptions);
+        public void Serialize(
+            object? value,
+            Type? type = default,
+            IBackingSerializer? backingSerializer = default,
+            object? backingSerializerOptions = default
+        ) => TypeSerializeObject(value, type, raw: false, backingSerializer, backingSerializerOptions);
 
-        public void SerializeRaw(object? value, Type? type = default, IBackingSerializer? backingSerializer = default, object? backingSerializerOptions = default)
-            => TypeSerializeObject(value, type, raw: true, backingSerializer, backingSerializerOptions);
+        public void SerializeRaw(
+            object? value,
+            Type? type = default,
+            IBackingSerializer? backingSerializer = default,
+            object? backingSerializerOptions = default
+        ) => TypeSerializeObject(value, type, raw: true, backingSerializer, backingSerializerOptions);
 
         [SerializerMethodIdentifier(SerializerMethodIdentifier.SerializeObject)]
         public void Serialize<T>(T value)
@@ -192,19 +219,20 @@ namespace Cyxor.Serialization
                 InternalSerializeObject(value, raw: false);
             else
                 MyClass<T>.SerializeUnmanagedDelegate(value);
-            //    InternalSerializeUnmanaged(value);
-
-            //Delegate.CreateDelegate()
-            //SerializeUnmanagedInfo.Method.CreateDelegate()
         }
 
-        public void SerializeRaw<T>(T value)
-            => InternalSerializeObject(value, raw: true);
+        public void SerializeRaw<T>(T value) => InternalSerializeObject(value, raw: true);
 
-        public void Serialize<T>(T value, IBackingSerializer backingSerializer, object? backingSerializerOptions = default)
-            => InternalSerializeObject(value, raw: false, backingSerializer, backingSerializerOptions);
+        public void Serialize<T>(
+            T value,
+            IBackingSerializer backingSerializer,
+            object? backingSerializerOptions = default
+        ) => InternalSerializeObject(value, raw: false, backingSerializer, backingSerializerOptions);
 
-        public void SerializeRaw<T>(T value, IBackingSerializer backingSerializer, object? backingSerializerOptions = default)
-            => InternalSerializeObject(value, raw: true, backingSerializer, backingSerializerOptions);
+        public void SerializeRaw<T>(
+            T value,
+            IBackingSerializer backingSerializer,
+            object? backingSerializerOptions = default
+        ) => InternalSerializeObject(value, raw: true, backingSerializer, backingSerializerOptions);
     }
 }

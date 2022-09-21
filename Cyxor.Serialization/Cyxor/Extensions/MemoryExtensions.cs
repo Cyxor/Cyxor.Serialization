@@ -7,8 +7,8 @@ namespace Cyxor.Extensions
     static class MemoryExtensions
     {
         public static Memory<TTo> Cast<TFrom, TTo>(this in Memory<TFrom> memory)
-                where TFrom : unmanaged
-                where TTo : unmanaged
+            where TFrom : unmanaged
+            where TTo : unmanaged
         {
             if (typeof(TFrom) == typeof(TTo))
                 return (Memory<TTo>)(object)memory;
@@ -19,8 +19,7 @@ namespace Cyxor.Extensions
         }
 
         public static ReadOnlyMemory<TTo> Cast<TFrom, TTo>(this in ReadOnlyMemory<TFrom> readOnlyMemory)
-                where TFrom : unmanaged
-                where TTo : unmanaged
-            => MemoryMarshal.AsMemory(readOnlyMemory).Cast<TFrom, TTo>();
+            where TFrom : unmanaged
+            where TTo : unmanaged => MemoryMarshal.AsMemory(readOnlyMemory).Cast<TFrom, TTo>();
     }
 }

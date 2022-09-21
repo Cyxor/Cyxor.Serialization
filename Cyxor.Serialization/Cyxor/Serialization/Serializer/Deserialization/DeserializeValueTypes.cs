@@ -15,7 +15,8 @@ namespace Cyxor.Serialization
         #region Internal
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        unsafe T InternalDeserializeUnmanaged<T>() where T : unmanaged
+        unsafe T InternalDeserializeUnmanaged<T>()
+            where T : unmanaged
         {
             T value;
             var size = sizeof(T);
@@ -38,7 +39,8 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        unsafe T InternalDeserializeUnmanaged<T>(bool littleEndian) where T : unmanaged
+        unsafe T InternalDeserializeUnmanaged<T>(bool littleEndian)
+            where T : unmanaged
         {
             T value;
             var size = sizeof(T);
@@ -70,20 +72,16 @@ namespace Cyxor.Serialization
         #region Primitive types
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool DeserializeBoolean()
-            => InternalDeserializeUnmanaged<byte>() != 0;
+        public bool DeserializeBoolean() => InternalDeserializeUnmanaged<byte>() != 0;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public char DeserializeChar()
-            => InternalDeserializeUnmanaged<char>();
+        public char DeserializeChar() => InternalDeserializeUnmanaged<char>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float DeserializeSingle()
-            => InternalDeserializeUnmanaged<float>();
+        public float DeserializeSingle() => InternalDeserializeUnmanaged<float>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double DeserializeDouble()
-            => InternalDeserializeUnmanaged<double>();
+        public double DeserializeDouble() => InternalDeserializeUnmanaged<double>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte DeserializeByte()
@@ -97,76 +95,77 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public sbyte DeserializeSByte()
-            => (sbyte)DeserializeByte();
+        public sbyte DeserializeSByte() => (sbyte)DeserializeByte();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public short DeserializeInt16()
-            => !_options.ReverseEndianness ? InternalDeserializeUnmanaged<short>() : InternalDeserializeUnmanaged<short>(IsLittleEndian);
+        public short DeserializeInt16() =>
+            !_options.ReverseEndianness
+                ? InternalDeserializeUnmanaged<short>()
+                : InternalDeserializeUnmanaged<short>(IsLittleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public short DeserializeInt16(bool littleEndian)
-            => InternalDeserializeUnmanaged<short>(littleEndian);
+        public short DeserializeInt16(bool littleEndian) => InternalDeserializeUnmanaged<short>(littleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ushort DeserializeUInt16()
-            => !_options.ReverseEndianness ? InternalDeserializeUnmanaged<ushort>() : InternalDeserializeUnmanaged<ushort>(IsLittleEndian);
+        public ushort DeserializeUInt16() =>
+            !_options.ReverseEndianness
+                ? InternalDeserializeUnmanaged<ushort>()
+                : InternalDeserializeUnmanaged<ushort>(IsLittleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ushort DeserializeUInt16(bool littleEndian)
-            => InternalDeserializeUnmanaged<ushort>(littleEndian);
+        public ushort DeserializeUInt16(bool littleEndian) => InternalDeserializeUnmanaged<ushort>(littleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int DeserializeInt32()
-            => (int)DeserializeCompressedUInt32();
+        public int DeserializeInt32() => (int)DeserializeCompressedUInt32();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int DeserializeUncompressedInt32()
-            => !_options.ReverseEndianness ? InternalDeserializeUnmanaged<int>() : InternalDeserializeUnmanaged<int>(IsLittleEndian);
+        public int DeserializeUncompressedInt32() =>
+            !_options.ReverseEndianness
+                ? InternalDeserializeUnmanaged<int>()
+                : InternalDeserializeUnmanaged<int>(IsLittleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int DeserializeUncompressedInt32(bool littleEndian)
-            => InternalDeserializeUnmanaged<int>(littleEndian);
+        public int DeserializeUncompressedInt32(bool littleEndian) => InternalDeserializeUnmanaged<int>(littleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint DeserializeUInt32()
-            => !_options.ReverseEndianness ? InternalDeserializeUnmanaged<uint>() : InternalDeserializeUnmanaged<uint>(IsLittleEndian);
+        public uint DeserializeUInt32() =>
+            !_options.ReverseEndianness
+                ? InternalDeserializeUnmanaged<uint>()
+                : InternalDeserializeUnmanaged<uint>(IsLittleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint DeserializeUInt32(bool littleEndian)
-            => InternalDeserializeUnmanaged<uint>(littleEndian);
+        public uint DeserializeUInt32(bool littleEndian) => InternalDeserializeUnmanaged<uint>(littleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long DeserializeInt64()
-             => (long)DeserializeCompressedUInt64();
+        public long DeserializeInt64() => (long)DeserializeCompressedUInt64();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long DeserializeUncompressedInt64()
-            => !_options.ReverseEndianness ? InternalDeserializeUnmanaged<long>() : InternalDeserializeUnmanaged<long>(IsLittleEndian);
+        public long DeserializeUncompressedInt64() =>
+            !_options.ReverseEndianness
+                ? InternalDeserializeUnmanaged<long>()
+                : InternalDeserializeUnmanaged<long>(IsLittleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long DeserializeUncompressedInt64(bool littleEndian)
-            => InternalDeserializeUnmanaged<long>(littleEndian);
+        public long DeserializeUncompressedInt64(bool littleEndian) => InternalDeserializeUnmanaged<long>(littleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong DeserializeUInt64()
-            => !_options.ReverseEndianness ? InternalDeserializeUnmanaged<ulong>() : InternalDeserializeUnmanaged<ulong>(IsLittleEndian);
+        public ulong DeserializeUInt64() =>
+            !_options.ReverseEndianness
+                ? InternalDeserializeUnmanaged<ulong>()
+                : InternalDeserializeUnmanaged<ulong>(IsLittleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong DeserializeUInt64(bool littleEndian)
-            => InternalDeserializeUnmanaged<ulong>(littleEndian);
+        public ulong DeserializeUInt64(bool littleEndian) => InternalDeserializeUnmanaged<ulong>(littleEndian);
 
         #endregion Primitive types
 
         #region Struct types
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public decimal DeserializeDecimal()
-            => InternalDeserializeUnmanaged<decimal>();
+        public decimal DeserializeDecimal() => InternalDeserializeUnmanaged<decimal>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BitSerializer DeserializeBitSerializer()
-            => DeserializeInt64();
+        public BitSerializer DeserializeBitSerializer() => DeserializeInt64();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Guid DeserializeGuid()
@@ -192,12 +191,10 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TimeSpan DeserializeTimeSpan()
-            => TimeSpan.FromTicks(DeserializeUncompressedInt64());
+        public TimeSpan DeserializeTimeSpan() => TimeSpan.FromTicks(DeserializeUncompressedInt64());
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public DateTime DeserializeDateTime()
-            => DateTime.FromBinary(DeserializeUncompressedInt64());
+        public DateTime DeserializeDateTime() => DateTime.FromBinary(DeserializeUncompressedInt64());
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public DateTimeOffset DeserializeDateTimeOffset()
@@ -214,7 +211,9 @@ namespace Cyxor.Serialization
             var length = InternalDeserializeSequenceHeader();
 
             if (length == -1)
-                throw new SerializationException($"Nullable {nameof(BigInteger)} instance found when deserializing non-nullable {nameof(BigInteger)} value");
+                throw new SerializationException(
+                    $"Nullable {nameof(BigInteger)} instance found when deserializing non-nullable {nameof(BigInteger)} value"
+                );
 
             InternalEnsureDeserializeCapacity(length);
 
@@ -252,7 +251,8 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T DeserializeEnum<T>() where T : unmanaged, Enum
+        public T DeserializeEnum<T>()
+            where T : unmanaged, Enum
         {
             var value = DeserializeInt64();
             return Unsafe.As<long, T>(ref value);
@@ -260,11 +260,12 @@ namespace Cyxor.Serialization
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [SerializerMethodIdentifier(SerializerMethodIdentifier.DeserializeUnmanaged)]
-        public T DeserializeUnmanaged<T>() where T : unmanaged
-            => InternalDeserializeUnmanaged<T>();
+        public T DeserializeUnmanaged<T>()
+            where T : unmanaged => InternalDeserializeUnmanaged<T>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe ref readonly T DeserializeUnmanagedReference<T>() where T : unmanaged
+        public unsafe ref readonly T DeserializeUnmanagedReference<T>()
+            where T : unmanaged
         {
             var size = sizeof(T);
             InternalEnsureDeserializeCapacity(size);
@@ -288,6 +289,7 @@ namespace Cyxor.Serialization
                     return ref MemoryMarshal.AsRef<T>(span);
                 }
             }
+
             finally
             {
                 _position += size;
@@ -303,7 +305,8 @@ namespace Cyxor.Serialization
         #region Internal
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        unsafe bool InternalTryDeserializeUnmanaged<T>(out T value) where T : unmanaged
+        unsafe bool InternalTryDeserializeUnmanaged<T>(out T value)
+            where T : unmanaged
         {
             value = default;
             var size = sizeof(T);
@@ -328,7 +331,8 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        unsafe bool InternalTryDeserializeUnmanaged<T>(out T value, bool littleEndian) where T : unmanaged
+        unsafe bool InternalTryDeserializeUnmanaged<T>(out T value, bool littleEndian)
+            where T : unmanaged
         {
             value = default;
             var size = sizeof(T);
@@ -374,16 +378,13 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeChar(out char value)
-            => InternalTryDeserializeUnmanaged(out value);
+        public bool TryDeserializeChar(out char value) => InternalTryDeserializeUnmanaged(out value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeSingle(out float value)
-            => InternalTryDeserializeUnmanaged(out value);
+        public bool TryDeserializeSingle(out float value) => InternalTryDeserializeUnmanaged(out value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeDouble(out double value)
-            => InternalTryDeserializeUnmanaged(out value);
+        public bool TryDeserializeDouble(out double value) => InternalTryDeserializeUnmanaged(out value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDeserializeByte(out byte value)
@@ -412,20 +413,24 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeInt16(out short value)
-            => !_options.ReverseEndianness ? InternalTryDeserializeUnmanaged(out value) : InternalTryDeserializeUnmanaged(out value, IsLittleEndian);
+        public bool TryDeserializeInt16(out short value) =>
+            !_options.ReverseEndianness
+                ? InternalTryDeserializeUnmanaged(out value)
+                : InternalTryDeserializeUnmanaged(out value, IsLittleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeInt16(out short value, bool littleEndian)
-            => InternalTryDeserializeUnmanaged(out value, littleEndian);
+        public bool TryDeserializeInt16(out short value, bool littleEndian) =>
+            InternalTryDeserializeUnmanaged(out value, littleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeUInt16(out ushort value)
-            => !_options.ReverseEndianness ? InternalTryDeserializeUnmanaged(out value) : InternalTryDeserializeUnmanaged(out value, IsLittleEndian);
+        public bool TryDeserializeUInt16(out ushort value) =>
+            !_options.ReverseEndianness
+                ? InternalTryDeserializeUnmanaged(out value)
+                : InternalTryDeserializeUnmanaged(out value, IsLittleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeUInt16(out ushort value, bool littleEndian)
-            => InternalTryDeserializeUnmanaged(out value, littleEndian);
+        public bool TryDeserializeUInt16(out ushort value, bool littleEndian) =>
+            InternalTryDeserializeUnmanaged(out value, littleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDeserializeInt32(out int value)
@@ -440,20 +445,24 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeUncompressedInt32(out int value)
-            => !_options.ReverseEndianness ? InternalTryDeserializeUnmanaged(out value) : InternalTryDeserializeUnmanaged(out value, IsLittleEndian);
+        public bool TryDeserializeUncompressedInt32(out int value) =>
+            !_options.ReverseEndianness
+                ? InternalTryDeserializeUnmanaged(out value)
+                : InternalTryDeserializeUnmanaged(out value, IsLittleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeUncompressedInt32(out int value, bool littleEndian)
-            => InternalTryDeserializeUnmanaged(out value, littleEndian);
+        public bool TryDeserializeUncompressedInt32(out int value, bool littleEndian) =>
+            InternalTryDeserializeUnmanaged(out value, littleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeUInt32(out uint value)
-            => !_options.ReverseEndianness ? InternalTryDeserializeUnmanaged(out value) : InternalTryDeserializeUnmanaged(out value, IsLittleEndian);
+        public bool TryDeserializeUInt32(out uint value) =>
+            !_options.ReverseEndianness
+                ? InternalTryDeserializeUnmanaged(out value)
+                : InternalTryDeserializeUnmanaged(out value, IsLittleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeUInt32(out uint value, bool littleEndian)
-            => InternalTryDeserializeUnmanaged(out value, littleEndian);
+        public bool TryDeserializeUInt32(out uint value, bool littleEndian) =>
+            InternalTryDeserializeUnmanaged(out value, littleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDeserializeInt64(out long value)
@@ -468,28 +477,31 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeUncompressedInt64(out long value)
-            => !_options.ReverseEndianness ? InternalTryDeserializeUnmanaged(out value) : InternalTryDeserializeUnmanaged(out value, IsLittleEndian);
+        public bool TryDeserializeUncompressedInt64(out long value) =>
+            !_options.ReverseEndianness
+                ? InternalTryDeserializeUnmanaged(out value)
+                : InternalTryDeserializeUnmanaged(out value, IsLittleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeUncompressedInt64(out long value, bool littleEndian)
-            => InternalTryDeserializeUnmanaged(out value, littleEndian);
+        public bool TryDeserializeUncompressedInt64(out long value, bool littleEndian) =>
+            InternalTryDeserializeUnmanaged(out value, littleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeUInt64(out ulong value)
-            => !_options.ReverseEndianness ? InternalTryDeserializeUnmanaged(out value) : InternalTryDeserializeUnmanaged(out value, IsLittleEndian);
+        public bool TryDeserializeUInt64(out ulong value) =>
+            !_options.ReverseEndianness
+                ? InternalTryDeserializeUnmanaged(out value)
+                : InternalTryDeserializeUnmanaged(out value, IsLittleEndian);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeUInt64(out ulong value, bool littleEndian)
-            => InternalTryDeserializeUnmanaged(out value, littleEndian);
+        public bool TryDeserializeUInt64(out ulong value, bool littleEndian) =>
+            InternalTryDeserializeUnmanaged(out value, littleEndian);
 
         #endregion Primitive types
 
         #region Struct types
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeDecimal(out decimal value)
-            => InternalTryDeserializeUnmanaged(out value);
+        public bool TryDeserializeDecimal(out decimal value) => InternalTryDeserializeUnmanaged(out value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDeserializeBitSerializer(out BitSerializer value)
@@ -572,8 +584,11 @@ namespace Cyxor.Serialization
             value = default;
             var initialPosition = _position;
 
-            if (!InternalTryDeserializeSequenceHeader(out var length) || length == -1 || !InternalTryEnsureDeserializeCapacity(length))
-            {
+            if (
+                !InternalTryDeserializeSequenceHeader(out var length)
+                || length == -1
+                || !InternalTryEnsureDeserializeCapacity(length)
+            ) {
                 if (initialPosition != _position)
                     if (_stream != null)
                         _stream.Position = initialPosition;
@@ -617,7 +632,8 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeEnum<T>(out T value) where T : unmanaged, Enum
+        public bool TryDeserializeEnum<T>(out T value)
+            where T : unmanaged, Enum
         {
             value = default;
 
@@ -629,9 +645,8 @@ namespace Cyxor.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDeserializeUnmanaged<T>(out T value) where T : unmanaged
-            => InternalTryDeserializeUnmanaged<T>(out value);
-
+        public bool TryDeserializeUnmanaged<T>(out T value)
+            where T : unmanaged => InternalTryDeserializeUnmanaged<T>(out value);
         #endregion Struct types
 
         #endregion Try deserialize value types

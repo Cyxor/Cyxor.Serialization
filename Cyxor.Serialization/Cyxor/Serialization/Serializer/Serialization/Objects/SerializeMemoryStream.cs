@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace Cyxor.Serialization
 {
@@ -10,7 +9,7 @@ namespace Cyxor.Serialization
     {
         void InternalSerialize(MemoryStream? value, bool raw)
         {
-            if (value == default)
+            if (value == null)
             {
                 if (!raw)
                     Serialize((byte)0);
@@ -40,10 +39,8 @@ namespace Cyxor.Serialization
             }
         }
 
-        public void Serialize(MemoryStream? value)
-            => InternalSerialize(value, AutoRaw);
+        public void Serialize(MemoryStream? value) => InternalSerialize(value, AutoRaw);
 
-        public void SerializeRaw(MemoryStream? value)
-            => InternalSerialize(value, raw: true);
+        public void SerializeRaw(MemoryStream? value) => InternalSerialize(value, raw: true);
     }
 }

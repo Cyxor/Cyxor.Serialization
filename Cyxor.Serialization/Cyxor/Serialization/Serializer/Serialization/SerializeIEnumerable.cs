@@ -9,8 +9,12 @@ namespace Cyxor.Serialization
 {
     partial class Serializer
     {
-        void InternalSerialize<T1, T2, TKey>(IEnumerable<T1>? value1, IEnumerable<KeyValuePair<TKey, T2>>? value2, int count = -1) where TKey : notnull
-        {
+        void InternalSerialize<T1, T2, TKey>(
+            IEnumerable<T1>? value1,
+            IEnumerable<KeyValuePair<TKey, T2>>? value2,
+            int count = -1
+        )
+            where TKey : notnull {
             if (value1 == null && value2 == null)
             {
                 Serialize((byte)0);
@@ -22,8 +26,7 @@ namespace Cyxor.Serialization
                 count = 0;
                 var value = value1 ?? (IEnumerable?)value2;
 
-                foreach (var item in value!)
-                    count++;
+                foreach (var item in value!)count++;
             }
 
             if (count == 0)
@@ -35,13 +38,13 @@ namespace Cyxor.Serialization
             InternalSerializeSequenceHeader(count);
 
             if (value1 != null)
-                SaveIEnumerable(value1);
+                SaveIEnumerable(this, value1, count);
             else if (value2 != null)
             {
                 if (value2 is IDictionary<TKey, T2> dictionary)
                 {
-                    SaveIEnumerable(dictionary.Keys);
-                    SaveIEnumerable(dictionary.Values);
+                    SaveIEnumerable(this, dictionary.Keys, count);
+                    SaveIEnumerable(this, dictionary.Values, count);
                 }
                 else
                     foreach (var item in value2)
@@ -51,21 +54,19 @@ namespace Cyxor.Serialization
                     }
             }
 
-            void SaveIEnumerable<T>(IEnumerable<T> items)
+            static void SaveIEnumerable<T>(Serializer serializer, IEnumerable<T> items, int count)
             {
                 if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
-                    foreach (var item in items)
-                        Serialize(item);
+                    foreach (var item in items)serializer.Serialize(item);
                 else
                 {
                     var tSize = Unsafe.SizeOf<T>();
-                    InternalEnsureSerializeCapacity(tSize * count);
+                    serializer.InternalEnsureSerializeCapacity(tSize * count);
 
-                    foreach (var item in items)
-                        if (tSize < IntPtr.Size * 2)
-                            InternalSerializeUnmanagedUnconstrained(item);
-                        else
-                            InternalSerializeUnmanagedUnconstrained(in item);
+                    foreach (var item in items)if (tSize < IntPtr.Size * 2)
+                        serializer.InternalSerializeUnmanagedUnconstrained(item);
+                    else
+                        serializer.InternalSerializeUnmanagedUnconstrained(in item);
                 }
             }
         }
@@ -97,8 +98,7 @@ namespace Cyxor.Serialization
 
         [SerializerMethodIdentifier(SerializerMethodIdentifier.SerializeIDictionary)]
         public void Serialize<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>>? value)
-            where TKey : notnull
-            => InternalSerialize<TValue, TValue, TKey>(default, value);
+            where TKey : notnull => InternalSerialize<TValue, TValue, TKey>(default, value);
 
         [SerializerMethodIdentifier(SerializerMethodIdentifier.SerializeIGrouping)]
         public void Serialize<TKey, TElement>(IGrouping<TKey, TElement>? value)

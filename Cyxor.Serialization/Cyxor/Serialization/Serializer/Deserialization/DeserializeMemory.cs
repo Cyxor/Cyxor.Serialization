@@ -7,46 +7,58 @@ namespace Cyxor.Serialization
 
     partial class Serializer
     {
-        public Memory<T> DeserializeMemory<T>() where T: unmanaged
+        public Memory<T> DeserializeMemory<T>()
+            where T : unmanaged
         {
             if (AutoRaw)
                 return DeserializeRawMemory<T>();
 
             var count = InternalDeserializeSequenceHeader();
 
-            return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(Memory<T>).Name))
-                : count == 0 ? Memory<T>.Empty
-                : DeserializeMemory<T>(count);
+            return count == -1
+                ? throw new InvalidOperationException(
+                        Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(
+                            typeof(Memory<T>).Name
+                        )
+                    )
+                : count == 0 ? Memory<T>.Empty : DeserializeMemory<T>(count);
         }
 
-        public Memory<T> DeserializeRawMemory<T>() where T: unmanaged
-            => DeserializeMemory<T>(_length - _position);
+        public Memory<T> DeserializeRawMemory<T>()
+            where T : unmanaged => DeserializeMemory<T>(_length - _position);
 
-        public ref Memory<T> DeserializeRawMemory<T>(ref Memory<T> memory) where T : unmanaged
-            => ref DeserializeMemory(ref memory, _length - _position);
+        public ref Memory<T> DeserializeRawMemory<T>(ref Memory<T> memory)
+            where T : unmanaged => ref DeserializeMemory(ref memory, _length - _position);
 
-        public Memory<T> DeserializeMemory<T>(int bytesCount) where T : unmanaged
+        public Memory<T> DeserializeMemory<T>(int bytesCount)
+            where T : unmanaged
         {
             var memory = new Memory<byte>(new byte[bytesCount]);
             _ = DeserializeMemory(ref memory, bytesCount);
             return memory.Cast<byte, T>();
         }
 
-        public ref Memory<T> DeserializeMemory<T>(ref Memory<T> memory) where T: unmanaged
+        public ref Memory<T> DeserializeMemory<T>(ref Memory<T> memory)
+            where T : unmanaged
         {
             var count = InternalDeserializeSequenceHeader();
 
             if (count == -1)
-                throw new InvalidOperationException
-                    (Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingValueType(typeof(Span<T>).Name));
+                throw new InvalidOperationException(
+                    Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingValueType(typeof(Span<T>).Name)
+                );
 
             return ref count == 0 ? ref memory : ref DeserializeMemory(ref memory, count);
         }
 
-        public ref Memory<T> DeserializeMemory<T>(ref Memory<T> memory, int bytesCount) where T: unmanaged
+        public ref Memory<T> DeserializeMemory<T>(ref Memory<T> memory, int bytesCount)
+            where T : unmanaged
         {
             if (bytesCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(bytesCount), $"Parameter {nameof(bytesCount)} must be a positive value");
+                throw new ArgumentOutOfRangeException(
+                    nameof(bytesCount),
+                    $"Parameter {nameof(bytesCount)} must be a positive value"
+                );
 
             if (bytesCount > memory.Length)
                 throw new ArgumentOutOfRangeException(nameof(bytesCount));
@@ -65,7 +77,8 @@ namespace Cyxor.Serialization
             return ref memory;
         }
 
-        public bool TryDeserializeMemory<T>(out Memory<T> value) where T : unmanaged
+        public bool TryDeserializeMemory<T>(out Memory<T> value)
+            where T : unmanaged
         {
             value = Memory<T>.Empty;
 
@@ -83,7 +96,8 @@ namespace Cyxor.Serialization
             }
         }
 
-        public bool TryDeserializeMemory<T>(out Memory<T> value, int bytesCount) where T : unmanaged
+        public bool TryDeserializeMemory<T>(out Memory<T> value, int bytesCount)
+            where T : unmanaged
         {
             value = Memory<T>.Empty;
 
@@ -107,32 +121,41 @@ namespace Cyxor.Serialization
             }
         }
 
-        public Memory<T> ToMemory<T>() where T : unmanaged
+        public Memory<T> ToMemory<T>()
+            where T : unmanaged
         {
             _position = 0;
             return DeserializeRawMemory<T>();
         }
 
-        public ReadOnlyMemory<T> DeserializeReadOnlyMemory<T>() where T : unmanaged
+        public ReadOnlyMemory<T> DeserializeReadOnlyMemory<T>()
+            where T : unmanaged
         {
             if (AutoRaw)
                 return DeserializeRawReadOnlyMemory<T>();
 
             var count = InternalDeserializeSequenceHeader();
 
-            return count == -1 ? throw new InvalidOperationException
-                (Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingValueType(typeof(ReadOnlyMemory<T>).Name))
-                : count == 0 ? ReadOnlyMemory<T>.Empty
-                : DeserializeReadOnlyMemory<T>(count);
+            return count == -1
+                ? throw new InvalidOperationException(
+                        Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingValueType(
+                            typeof(ReadOnlyMemory<T>).Name
+                        )
+                    )
+                : count == 0 ? ReadOnlyMemory<T>.Empty : DeserializeReadOnlyMemory<T>(count);
         }
 
-        public ReadOnlyMemory<T> DeserializeRawReadOnlyMemory<T>() where T : unmanaged
-            => DeserializeReadOnlyMemory<T>(_length - _position);
+        public ReadOnlyMemory<T> DeserializeRawReadOnlyMemory<T>()
+            where T : unmanaged => DeserializeReadOnlyMemory<T>(_length - _position);
 
-        public ReadOnlyMemory<T> DeserializeReadOnlyMemory<T>(int bytesCount) where T : unmanaged
+        public ReadOnlyMemory<T> DeserializeReadOnlyMemory<T>(int bytesCount)
+            where T : unmanaged
         {
             if (bytesCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(bytesCount), $"Parameter {nameof(bytesCount)} must be a positive value");
+                throw new ArgumentOutOfRangeException(
+                    nameof(bytesCount),
+                    $"Parameter {nameof(bytesCount)} must be a positive value"
+                );
 
             if (bytesCount == 0)
                 return ReadOnlyMemory<T>.Empty;
@@ -146,7 +169,8 @@ namespace Cyxor.Serialization
             return bufferReadOnlyMemory.Cast<byte, T>();
         }
 
-        public bool TryDeserializeReadOnlyMemory<T>(out ReadOnlyMemory<T> value) where T : unmanaged
+        public bool TryDeserializeReadOnlyMemory<T>(out ReadOnlyMemory<T> value)
+            where T : unmanaged
         {
             value = ReadOnlyMemory<T>.Empty;
 
@@ -164,7 +188,8 @@ namespace Cyxor.Serialization
             }
         }
 
-        public bool TryDeserializeReadOnlyMemory<T>(out ReadOnlyMemory<T> value, int bytesCount) where T : unmanaged
+        public bool TryDeserializeReadOnlyMemory<T>(out ReadOnlyMemory<T> value, int bytesCount)
+            where T : unmanaged
         {
             value = ReadOnlyMemory<T>.Empty;
 
@@ -188,16 +213,12 @@ namespace Cyxor.Serialization
             }
         }
 
-        public ReadOnlyMemory<T> ToReadOnlyMemory<T>() where T : unmanaged
+        public ReadOnlyMemory<T> ToReadOnlyMemory<T>()
+            where T : unmanaged
         {
             _position = 0;
             return DeserializeRawReadOnlyMemory<T>();
         }
-
-
-
-
-
         // TODO: NULLABLE HERE
 
 

@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.28407.52
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cyxor.Serialization", "Cyxor.Serialization\Cyxor.Serialization.csproj", "{20B39FE7-B3EC-4337-BFC8-5BDAFAE8E5DA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cyxor.Serialization.Test", "Cyxor.Serialization.Test\Cyxor.Serialization.Test.csproj", "{83BFA431-6EC1-4510-BCBE-020B908A7E34}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cyxor.Serialization.Test", "Cyxor.Serialization.Test\Cyxor.Serialization.Test.csproj", "{83BFA431-6EC1-4510-BCBE-020B908A7E34}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FE4027FC-61A5-44DD-95FC-9E9DF9D705BF}"
 	ProjectSection(SolutionItems) = preProject
@@ -53,5 +53,35 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7C516863-3161-40FB-B320-96F67F1AD149}
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$1.DirectoryNamespaceAssociation = PrefixedHierarchical
+		$0.TextStylePolicy = $2
+		$2.inheritsSet = null
+		$2.scope = text/x-csharp
+		$0.CSharpFormattingPolicy = $3
+		$3.scope = text/x-csharp
+		$0.TextStylePolicy = $4
+		$4.TabsToSpaces = True
+		$4.scope = text/plain
+		$4.FileWidth = 150
+		$0.TextStylePolicy = $5
+		$5.inheritsSet = null
+		$5.scope = text/x-json
+		$0.JSONFormattingPolicy = $6
+		$6.AutoStructureCompletion = True
+		$6.BracePositions = SemiExpanded
+		$6.FormatOnPaste = True
+		$6.scope = text/x-json
+		$0.StandardHeader = $7
+		$0.VersionControlPolicy = $8
+		$0.TextStylePolicy = $9
+		$9.inheritsSet = null
+		$9.scope = text/x-web
+		$0.TextStylePolicy = $10
+		$10.inheritsSet = null
+		$10.scope = text/x-vs
 	EndGlobalSection
 EndGlobal

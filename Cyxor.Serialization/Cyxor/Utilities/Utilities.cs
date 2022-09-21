@@ -18,59 +18,43 @@ namespace Cyxor.Serialization
 
         public static class TypeHelper
         {
-            public static void Serialize<T>(T t)
-                => throw new NotImplementedException(t?.ToString());
+            public static void Serialize<T>(T t) => throw new NotImplementedException(t?.ToString());
 
-            public static T Serialization<T>()
-                => throw new NotImplementedException();
+            public static T Serialization<T>() => throw new NotImplementedException();
 
-            public static IEnumerable<T> IEnumerable<T>()
-                => throw new NotImplementedException();
+            public static IEnumerable<T> IEnumerable<T>() => throw new NotImplementedException();
 
-            public static IGrouping<TKey, TElement> IGrouping<TKey, TElement>()
-                => throw new NotImplementedException();
+            public static IGrouping<TKey, TElement> IGrouping<TKey, TElement>() => throw new NotImplementedException();
 
-            public static IEnumerable<KeyValuePair<TKey, TValue>> IEnumerableKeyValuePair<TKey, TValue>()
-                => throw new NotImplementedException();
+            public static IEnumerable<KeyValuePair<TKey, TValue>> IEnumerableKeyValuePair<TKey, TValue>() =>
+                throw new NotImplementedException();
         }
 
         public static class Bits
         {
-            public static int RequiredBytes(int bits)
-                => (bits + 7) / 8;
+            public static int RequiredBytes(int bits) => (bits + 7) / 8;
 
-            public static unsafe int Required(int value)
-                => Required((byte*)&value, sizeof(int));
+            public static unsafe int Required(int value) => Required((byte*)&value, sizeof(int));
 
-            public static unsafe int Required(long value)
-                => Required((byte*)&value, sizeof(long));
+            public static unsafe int Required(long value) => Required((byte*)&value, sizeof(long));
 
-            public static unsafe int Required(char value)
-                => Required((byte*)&value, sizeof(char));
+            public static unsafe int Required(char value) => Required((byte*)&value, sizeof(char));
 
-            public static unsafe int Required(byte value)
-                => Required((byte*)&value, sizeof(byte));
+            public static unsafe int Required(byte value) => Required((byte*)&value, sizeof(byte));
 
-            public static unsafe int Required(uint value)
-                => Required((byte*)&value, sizeof(uint));
+            public static unsafe int Required(uint value) => Required((byte*)&value, sizeof(uint));
 
-            public static unsafe int Required(short value)
-                => Required((byte*)&value, sizeof(short));
+            public static unsafe int Required(short value) => Required((byte*)&value, sizeof(short));
 
-            public static unsafe int Required(float value)
-                => Required((byte*)&value, sizeof(float));
+            public static unsafe int Required(float value) => Required((byte*)&value, sizeof(float));
 
-            public static unsafe int Required(sbyte value)
-                => Required((byte*)&value, sizeof(sbyte));
+            public static unsafe int Required(sbyte value) => Required((byte*)&value, sizeof(sbyte));
 
-            public static unsafe int Required(ulong value)
-                => Required((byte*)&value, sizeof(ulong));
+            public static unsafe int Required(ulong value) => Required((byte*)&value, sizeof(ulong));
 
-            public static unsafe int Required(double value)
-                => Required((byte*)&value, sizeof(double));
+            public static unsafe int Required(double value) => Required((byte*)&value, sizeof(double));
 
-            public static unsafe int Required(ushort value)
-                => Required((byte*)&value, sizeof(ushort));
+            public static unsafe int Required(ushort value) => Required((byte*)&value, sizeof(ushort));
 
             static unsafe int Required(byte* value, int size)
             {
@@ -78,12 +62,20 @@ namespace Cyxor.Serialization
 
                 switch (size)
                 {
-                    case sizeof(byte): while ((*value >>= 1) != 0) count++; break;
-                    case sizeof(short): while ((*(ushort*)value >>= 1) != 0) count++; break;
-                    case sizeof(int): while ((*(uint*)value >>= 1) != 0) count++; break;
-                    case sizeof(long): while ((*(ulong*)value >>= 1) != 0) count++; break;
-
-                    default: throw new ArgumentOutOfRangeException(nameof(size), "Unsupported bits count");
+                    case sizeof(byte):
+                        while ((*value >>= 1) != 0)count++;
+                        break;
+                    case sizeof(short):
+                        while ((*(ushort*)value >>= 1) != 0)count++;
+                        break;
+                    case sizeof(int):
+                        while ((*(uint*)value >>= 1) != 0)count++;
+                        break;
+                    case sizeof(long):
+                        while ((*(ulong*)value >>= 1) != 0)count++;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(size), "Unsupported bits count");
                 }
 
                 return count;
@@ -95,7 +87,8 @@ namespace Cyxor.Serialization
             //public static TEnum GetConstantOrDefault<TEnum>() where TEnum : struct, System.Enum
             //    => GetConstantOrDefault<TEnum>(value: default);
 
-            public static TEnum ParseOrDefault<TEnum>(string? value = default) where TEnum : struct, System.Enum
+            public static TEnum ParseOrDefault<TEnum>(string? value = default)
+                where TEnum : struct, System.Enum
             {
                 if (value == default)
                     return default;
@@ -106,7 +99,9 @@ namespace Cyxor.Serialization
                 var enumValues = System.Enum.GetValues(typeof(TEnum));
 
                 //return enumValues.Length == 0 ? (default) : System.Enum.Parse<TEnum>(value, ignoreCase: true);
-                return enumValues.Length == 0 ? (default) : (TEnum)System.Enum.Parse(typeof(TEnum), value, ignoreCase: true);
+                return enumValues.Length == 0
+                    ? (default)
+                    : (TEnum)System.Enum.Parse(typeof(TEnum), value, ignoreCase: true);
             }
         }
 
@@ -117,8 +112,7 @@ namespace Cyxor.Serialization
                 if (string.IsNullOrEmpty(value))
                     return 0;
 
-                fixed (char* chPtr = value)
-                    return GetFrom((byte*)chPtr, value.Length * 2);
+                fixed (char* chPtr = value)return GetFrom((byte*)chPtr, value.Length * 2);
             }
 
             public static unsafe int GetFrom(byte[] value)
@@ -126,8 +120,7 @@ namespace Cyxor.Serialization
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
 
-                fixed (byte* ptr = value)
-                    return GetFrom(ptr, value.Length);
+                fixed (byte* ptr = value)return GetFrom(ptr, value.Length);
             }
 
             public static unsafe int GetFrom(byte[] value, int offset, int count)
@@ -144,8 +137,7 @@ namespace Cyxor.Serialization
                 if (value.Length - offset < count)
                     throw new ArgumentException("Invalid value range");
 
-                fixed (byte* ptr = value)
-                    return GetFrom(ptr + offset, count);
+                fixed (byte* ptr = value)return GetFrom(ptr + offset, count);
             }
 
             public static unsafe int GetFrom(byte* ptr, int length)
@@ -193,16 +185,22 @@ namespace Cyxor.Serialization
                 else if (size == sizeof(uint))
                 {
                     var uint32 = *(uint*)value;
-                    *(uint*)value = (uint32 >> 24) | ((uint32 & 0x00ff0000) >> 8) |
-                                    ((uint32 & 0x0000ff00) << 8) | (uint32 << 24);
+                    *(uint*)value = (uint32 >> 24)
+                    | ((uint32 & 0x00ff0000) >> 8)
+                    | ((uint32 & 0x0000ff00) << 8)
+                    | (uint32 << 24);
                 }
                 else if (size == sizeof(ulong))
                 {
                     var uint64 = *(ulong*)value;
-                    *(ulong*)value = (uint64 >> 56) | ((uint64 & 0x00ff000000000000L) >> 40) |
-                                     ((uint64 & 0x0000ff0000000000L) >> 24) | ((uint64 & 0x000000ff00000000L) >> 8) |
-                                     ((uint64 & 0x00000000ff000000L) << 8) | ((uint64 & 0x0000000000ff0000L) << 24) |
-                                     ((uint64 & 0x000000000000ff00L) << 40) | (uint64 << 56);
+                    *(ulong*)value = (uint64 >> 56)
+                    | ((uint64 & 0x00ff000000000000L) >> 40)
+                    | ((uint64 & 0x0000ff0000000000L) >> 24)
+                    | ((uint64 & 0x000000ff00000000L) >> 8)
+                    | ((uint64 & 0x00000000ff000000L) << 8)
+                    | ((uint64 & 0x0000000000ff0000L) << 24)
+                    | ((uint64 & 0x000000000000ff00L) << 40)
+                    | (uint64 << 56);
                 }
                 else if (size == sizeof(decimal))
                 {
@@ -227,8 +225,7 @@ namespace Cyxor.Serialization
                 var length = value.Length;
                 var bytes = new byte[(length + 1) / 3];
 
-                static int CharConvert(int @char)
-                    => @char - (@char > 0x60 ? 0x57 : @char > 0x40 ? 0x37 : 0x30);
+                static int CharConvert(int @char) => @char - (@char > 0x60 ? 0x57 : @char > 0x40 ? 0x37 : 0x30);
 
                 for (int i = 0, j = 0; i < length; i += 3, ++j)
                     bytes[j] = (byte)((CharConvert(value[i]) << 4) + CharConvert(value[i + 1]));
@@ -236,14 +233,13 @@ namespace Cyxor.Serialization
                 return bytes;
             }
 
-            public static string ToHexString(byte[] value)
-                => BitConverter.ToString(value);
+            public static string ToHexString(byte[] value) => BitConverter.ToString(value);
         }
 
         public static class Reflection
         {
-            public static TAttribute? GetCustomAssemblyAttribute<TAttribute>(Type type) where TAttribute : Attribute
-                => type.Assembly.GetCustomAttribute<TAttribute>();
+            public static TAttribute? GetCustomAssemblyAttribute<TAttribute>(Type type)
+                where TAttribute : Attribute => type.Assembly.GetCustomAttribute<TAttribute>();
         }
 
         public static class EncodedInteger
@@ -253,20 +249,15 @@ namespace Cyxor.Serialization
             public const int ThreeBytesCap = 2097152;
             public const int FourBytesCap = 268435456;
 
-            public static int RequiredBytes(short value)
-                => RequiredBytes((ulong)((value << 1) ^ (value >> 15)));
+            public static int RequiredBytes(short value) => RequiredBytes((ulong)((value << 1) ^ (value >> 15)));
 
-            public static int RequiredBytes(int value)
-                => RequiredBytes((uint)value);
+            public static int RequiredBytes(int value) => RequiredBytes((uint)value);
 
-            public static int RequiredBytes(long value)
-                => RequiredBytes((ulong)((value << 1) ^ (value >> 63)));
+            public static int RequiredBytes(long value) => RequiredBytes((ulong)((value << 1) ^ (value >> 63)));
 
-            public static int RequiredBytes(ushort value)
-                => RequiredBytes((ulong)value);
+            public static int RequiredBytes(ushort value) => RequiredBytes((ulong)value);
 
-            public static int RequiredBytes(uint value)
-                => RequiredBytes((ulong)value);
+            public static int RequiredBytes(uint value) => RequiredBytes((ulong)value);
 
             public static int RequiredBytes(ulong value)
             {

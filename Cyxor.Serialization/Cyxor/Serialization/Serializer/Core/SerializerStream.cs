@@ -39,11 +39,9 @@ namespace Cyxor.Serialization
 
         public override long Length => _stream?.Length ?? _length;
 
-        public override int ReadByte()
-            => DeserializeByte();
+        public override int ReadByte() => DeserializeByte();
 
-        public override void WriteByte(byte value)
-            => Serialize(value);
+        public override void WriteByte(byte value) => Serialize(value);
 
         public override int Read(byte[] buffer, int offset, int count)
         {
@@ -52,8 +50,12 @@ namespace Cyxor.Serialization
             return count;
         }
 
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-        {
+        public override async Task<int> ReadAsync(
+            byte[] buffer,
+            int offset,
+            int count,
+            CancellationToken cancellationToken
+        ) {
             if (_stream != null)
             {
                 var result = await _stream.ReadAsync(buffer, offset, count, cancellationToken);
@@ -76,8 +78,10 @@ namespace Cyxor.Serialization
             return _position - initialPosition;
         }
 
-        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
-        {
+        public override async ValueTask<int> ReadAsync(
+            Memory<byte> buffer,
+            CancellationToken cancellationToken = default
+        ) {
             if (_stream == null)
                 return DeserializeMemory(ref buffer);
             else
@@ -88,16 +92,11 @@ namespace Cyxor.Serialization
             }
         }
 
-        public override void Write(byte[] buffer, int offset, int count)
-            => SerializeRaw(buffer, offset, count);
+        public override void Write(byte[] buffer, int offset, int count) => SerializeRaw(buffer, offset, count);
 
-        override async
+        override async public override void Write(ReadOnlySpan<byte> buffer) => SerializeRaw(buffer);
 
-        public override void Write(ReadOnlySpan<byte> buffer)
-            => SerializeRaw(buffer);
-
-        public override void Flush()
-            => _stream?.Flush();
+        public override void Flush() => _stream?.Flush();
 
         public override void SetLength(long value)
         {
@@ -114,9 +113,15 @@ namespace Cyxor.Serialization
         {
             switch (origin)
             {
-                case SeekOrigin.Begin: Position = offset; break;
-                case SeekOrigin.End: Position = (_stream?.Length ?? _length) - offset; break;
-                case SeekOrigin.Current: Position = (_stream?.Position ?? _position) + offset; break;
+                case SeekOrigin.Begin:
+                    Position = offset;
+                    break;
+                case SeekOrigin.End:
+                    Position = (_stream?.Length ?? _length) - offset;
+                    break;
+                case SeekOrigin.Current:
+                    Position = (_stream?.Position ?? _position) + offset;
+                    break;
             }
 
             return _stream?.Position ?? _position;

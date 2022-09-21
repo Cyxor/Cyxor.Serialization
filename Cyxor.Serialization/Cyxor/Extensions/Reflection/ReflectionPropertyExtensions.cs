@@ -91,7 +91,8 @@ namespace Cyxor.Extensions
         /// Type, IEnumerable{Type}, int?, IEnumerable{Type}, int?, IEnumerable{Type})"/>
         /// <seealso cref="GetMethodsInfo(Type, string, string, string, string, bool?, bool?, bool?, bool?, bool?, bool?,
         /// Type, IEnumerable{Type}, int?, IEnumerable{Type}, int?, IEnumerable{Type})"/>
-        public static IEnumerable<PropertyInfo> GetPropertiesInfo(this Type type,
+        public static IEnumerable<PropertyInfo> GetPropertiesInfo(
+            this Type type,
             string? name = default,
             string? nameStartsWith = default,
             string? nameEndsWith = default,
@@ -107,25 +108,42 @@ namespace Cyxor.Extensions
             Type? propertyType = default,
             IEnumerable<Type>? attributes = default,
             int? genericArgumentsCount = default,
-            IEnumerable<Type>? genericArguments = default)
-            => from property in (inheritedProperties ?? true) ? type.GetRuntimeProperties() : type.GetTypeInfo().DeclaredProperties
-               let propertyGenericArguments = property.PropertyType.GetGenericArguments()
-                where property.Name == (name ?? property.Name)
-                && (nameStartsWith == default ? true : property.Name.StartsWith(nameStartsWith!, StringComparison.Ordinal))
-                && (nameEndsWith == default ? true : property.Name.EndsWith(nameEndsWith!, StringComparison.Ordinal))
-                && (nameContains == default ? true : property.Name.Contains(nameContains!, StringComparison.Ordinal))
-                && property.GetGetMethod(nonPublic: true)?.IsPublic == (publicGetAccessor ?? property.GetGetMethod(nonPublic: true)?.IsPublic)
-                && property.GetGetMethod(nonPublic: true)?.IsPrivate == (privateGetAccessor ?? property.GetGetMethod(nonPublic: true)?.IsPrivate)
-                && property.GetGetMethod(nonPublic: true)?.IsStatic == (staticGetAccessor ?? property.GetGetMethod(nonPublic: true)?.IsStatic)
-                && property.PropertyType.GetTypeInfo().IsGenericType == (genericPropertyType ?? property.PropertyType.GetTypeInfo().IsGenericType)
-                && property.PropertyType.GetTypeInfo().IsGenericTypeDefinition
+            IEnumerable<Type>? genericArguments = default
+        ) =>
+
+                from property in (inheritedProperties ?? true)
+                    ? type.GetRuntimeProperties()
+                    : type.GetTypeInfo().DeclaredProperties
+                let propertyGenericArguments = property.PropertyType.GetGenericArguments()
+                where
+                    property.Name == (name ?? property.Name)
+                    && (nameStartsWith == default
+                        ? true
+                        : property.Name.StartsWith(nameStartsWith!, StringComparison.Ordinal))
+                    && (nameEndsWith == default
+                        ? true
+                        : property.Name.EndsWith(nameEndsWith!, StringComparison.Ordinal))
+                    && (nameContains == default
+                        ? true
+                        : property.Name.Contains(nameContains!, StringComparison.Ordinal))
+                    && property.GetGetMethod(nonPublic: true)?.IsPublic
+                    == (publicGetAccessor ?? property.GetGetMethod(nonPublic: true)?.IsPublic)
+                    && property.GetGetMethod(nonPublic: true)?.IsPrivate
+                    == (privateGetAccessor ?? property.GetGetMethod(nonPublic: true)?.IsPrivate)
+                    && property.GetGetMethod(nonPublic: true)?.IsStatic
+                    == (staticGetAccessor ?? property.GetGetMethod(nonPublic: true)?.IsStatic)
+                    && property.PropertyType.GetTypeInfo().IsGenericType
+                    == (genericPropertyType ?? property.PropertyType.GetTypeInfo().IsGenericType)
+                    && property.PropertyType.GetTypeInfo().IsGenericTypeDefinition
                     == (genericPropertyTypeDefinition ?? property.PropertyType.GetTypeInfo().IsGenericTypeDefinition)
-                && property.CanRead == (canReadProperties ?? property.CanRead)
-                && property.CanWrite == (canWriteProperties ?? property.CanWrite)
-                && property.PropertyType == (propertyType ?? property.PropertyType)
-                && (attributes == default ? true : attributes.All(p => property.IsDefined(p, inheritedProperties ?? true)))
-                && propertyGenericArguments.Length == (genericArgumentsCount ?? propertyGenericArguments.Length)
-                && (genericArguments == default ? true : propertyGenericArguments.SequenceEqual(genericArguments))
+                    && property.CanRead == (canReadProperties ?? property.CanRead)
+                    && property.CanWrite == (canWriteProperties ?? property.CanWrite)
+                    && property.PropertyType == (propertyType ?? property.PropertyType)
+                    && (attributes == default
+                        ? true
+                        : attributes.All(p => property.IsDefined(p, inheritedProperties ?? true)))
+                    && propertyGenericArguments.Length == (genericArgumentsCount ?? propertyGenericArguments.Length)
+                    && (genericArguments == default ? true : propertyGenericArguments.SequenceEqual(genericArguments))
                 select property;
 
         /// <summary>
@@ -212,7 +230,8 @@ namespace Cyxor.Extensions
         /// Type, IEnumerable{Type}, int?, IEnumerable{Type}, int?, IEnumerable{Type})"/>
         /// <seealso cref="GetMethodsInfo(Type, string, string, string, string, bool?, bool?, bool?, bool?, bool?, bool?,
         /// Type, IEnumerable{Type}, int?, IEnumerable{Type}, int?, IEnumerable{Type})"/>
-        public static PropertyInfo? GetPropertyInfo(this Type type,
+        public static PropertyInfo? GetPropertyInfo(
+            this Type type,
             string? name = default,
             string? nameStartsWith = default,
             string? nameEndsWith = default,
@@ -228,11 +247,27 @@ namespace Cyxor.Extensions
             Type? propertyType = default,
             IEnumerable<Type>? attributes = default,
             int? genericArgumentsCount = default,
-            IEnumerable<Type>? genericArguments = default)
-        {
-            var properties = GetPropertiesInfo(type, name, nameStartsWith, nameEndsWith, nameContains, isInherited,
-                hasPublicGetAccessor, hasPrivateGetAccessor, hasStaticGetAccessor, hasGenericPropertyType, hasGenericPropertyTypeDefinition,
-                canRead, canWrite, propertyType, attributes, genericArgumentsCount, genericArguments);
+            IEnumerable<Type>? genericArguments = default
+        ) {
+            var properties = GetPropertiesInfo(
+                type,
+                name,
+                nameStartsWith,
+                nameEndsWith,
+                nameContains,
+                isInherited,
+                hasPublicGetAccessor,
+                hasPrivateGetAccessor,
+                hasStaticGetAccessor,
+                hasGenericPropertyType,
+                hasGenericPropertyTypeDefinition,
+                canRead,
+                canWrite,
+                propertyType,
+                attributes,
+                genericArgumentsCount,
+                genericArguments
+            );
 
             if (properties.Count() > 1)
                 throw new AmbiguousMatchException("More than one property is found with the specified parameters.");

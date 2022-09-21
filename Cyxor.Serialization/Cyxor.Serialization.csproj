@@ -3,7 +3,7 @@
   <PropertyGroup>
 
     <Nullable>enable</Nullable>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>latest</LangVersion>
     <RootNamespace></RootNamespace>
     <Authors>Yandy Zaldivar</Authors>
     <VersionPrefix>0.2.0</VersionPrefix>
@@ -11,7 +11,7 @@
     <Copyright>@ Yandy Zaldivar</Copyright>
     <AssemblyName>Cyxor.SerializationX</AssemblyName>
     <AssemblyTitle>Cyxor.SerializationX</AssemblyTitle>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <Description>Effective binary object serialization class library for low-overhead network transmissions</Description>
 
     <Deterministic>true</Deterministic>
@@ -29,6 +29,9 @@
     <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
 
     <!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
+
+      <ImplicitUsings>disable</ImplicitUsings>
+
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -41,4 +44,11 @@
     <PackageReleaseNotes>Initial release</PackageReleaseNotes>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Using Include="System" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
 </Project>

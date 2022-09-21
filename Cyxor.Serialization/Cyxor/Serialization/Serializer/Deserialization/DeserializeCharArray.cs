@@ -12,9 +12,13 @@ namespace Cyxor.Serialization
 
             var count = InternalDeserializeSequenceHeader();
 
-            return count == -1 ? throw new InvalidOperationException(Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(typeof(char[]).Name))
-                : count == 0 ? Array.Empty<char>()
-                : DeserializeChars(count);
+            return count == -1
+                ? throw new InvalidOperationException(
+                        Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(
+                            typeof(char[]).Name
+                        )
+                    )
+                : count == 0 ? Array.Empty<char>() : DeserializeChars(count);
         }
 
         public char[]? DeserializeNullableChars()
@@ -24,16 +28,12 @@ namespace Cyxor.Serialization
 
             var count = InternalDeserializeSequenceHeader();
 
-            return count == -1 ? default
-                : count == 0 ? Array.Empty<char>()
-                : DeserializeNullableChars(count);
+            return count == -1 ? default : count == 0 ? Array.Empty<char>() : DeserializeNullableChars(count);
         }
 
-        public char[] DeserializeRawChars()
-            => DeserializeChars(_length - _position);
+        public char[] DeserializeRawChars() => DeserializeChars(_length - _position);
 
-        public char[]? DeserializeNullableRawChars()
-            => DeserializeNullableChars(_length - _position);
+        public char[]? DeserializeNullableRawChars() => DeserializeNullableChars(_length - _position);
 
         public char[] DeserializeChars(int byteCount)
         {
@@ -41,7 +41,10 @@ namespace Cyxor.Serialization
                 return Array.Empty<char>();
 
             if (byteCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(byteCount), $"Parameter {nameof(byteCount)} must be a positive value");
+                throw new ArgumentOutOfRangeException(
+                    nameof(byteCount),
+                    $"Parameter {nameof(byteCount)} must be a positive value"
+                );
 
             InternalEnsureDeserializeCapacity(byteCount);
 
@@ -56,7 +59,10 @@ namespace Cyxor.Serialization
                 return default;
 
             if (byteCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(byteCount), $"Parameter {nameof(byteCount)} must be a positive value");
+                throw new ArgumentOutOfRangeException(
+                    nameof(byteCount),
+                    $"Parameter {nameof(byteCount)} must be a positive value"
+                );
 
             InternalEnsureDeserializeCapacity(byteCount);
 
@@ -69,8 +75,12 @@ namespace Cyxor.Serialization
         {
             unsafe
             {
-                fixed (char* ptr = chars)
-                    return DeserializeChars(ptr + offset, chars.Length - offset, 0, zeroBytesToCopy: true);
+                fixed (char* ptr = chars)return DeserializeChars(
+                    ptr + offset,
+                    chars.Length - offset,
+                    0,
+                    zeroBytesToCopy: true
+                );
             }
         }
 
@@ -78,16 +88,20 @@ namespace Cyxor.Serialization
         {
             unsafe
             {
-                fixed (char* ptr = chars)
-                    return DeserializeChars(ptr + offset, chars.Length - offset, byteCount, zeroBytesToCopy: false);
+                fixed (char* ptr = chars)return DeserializeChars(
+                    ptr + offset,
+                    chars.Length - offset,
+                    byteCount,
+                    zeroBytesToCopy: false
+                );
             }
         }
 
-        public unsafe int DeserializeChars(char* chars, int charCount)
-            => DeserializeChars(chars, charCount, 0, zeroBytesToCopy: true);
+        public unsafe int DeserializeChars(char* chars, int charCount) =>
+            DeserializeChars(chars, charCount, 0, zeroBytesToCopy: true);
 
-        public unsafe int DeserializeChars(char* chars, int charCount, int byteCount)
-            => DeserializeChars(chars, charCount, byteCount, zeroBytesToCopy: false);
+        public unsafe int DeserializeChars(char* chars, int charCount, int byteCount) =>
+            DeserializeChars(chars, charCount, byteCount, zeroBytesToCopy: false);
 
         unsafe int DeserializeChars(char* chars, int charCount, int byteCount, bool zeroBytesToCopy)
         {
@@ -97,15 +111,24 @@ namespace Cyxor.Serialization
                 throw new ArgumentNullException(nameof(chars));
 
             if (charCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(charCount), $"{nameof(charCount)} must be a positive value");
+                throw new ArgumentOutOfRangeException(
+                    nameof(charCount),
+                    $"{nameof(charCount)} must be a positive value"
+                );
 
             if (byteCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(byteCount), $"{nameof(byteCount)} must be a positive value");
+                throw new ArgumentOutOfRangeException(
+                    nameof(byteCount),
+                    $"{nameof(byteCount)} must be a positive value"
+                );
 
             if (byteCount == 0)
             {
                 if (!zeroBytesToCopy)
-                    throw new ArgumentOutOfRangeException(nameof(byteCount), $"{nameof(byteCount)} must be greater than zero. To read the length from data use an overload.");
+                    throw new ArgumentOutOfRangeException(
+                        nameof(byteCount),
+                        $"{nameof(byteCount)} must be greater than zero. To read the length from data use an overload."
+                    );
 
                 byteCount = InternalDeserializeSequenceHeader();
 
@@ -115,8 +138,12 @@ namespace Cyxor.Serialization
 
             InternalEnsureDeserializeCapacity(byteCount);
 
-            fixed (byte* src = _buffer)
-                result = System.Text.Encoding.UTF8.GetChars(src + _position, byteCount, chars, charCount);
+            fixed (byte* src = _buffer)result = System.Text.Encoding.UTF8.GetChars(
+                src + _position,
+                byteCount,
+                chars,
+                charCount
+            );
 
             _position += byteCount;
 
