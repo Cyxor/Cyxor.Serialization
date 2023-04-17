@@ -1,7 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.IO;
-
-namespace Cyxor.Serialization;
+﻿namespace Cyxor.Serialization;
 
 partial class Serializer
 {

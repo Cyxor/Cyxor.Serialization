@@ -1,7 +1,4 @@
-﻿using System.Buffers.Binary;
-using System.Runtime.CompilerServices;
-
-namespace Cyxor.Serialization;
+﻿namespace Cyxor.Serialization;
 
 partial class Serializer
 {

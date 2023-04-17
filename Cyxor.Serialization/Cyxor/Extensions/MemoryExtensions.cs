@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices;
-
-namespace Cyxor.Extensions;
+﻿namespace Cyxor.Extensions;
 
 static class MemoryExtensions
 {

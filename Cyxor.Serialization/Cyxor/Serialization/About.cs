@@ -1,5 +1,3 @@
-using System.Reflection;
-
 /// <summary>
 /// Effective binary object serialization class library for low-overhead network transmissions.
 /// </summary>

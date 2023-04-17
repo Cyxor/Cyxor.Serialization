@@ -1,8 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+﻿namespace Cyxor.Serialization;
 
-namespace Cyxor.Serialization;
 static partial class Utilities
 {
     public class Unmanaged

@@ -1,8 +1,4 @@
-﻿using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-
-namespace Cyxor.Serialization;
+﻿namespace Cyxor.Serialization;
 
 partial class Serializer
 {

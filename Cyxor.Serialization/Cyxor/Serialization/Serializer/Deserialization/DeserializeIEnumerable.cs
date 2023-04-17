@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Cyxor.Serialization
+﻿namespace Cyxor.Serialization
 {
     partial class Serializer
     {

@@ -1,12 +1,4 @@
-﻿using System.Buffers;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Text;
-
-namespace Cyxor.Serialization;
+﻿namespace Cyxor.Serialization;
 
 [DebuggerDisplay("{DebuggerDisplay()}")]
 public sealed partial class Serializer : Stream //, IBufferWriter<byte>

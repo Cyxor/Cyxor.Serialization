@@ -1,9 +1,4 @@
-﻿using System.IO;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Cyxor.Serialization;
+﻿namespace Cyxor.Serialization;
 
 partial class Serializer
 {

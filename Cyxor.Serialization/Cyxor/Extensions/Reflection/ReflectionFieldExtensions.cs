@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-
-namespace Cyxor.Extensions;
+﻿namespace Cyxor.Extensions;
 
 public static partial class ReflectionExtensions
 {

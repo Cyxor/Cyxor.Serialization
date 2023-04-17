@@ -1,7 +1,4 @@
-﻿using System.IO;
-using System.Runtime.CompilerServices;
-
-namespace Cyxor.Serialization;
+﻿namespace Cyxor.Serialization;
 
 partial class Serializer
 {

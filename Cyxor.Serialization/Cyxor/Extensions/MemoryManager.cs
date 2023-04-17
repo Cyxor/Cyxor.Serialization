@@ -1,7 +1,4 @@
-﻿using System.Buffers;
-using System.Runtime.InteropServices;
-
-namespace Cyxor.Extensions;
+﻿namespace Cyxor.Extensions;
 
 sealed class MemoryManager<TFrom, TTo> : MemoryManager<TTo>
     where TFrom : unmanaged

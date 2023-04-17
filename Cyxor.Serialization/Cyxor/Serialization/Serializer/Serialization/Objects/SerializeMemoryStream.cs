@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace Cyxor.Serialization;
+﻿namespace Cyxor.Serialization;
 
 using BufferOverflowException = EndOfStreamException;
 

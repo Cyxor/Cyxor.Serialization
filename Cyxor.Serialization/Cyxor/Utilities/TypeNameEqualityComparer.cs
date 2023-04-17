@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-
-namespace Cyxor.Serialization;
+﻿namespace Cyxor.Serialization;
 
 class NameEqualityComparer : IEqualityComparer<Type>
 {

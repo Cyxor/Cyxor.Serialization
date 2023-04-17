@@ -1,14 +1,4 @@
-﻿using System.Buffers;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-
-namespace Cyxor.Serialization;
+﻿namespace Cyxor.Serialization;
 
 using Extensions;
 

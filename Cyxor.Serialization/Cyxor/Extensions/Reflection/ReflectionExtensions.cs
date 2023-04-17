@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace Cyxor.Extensions;
+﻿namespace Cyxor.Extensions;
 
 public static partial class ReflectionExtensions
 {

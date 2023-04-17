@@ -4,7 +4,7 @@
 
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>Cyxor.Serialization</RootNamespace>
     <Authors>Yandy Zaldivar</Authors>
     <VersionPrefix>0.2.0</VersionPrefix>
     <!--<VersionSuffix>preview</VersionSuffix>-->
@@ -30,7 +30,7 @@
 
     <!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
 
-      <ImplicitUsings>disable</ImplicitUsings>
+      <ImplicitUsings>enable</ImplicitUsings>
 
   </PropertyGroup>
 
@@ -44,11 +44,27 @@
     <PackageReleaseNotes>Initial release</PackageReleaseNotes>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Using Include="System" />
-  </ItemGroup>
-
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Buffers" />
+    <Using Include="System.Buffers.Binary" />
+    <Using Include="System.Collections" />
+    <Using Include="System.Collections.Concurrent;" />
+    <Using Include="System.Diagnostics" />
+    <Using Include="System.Diagnostics.CodeAnalysis" />
+    <Using Include="System.Globalization" />
+    <Using Include="System.Linq.Expressions" />
+    <Using Include="System.Numerics" />
+    <Using Include="System.Reflection" />
+    <Using Include="System.Runtime.CompilerServices" />
+    <Using Include="System.Runtime.InteropServices" />
+    <Using Include="System.Runtime.Serialization" />
+    <Using Include="System.Text" />
+    <Using Include="System.Text.Json" />
+    <Using Include="System.Text.Unicode" />
+  </ItemGroup>
 </Project>

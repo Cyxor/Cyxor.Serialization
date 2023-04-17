@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace Cyxor.Serialization;
+﻿namespace Cyxor.Serialization;
 
 public class JsonBackingSerializer : IBackingSerializer
 {
