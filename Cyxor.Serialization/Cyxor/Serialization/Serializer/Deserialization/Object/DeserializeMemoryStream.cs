@@ -1,75 +1,74 @@
-﻿using System.IO;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.IO;
 
-namespace Cyxor.Serialization
+namespace Cyxor.Serialization;
+
+partial class Serializer
 {
-    partial class Serializer
+    public MemoryStream DeserializeMemoryStream() => new MemoryStream(DeserializeBytes());
+
+    public MemoryStream? DeserializeNullableMemoryStream()
     {
-        public MemoryStream DeserializeMemoryStream() => new MemoryStream(DeserializeBytes());
+        var bytes = DeserializeNullableBytes();
+        return bytes == default ? default : new MemoryStream(bytes);
+    }
 
-        public MemoryStream? DeserializeNullableMemoryStream()
+    public MemoryStream DeserializeRawMemoryStream() => new MemoryStream(DeserializeRawBytes());
+
+    public MemoryStream? DeserializeNullableRawMemoryStream()
+    {
+        var bytes = DeserializeNullableRawBytes();
+        return bytes == default ? default : new MemoryStream(bytes);
+    }
+
+    public bool TryDeserializeMemoryStream([NotNullWhen(true)] out MemoryStream? value)
+    {
+        value = default;
+
+        if (!TryDeserializeBytes(out var bytes))
+            return false;
+
+        try
         {
-            var bytes = DeserializeNullableBytes();
-            return bytes == default ? default : new MemoryStream(bytes);
+            value = new MemoryStream(bytes);
+            return true;
         }
-
-        public MemoryStream DeserializeRawMemoryStream() => new MemoryStream(DeserializeRawBytes());
-
-        public MemoryStream? DeserializeNullableRawMemoryStream()
+        catch
         {
-            var bytes = DeserializeNullableRawBytes();
-            return bytes == default ? default : new MemoryStream(bytes);
+            return false;
         }
+    }
 
-        public bool TryDeserializeMemoryStream([NotNullWhen(true)] out MemoryStream? value)
+    public bool TryDeserializeNullableMemoryStream(out MemoryStream? value)
+    {
+        value = default;
+
+        if (!TryDeserializeNullableBytes(out var bytes))
+            return false;
+
+        if (bytes == default)
+            return true;
+
+        try
         {
-            value = default;
-
-            if (!TryDeserializeBytes(out var bytes))
-                return false;
-
-            try
-            {
-                value = new MemoryStream(bytes);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            value = new MemoryStream(bytes);
+            return true;
         }
-
-        public bool TryDeserializeNullableMemoryStream(out MemoryStream? value)
+        catch
         {
-            value = default;
-
-            if (!TryDeserializeNullableBytes(out var bytes))
-                return false;
-
-            if (bytes == default)
-                return true;
-
-            try
-            {
-                value = new MemoryStream(bytes);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return false;
         }
+    }
 
-        public MemoryStream ToMemoryStream()
-        {
-            _position = 0;
-            return DeserializeRawMemoryStream();
-        }
+    public MemoryStream ToMemoryStream()
+    {
+        _position = 0;
+        return DeserializeRawMemoryStream();
+    }
 
-        public MemoryStream? ToNullableMemoryStream()
-        {
-            _position = 0;
-            return DeserializeNullableRawMemoryStream();
-        }
+    public MemoryStream? ToNullableMemoryStream()
+    {
+        _position = 0;
+        return DeserializeNullableRawMemoryStream();
     }
 }

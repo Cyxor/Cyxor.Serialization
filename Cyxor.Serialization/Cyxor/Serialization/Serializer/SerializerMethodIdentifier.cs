@@ -1,20 +1,19 @@
-﻿namespace Cyxor.Serialization
+﻿namespace Cyxor.Serialization;
+
+enum SerializerMethodIdentifier
 {
-    enum SerializerMethodIdentifier
-    {
-        SerializeEnum,
-        DeserializeEnum,
-        SerializeObject,
-        DeserializeObject,
-        SerializeArray,
-        DeserializeArray,
-        SerializeIGrouping,
-        DeserializeIGrouping,
-        SerializeIDictionary,
-        DeserializeIDictionary,
-        SerializeIEnumerable,
-        DeserializeIEnumerable,
-        SerializeUnmanaged,
-        DeserializeUnmanaged,
-    }
+    SerializeEnum,
+    DeserializeEnum,
+    SerializeObject,
+    DeserializeObject,
+    SerializeArray,
+    DeserializeArray,
+    SerializeIGrouping,
+    DeserializeIGrouping,
+    SerializeIDictionary,
+    DeserializeIDictionary,
+    SerializeIEnumerable,
+    DeserializeIEnumerable,
+    SerializeUnmanaged,
+    DeserializeUnmanaged,
 }

@@ -1,75 +1,73 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Cyxor.Serialization
+namespace Cyxor.Serialization;
+
+partial class Serializer
 {
-    partial class Serializer
+    public Uri DeserializeUri() => new Uri(DeserializeString());
+
+    public Uri? DeserializeNullableUri()
     {
-        public Uri DeserializeUri() => new Uri(DeserializeString());
+        var str = DeserializeNullableString();
+        return str == default ? default : new Uri(str);
+    }
 
-        public Uri? DeserializeNullableUri()
+    public Uri DeserializeRawUri() => new Uri(DeserializeRawString());
+
+    public Uri? DeserializeNullableRawUri()
+    {
+        var str = DeserializeNullableStringRaw();
+        return str == default ? default : new Uri(str);
+    }
+
+    public bool TryDeserializeUri([NotNullWhen(true)] out Uri? value)
+    {
+        value = default;
+
+        if (!TryDeserializeString(out var str))
+            return false;
+
+        try
         {
-            var str = DeserializeNullableString();
-            return str == default ? default : new Uri(str);
+            value = new Uri(str);
+            return true;
         }
-
-        public Uri DeserializeRawUri() => new Uri(DeserializeRawString());
-
-        public Uri? DeserializeNullableRawUri()
+        catch
         {
-            var str = DeserializeNullableStringRaw();
-            return str == default ? default : new Uri(str);
+            return false;
         }
+    }
 
-        public bool TryDeserializeUri([NotNullWhen(true)] out Uri? value)
+    public bool TryDeserializeNullableUri(out Uri? value)
+    {
+        value = default;
+
+        if (!TryDeserializeNullableString(out var str))
+            return false;
+
+        if (str == default)
+            return true;
+
+        try
         {
-            value = default;
-
-            if (!TryDeserializeString(out var str))
-                return false;
-
-            try
-            {
-                value = new Uri(str);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            value = new Uri(str);
+            return true;
         }
-
-        public bool TryDeserializeNullableUri(out Uri? value)
+        catch
         {
-            value = default;
-
-            if (!TryDeserializeNullableString(out var str))
-                return false;
-
-            if (str == default)
-                return true;
-
-            try
-            {
-                value = new Uri(str);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return false;
         }
+    }
 
-        public Uri ToUri()
-        {
-            _position = 0;
-            return DeserializeRawUri();
-        }
+    public Uri ToUri()
+    {
+        _position = 0;
+        return DeserializeRawUri();
+    }
 
-        public Uri? ToNullableUri()
-        {
-            _position = 0;
-            return DeserializeNullableRawUri();
-        }
+    public Uri? ToNullableUri()
+    {
+        _position = 0;
+        return DeserializeNullableRawUri();
     }
 }

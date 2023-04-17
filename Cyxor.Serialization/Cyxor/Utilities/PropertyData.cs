@@ -1,108 +1,106 @@
-﻿using System;
-using System.Reflection;
-using System.Collections;
-using System.Linq.Expressions;
+﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
 
-namespace Cyxor.Serialization
+namespace Cyxor.Serialization;
+
+using Extensions;
+
+sealed class PropertyData : IComparable<PropertyData>, IEquatable<PropertyData>
 {
-    using Extensions;
+    readonly int HashCode;
 
-    sealed class PropertyData : IComparable<PropertyData>, IEquatable<PropertyData>
+    public readonly string Name;
+    public readonly PropertyInfo PropertyInfo;
+    public readonly bool ShouldSerialize;
+    public readonly bool NeedChangeCollection;
+
+    readonly Func<object, object[]?, object> GetValueDelegate;
+    readonly Action<object, object?, object[]?> SetValueDelegate;
+
+    public override int GetHashCode() => HashCode;
+
+    public object GetValue(object obj, object[]? index) => GetValueDelegate(obj, index);
+    public void SetValue(object obj, object? value, object[]? index) => SetValueDelegate(obj, value, index);
+
+    public int CompareTo(PropertyData other) => string.Compare(Name, other.Name, StringComparison.Ordinal);
+
+    public bool Equals(PropertyData other) => CompareTo(other) == 0;
+
+    public override bool Equals(object? obj)
     {
-        readonly int HashCode;
+        if (obj == default)
+            return false;
 
-        public readonly string Name;
-        public readonly PropertyInfo PropertyInfo;
-        public readonly bool ShouldSerialize;
-        public readonly bool NeedChangeCollection;
+        var propertyData = obj as PropertyData;
 
-        readonly Func<object, object[]?, object> GetValueDelegate;
-        readonly Action<object, object?, object[]?> SetValueDelegate;
+        return propertyData == default ? false : Equals(propertyData);
+    }
 
-        public override int GetHashCode() => HashCode;
+    private static void Map<T>(out T dest, T src) => dest = src;
 
-        public object GetValue(object obj, object[]? index) => GetValueDelegate(obj, index);
-        public void SetValue(object obj, object? value, object[]? index) => SetValueDelegate(obj, value, index);
+    static readonly MethodInfo MapMethodInfo = typeof(PropertyData).GetMethodInfo(nameof(Map), isStatic: true)!;
 
-        public int CompareTo(PropertyData other) => string.Compare(Name, other.Name, StringComparison.Ordinal);
+    public PropertyData(PropertyInfo propertyInfo, bool shouldSerialize)
+    {
+        PropertyInfo = propertyInfo;
+        Name = PropertyInfo.Name;
+        ShouldSerialize = shouldSerialize;
 
-        public bool Equals(PropertyData other) => CompareTo(other) == 0;
+        if (PropertyInfo.PropertyType.FullName == default)
+            throw new InvalidOperationException(Utilities.ResourceStrings.CyxorInternalException);
 
-        public override bool Equals(object? obj)
-        {
-            if (obj == default)
-                return false;
-
-            var propertyData = obj as PropertyData;
-
-            return propertyData == default ? false : Equals(propertyData);
-        }
-
-        private static void Map<T>(out T dest, T src) => dest = src;
-
-        static readonly MethodInfo MapMethodInfo = typeof(PropertyData).GetMethodInfo(nameof(Map), isStatic: true)!;
-
-        public PropertyData(PropertyInfo propertyInfo, bool shouldSerialize)
-        {
-            PropertyInfo = propertyInfo;
-            Name = PropertyInfo.Name;
-            ShouldSerialize = shouldSerialize;
-
-            if (PropertyInfo.PropertyType.FullName == default)
-                throw new InvalidOperationException(Utilities.ResourceStrings.CyxorInternalException);
-
-            if (PropertyInfo.PropertyType.GetTypeInfo().IsGenericType)
-                if (!PropertyInfo.PropertyType.GetTypeInfo().IsInterface)
-                    if (PropertyInfo.PropertyType.IsInterfaceImplemented<IEnumerable>())
-                        if (
-                            !PropertyInfo.PropertyType.FullName.StartsWith(
-                                $"{typeof(List<>).Namespace}.{typeof(List<>).Name}",
-                                StringComparison.Ordinal
-                            )
+        if (PropertyInfo.PropertyType.GetTypeInfo().IsGenericType)
+            if (!PropertyInfo.PropertyType.GetTypeInfo().IsInterface)
+                if (PropertyInfo.PropertyType.IsInterfaceImplemented<IEnumerable>())
+                    if (
+                        !PropertyInfo.PropertyType.FullName.StartsWith(
+                            $"{typeof(List<>).Namespace}.{typeof(List<>).Name}",
+                            StringComparison.Ordinal
                         )
-                            NeedChangeCollection = true;
+                    )
+                        NeedChangeCollection = true;
 
-            HashCode = Utilities.HashCode.GetFrom(propertyInfo.Name);
+        HashCode = Utilities.HashCode.GetFrom(propertyInfo.Name);
 
-            var mapMethodInfo = MapMethodInfo.MakeGenericMethod(PropertyInfo.PropertyType);
+        var mapMethodInfo = MapMethodInfo.MakeGenericMethod(PropertyInfo.PropertyType);
 
-            var valueParameter = Expression.Parameter(typeof(object), "value");
-            var indexParameter = Expression.Parameter(typeof(object[]), "index");
-            var objectParameter = Expression.Parameter(typeof(object), "object");
+        var valueParameter = Expression.Parameter(typeof(object), "value");
+        var indexParameter = Expression.Parameter(typeof(object[]), "index");
+        var objectParameter = Expression.Parameter(typeof(object), "object");
 
-            var valueConverted = Expression.Convert(valueParameter, PropertyInfo.PropertyType);
-            var objectConverted = Expression.Convert(objectParameter, PropertyInfo.DeclaringType);
+        var valueConverted = Expression.Convert(valueParameter, PropertyInfo.PropertyType);
+        var objectConverted = Expression.Convert(objectParameter, PropertyInfo.DeclaringType);
 
-            var propertyExpression = default(MemberExpression);
+        var propertyExpression = default(MemberExpression);
 
-            var memberExpression = ((Func<Expression, MemberExpression>)(p =>
-                propertyExpression = Expression.Property(p, PropertyInfo)))(objectConverted);
+        var memberExpression = ((Func<Expression, MemberExpression>)(p =>
+            propertyExpression = Expression.Property(p, PropertyInfo)))(objectConverted);
 
-            var getterExpression = PropertyInfo.PropertyType.GetTypeInfo().IsValueType
-                ? Expression.Convert(memberExpression, typeof(object))
-                : (Expression)memberExpression;
+        var getterExpression = PropertyInfo.PropertyType.GetTypeInfo().IsValueType
+            ? Expression.Convert(memberExpression, typeof(object))
+            : (Expression)memberExpression;
 
-            var setterExpression = ((Func<Expression, Expression, MethodCallExpression>)((p, value) => Expression.Call(
-                mapMethodInfo,
-                propertyExpression,
-                value
-            )))(objectConverted, valueConverted);
+        var setterExpression = ((Func<Expression, Expression, MethodCallExpression>)((p, value) => Expression.Call(
+            mapMethodInfo,
+            propertyExpression,
+            value
+        )))(objectConverted, valueConverted);
 
-            GetValueDelegate = Expression.Lambda<Func<object, object[]?, object>>(
-                    getterExpression,
-                    objectParameter,
-                    indexParameter
-                )
-                .Compile();
+        GetValueDelegate = Expression.Lambda<Func<object, object[]?, object>>(
+                getterExpression,
+                objectParameter,
+                indexParameter
+            )
+            .Compile();
 
-            SetValueDelegate = Expression.Lambda<Action<object, object?, object[]?>>(
-                    setterExpression,
-                    objectParameter,
-                    valueParameter,
-                    indexParameter
-                )
-                .Compile();
-        }
+        SetValueDelegate = Expression.Lambda<Action<object, object?, object[]?>>(
+                setterExpression,
+                objectParameter,
+                valueParameter,
+                indexParameter
+            )
+            .Compile();
     }
 }

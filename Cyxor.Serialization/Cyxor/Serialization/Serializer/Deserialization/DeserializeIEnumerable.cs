@@ -1,7 +1,6 @@
-﻿using System;
-using System.Linq;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Cyxor.Serialization
 {
@@ -327,10 +326,9 @@ namespace Cyxor.Serialization
         {
             var grouping = DeserializeNullableIGrouping<TKey, TElement>();
 
-            if (grouping != default)
-                return grouping;
-
-            throw new InvalidOperationException(
+            return grouping != default
+                ? grouping
+                : throw new InvalidOperationException(
                 Utilities.ResourceStrings.NullReferenceFoundWhenDeserializingNonNullableReference(
                     typeof(IGrouping<TKey, TElement>).Name
                 )

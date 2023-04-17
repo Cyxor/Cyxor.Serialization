@@ -1,59 +1,56 @@
-﻿using System;
+﻿namespace Cyxor.Serialization;
 
-namespace Cyxor.Serialization
+public enum ByteOrder
 {
-    public enum ByteOrder
+    LittleEndian,
+    BigEndian,
+}
+
+public interface ISerializable
+{
+    void Serialize(Serializer serializer);
+    void Deserialize(Serializer serializer);
+}
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+public sealed class CyxorIgnoreAttribute : Attribute { }
+
+public class Serializable : IDisposable
+{
+    bool disposed;
+
+    [CyxorIgnore]
+    Serializer serializer = new Serializer();
+    public virtual Serializer Serializer
     {
-        LittleEndian,
-        BigEndian,
+        get
+        {
+            serializer.Reset();
+            serializer.SerializeRaw(this);
+            return serializer;
+        }
+        set
+        {
+            serializer = value;
+            serializer.Position = 0;
+            _ = serializer.DeserializeRawObject(this);
+        }
     }
 
-    public interface ISerializable
+    protected virtual void Dispose(bool disposing)
     {
-        void Serialize(Serializer serializer);
-        void Deserialize(Serializer serializer);
+        if (disposed)
+            return;
+
+        if (disposing)
+            serializer.Dispose();
+
+        disposed = true;
     }
 
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public sealed class CyxorIgnoreAttribute : Attribute { }
-
-    public class Serializable : IDisposable
+    public void Dispose()
     {
-        bool disposed;
-
-        [CyxorIgnore]
-        Serializer serializer = new Serializer();
-        public virtual Serializer Serializer
-        {
-            get
-            {
-                serializer.Reset();
-                serializer.SerializeRaw(this);
-                return serializer;
-            }
-            set
-            {
-                serializer = value;
-                serializer.Position = 0;
-                _ = serializer.DeserializeRawObject(this);
-            }
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposed)
-                return;
-
-            if (disposing)
-                serializer.Dispose();
-
-            disposed = true;
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 }

@@ -1,60 +1,57 @@
-﻿using System;
+﻿namespace Cyxor.Serialization;
 
-namespace Cyxor.Serialization
+partial class Serializer
 {
-    partial class Serializer
-    {
-        #region byte
+    #region byte
 
-        public void Serialize(Memory<byte> value) => InternalSerialize(value.Span, AutoRaw);
+    public void Serialize(Memory<byte> value) => InternalSerialize(value.Span, AutoRaw);
 
-        public void SerializeRaw(Memory<byte> value) => InternalSerialize(value.Span, raw: true);
+    public void SerializeRaw(Memory<byte> value) => InternalSerialize(value.Span, raw: true);
 
-        public void Serialize(ReadOnlyMemory<byte> value) => InternalSerialize(value.Span, AutoRaw);
+    public void Serialize(ReadOnlyMemory<byte> value) => InternalSerialize(value.Span, AutoRaw);
 
-        public void SerializeRaw(ReadOnlyMemory<byte> value) => InternalSerialize(value.Span, raw: true);
+    public void SerializeRaw(ReadOnlyMemory<byte> value) => InternalSerialize(value.Span, raw: true);
 
-        public void Serialize(Memory<byte>? value) => InternalSerializeNullableValue(value, Serialize);
+    public void Serialize(Memory<byte>? value) => InternalSerializeNullableValue(value, Serialize);
 
-        public void Serialize(ReadOnlyMemory<byte>? value) => InternalSerializeNullableValue(value, Serialize);
+    public void Serialize(ReadOnlyMemory<byte>? value) => InternalSerializeNullableValue(value, Serialize);
 
-        #endregion byte
+    #endregion byte
 
-        #region char
+    #region char
 
-        public void Serialize(Memory<char> value) => InternalSerialize(value.Span, AutoRaw);
+    public void Serialize(Memory<char> value) => InternalSerialize(value.Span, AutoRaw);
 
-        public void SerializeRaw(Memory<char> value) => InternalSerialize(value.Span, raw: true);
+    public void SerializeRaw(Memory<char> value) => InternalSerialize(value.Span, raw: true);
 
-        public void Serialize(ReadOnlyMemory<char> value) => InternalSerialize(value.Span, AutoRaw);
+    public void Serialize(ReadOnlyMemory<char> value) => InternalSerialize(value.Span, AutoRaw);
 
-        public void SerializeRaw(ReadOnlyMemory<char> value) => InternalSerialize(value.Span, raw: true);
+    public void SerializeRaw(ReadOnlyMemory<char> value) => InternalSerialize(value.Span, raw: true);
 
-        public void Serialize(Memory<char>? value) => InternalSerializeNullableValue(value, Serialize);
+    public void Serialize(Memory<char>? value) => InternalSerializeNullableValue(value, Serialize);
 
-        public void Serialize(ReadOnlyMemory<char>? value) => InternalSerializeNullableValue(value, Serialize);
+    public void Serialize(ReadOnlyMemory<char>? value) => InternalSerializeNullableValue(value, Serialize);
 
-        #endregion char
+    #endregion char
 
-        #region t
+    #region t
 
-        public void Serialize<T>(Memory<T> value)
-            where T : unmanaged => InternalSerializeT(value.Span, AutoRaw);
+    public void Serialize<T>(Memory<T> value)
+        where T : unmanaged => InternalSerializeT(value.Span, AutoRaw);
 
-        public void SerializeRaw<T>(Memory<T> value)
-            where T : unmanaged => InternalSerializeT(value.Span, raw: true);
+    public void SerializeRaw<T>(Memory<T> value)
+        where T : unmanaged => InternalSerializeT(value.Span, raw: true);
 
-        public void Serialize<T>(ReadOnlyMemory<T> value)
-            where T : unmanaged => InternalSerializeT(value.Span, AutoRaw);
+    public void Serialize<T>(ReadOnlyMemory<T> value)
+        where T : unmanaged => InternalSerializeT(value.Span, AutoRaw);
 
-        public void SerializeRaw<T>(ReadOnlyMemory<T> value)
-            where T : unmanaged => InternalSerializeT(value.Span, raw: true);
+    public void SerializeRaw<T>(ReadOnlyMemory<T> value)
+        where T : unmanaged => InternalSerializeT(value.Span, raw: true);
 
-        public void Serialize<T>(Memory<T>? value)
-            where T : unmanaged => InternalSerializeNullableValue(value, Serialize);
+    public void Serialize<T>(Memory<T>? value)
+        where T : unmanaged => InternalSerializeNullableValue(value, Serialize);
 
-        public void Serialize<T>(ReadOnlyMemory<T>? value)
-            where T : unmanaged => InternalSerializeNullableValue(value, Serialize);
-        #endregion t
-    }
+    public void Serialize<T>(ReadOnlyMemory<T>? value)
+        where T : unmanaged => InternalSerializeNullableValue(value, Serialize);
+    #endregion t
 }

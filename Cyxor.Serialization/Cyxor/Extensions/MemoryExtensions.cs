@@ -1,25 +1,22 @@
-﻿using System;
-using System.Buffers;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
-namespace Cyxor.Extensions
+namespace Cyxor.Extensions;
+
+static class MemoryExtensions
 {
-    static class MemoryExtensions
+    public static Memory<TTo> Cast<TFrom, TTo>(this in Memory<TFrom> memory)
+        where TFrom : unmanaged
+        where TTo : unmanaged
     {
-        public static Memory<TTo> Cast<TFrom, TTo>(this in Memory<TFrom> memory)
-            where TFrom : unmanaged
-            where TTo : unmanaged
-        {
-            if (typeof(TFrom) == typeof(TTo))
-                return (Memory<TTo>)(object)memory;
+        if (typeof(TFrom) == typeof(TTo))
+            return (Memory<TTo>)(object)memory;
 
-            using var memoryManager = new MemoryManager<TFrom, TTo>(memory);
+        using var memoryManager = new MemoryManager<TFrom, TTo>(memory);
 
-            return memoryManager.Memory;
-        }
-
-        public static ReadOnlyMemory<TTo> Cast<TFrom, TTo>(this in ReadOnlyMemory<TFrom> readOnlyMemory)
-            where TFrom : unmanaged
-            where TTo : unmanaged => MemoryMarshal.AsMemory(readOnlyMemory).Cast<TFrom, TTo>();
+        return memoryManager.Memory;
     }
+
+    public static ReadOnlyMemory<TTo> Cast<TFrom, TTo>(this in ReadOnlyMemory<TFrom> readOnlyMemory)
+        where TFrom : unmanaged
+        where TTo : unmanaged => MemoryMarshal.AsMemory(readOnlyMemory).Cast<TFrom, TTo>();
 }

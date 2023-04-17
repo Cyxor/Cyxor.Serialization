@@ -1,77 +1,75 @@
-﻿using System;
+﻿using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
-using System.Collections.Concurrent;
 
-namespace Cyxor.Serialization
+namespace Cyxor.Serialization;
+
+using Extensions;
+
+internal static class SerializerDelegateCache
 {
-    using Extensions;
+    #region Serialization
 
-    internal static class SerializerDelegateCache
+    static readonly MethodInfo CreateActionDelegateMethodInfo =
+        typeof(SerializerDelegateCache).GetMethodInfo(nameof(CreateActionDelegate), isStatic: true)!;
+
+    static readonly ConcurrentDictionary<Type,
+        Action<Serializer, object?>> SerializationCache = new ConcurrentDictionary<Type,
+        Action<Serializer, object?>>();
+
+    public static Action<Serializer, object?> GetSerializationMethod(Type type)
     {
-        #region Serialization
-
-        static readonly MethodInfo CreateActionDelegateMethodInfo =
-            typeof(SerializerDelegateCache).GetMethodInfo(nameof(CreateActionDelegate), isStatic: true)!;
-
-        static readonly ConcurrentDictionary<Type,
-            Action<Serializer, object?>> SerializationCache = new ConcurrentDictionary<Type,
-            Action<Serializer, object?>>();
-
-        public static Action<Serializer, object?> GetSerializationMethod(Type type)
+        if (!SerializationCache.TryGetValue(type, out var action))
         {
-            if (!SerializationCache.TryGetValue(type, out var action))
-            {
-                var serializationMethodInfo = Serializer.GetSerializerMethod(type, SerializerOperation.Serialize);
+            var serializationMethodInfo = Serializer.GetSerializerMethod(type, SerializerOperation.Serialize);
 
-                var parameterType = serializationMethodInfo.GetParameters().First().ParameterType;
+            var parameterType = serializationMethodInfo.GetParameters().First().ParameterType;
 
-                action = (Action<Serializer, object?>)CreateActionDelegateMethodInfo.MakeGenericMethod(parameterType)
-                    .Invoke(null, new object[] { serializationMethodInfo })!;
+            action = (Action<Serializer, object?>)CreateActionDelegateMethodInfo.MakeGenericMethod(parameterType)
+                .Invoke(null, new object[] { serializationMethodInfo })!;
 
-                _ = SerializationCache.TryAdd(type, action);
-            }
-
-            return action;
+            _ = SerializationCache.TryAdd(type, action);
         }
 
-        static Action<Serializer, object> CreateActionDelegate<T>(MethodInfo method)
-        {
-            var action = (Action<Serializer, T>)method.CreateDelegate(typeof(Action<Serializer, T>));
-            return (serializer, t) => action(serializer, (T)t);
-        }
-        #endregion
-
-        #region Deserialization
-        static readonly MethodInfo CreateFuncDelegateMethodInfo =
-            typeof(SerializerDelegateCache).GetMethodInfo(nameof(CreateFuncDelegate), isStatic: true)!;
-
-        static readonly ConcurrentDictionary<Type,
-            Func<Serializer, object?>> DeserializationCache = new ConcurrentDictionary<Type,
-            Func<Serializer, object?>>();
-
-        public static Func<Serializer, object?> GetDeserializationMethod(Type type)
-        {
-            if (!DeserializationCache.TryGetValue(type, out var func))
-            {
-                var deserializationMethodInfo = Serializer.GetSerializerMethod(type, SerializerOperation.Deserialize);
-
-                var returnType = deserializationMethodInfo.ReturnType;
-
-                func = (Func<Serializer, object?>)CreateFuncDelegateMethodInfo.MakeGenericMethod(returnType)
-                    .Invoke(null, new object[] { deserializationMethodInfo })!;
-
-                _ = DeserializationCache.TryAdd(type, func);
-            }
-
-            return func;
-        }
-
-        static Func<Serializer, object> CreateFuncDelegate<T>(MethodInfo method)
-        {
-            var func = (Func<Serializer, T>)method.CreateDelegate(typeof(Func<Serializer, T>));
-            return (serializer) => func(serializer)!;
-        }
-        #endregion
+        return action;
     }
+
+    static Action<Serializer, object> CreateActionDelegate<T>(MethodInfo method)
+    {
+        var action = (Action<Serializer, T>)method.CreateDelegate(typeof(Action<Serializer, T>));
+        return (serializer, t) => action(serializer, (T)t);
+    }
+    #endregion
+
+    #region Deserialization
+    static readonly MethodInfo CreateFuncDelegateMethodInfo =
+        typeof(SerializerDelegateCache).GetMethodInfo(nameof(CreateFuncDelegate), isStatic: true)!;
+
+    static readonly ConcurrentDictionary<Type,
+        Func<Serializer, object?>> DeserializationCache = new ConcurrentDictionary<Type,
+        Func<Serializer, object?>>();
+
+    public static Func<Serializer, object?> GetDeserializationMethod(Type type)
+    {
+        if (!DeserializationCache.TryGetValue(type, out var func))
+        {
+            var deserializationMethodInfo = Serializer.GetSerializerMethod(type, SerializerOperation.Deserialize);
+
+            var returnType = deserializationMethodInfo.ReturnType;
+
+            func = (Func<Serializer, object?>)CreateFuncDelegateMethodInfo.MakeGenericMethod(returnType)
+                .Invoke(null, new object[] { deserializationMethodInfo })!;
+
+            _ = DeserializationCache.TryAdd(type, func);
+        }
+
+        return func;
+    }
+
+    static Func<Serializer, object> CreateFuncDelegate<T>(MethodInfo method)
+    {
+        var func = (Func<Serializer, T>)method.CreateDelegate(typeof(Func<Serializer, T>));
+        return (serializer) => func(serializer)!;
+    }
+    #endregion
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace Cyxor.Serialization
@@ -138,7 +137,8 @@ namespace Cyxor.Serialization
             bool littleEndian,
             TryDeserializeSignatureLittleEndian<T> tryDeserializeDelegate
         )
-            where T : struct {
+            where T : struct
+        {
             bool result;
             value = default;
 

@@ -11,7 +11,7 @@
     <Copyright>@ Yandy Zaldivar</Copyright>
     <AssemblyName>Cyxor.SerializationX</AssemblyName>
     <AssemblyTitle>Cyxor.SerializationX</AssemblyTitle>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Description>Effective binary object serialization class library for low-overhead network transmissions</Description>
 
     <Deterministic>true</Deterministic>

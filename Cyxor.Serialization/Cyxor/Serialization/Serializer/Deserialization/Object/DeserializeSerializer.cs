@@ -1,74 +1,73 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Cyxor.Serialization
+namespace Cyxor.Serialization;
+
+partial class Serializer
 {
-    partial class Serializer
+    public Serializer DeserializeSerialStream() => new Serializer(DeserializeBytes());
+
+    public Serializer? DeserializeNullableSerialStream()
     {
-        public Serializer DeserializeSerialStream() => new Serializer(DeserializeBytes());
+        var bytes = DeserializeNullableBytes();
+        return bytes == default ? default : new Serializer(bytes);
+    }
 
-        public Serializer? DeserializeNullableSerialStream()
+    public Serializer DeserializeRawSerialStream() => new Serializer(DeserializeRawBytes());
+
+    public Serializer? DeserializeNullableRawSerialStream()
+    {
+        var bytes = DeserializeNullableRawBytes();
+        return bytes == default ? default : new Serializer(bytes);
+    }
+
+    public bool TryDeserializeSerialStream([NotNullWhen(true)] out Serializer? value)
+    {
+        value = default;
+
+        if (!TryDeserializeBytes(out var bytes))
+            return false;
+
+        try
         {
-            var bytes = DeserializeNullableBytes();
-            return bytes == default ? default : new Serializer(bytes);
+            value = new Serializer(bytes);
+            return true;
         }
-
-        public Serializer DeserializeRawSerialStream() => new Serializer(DeserializeRawBytes());
-
-        public Serializer? DeserializeNullableRawSerialStream()
+        catch
         {
-            var bytes = DeserializeNullableRawBytes();
-            return bytes == default ? default : new Serializer(bytes);
+            return false;
         }
+    }
 
-        public bool TryDeserializeSerialStream([NotNullWhen(true)] out Serializer? value)
+    public bool TryDeserializeNullableSerialStream(out Serializer? value)
+    {
+        value = default;
+
+        if (!TryDeserializeNullableBytes(out var bytes))
+            return false;
+
+        if (bytes == default)
+            return true;
+
+        try
         {
-            value = default;
-
-            if (!TryDeserializeBytes(out var bytes))
-                return false;
-
-            try
-            {
-                value = new Serializer(bytes);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            value = new Serializer(bytes);
+            return true;
         }
-
-        public bool TryDeserializeNullableSerialStream(out Serializer? value)
+        catch
         {
-            value = default;
-
-            if (!TryDeserializeNullableBytes(out var bytes))
-                return false;
-
-            if (bytes == default)
-                return true;
-
-            try
-            {
-                value = new Serializer(bytes);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return false;
         }
+    }
 
-        public Serializer ToSerialStream()
-        {
-            _position = 0;
-            return DeserializeRawSerialStream();
-        }
+    public Serializer ToSerialStream()
+    {
+        _position = 0;
+        return DeserializeRawSerialStream();
+    }
 
-        public Serializer? ToNullableSerialStream()
-        {
-            _position = 0;
-            return DeserializeNullableRawSerialStream();
-        }
+    public Serializer? ToNullableSerialStream()
+    {
+        _position = 0;
+        return DeserializeNullableRawSerialStream();
     }
 }

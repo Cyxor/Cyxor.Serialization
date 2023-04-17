@@ -1,15 +1,12 @@
-using System;
+namespace Cyxor.Serialization;
 
-namespace Cyxor.Serialization
+[AttributeUsage(AttributeTargets.Method, Inherited = false)]
+sealed class SerializerMethodIdentifierAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
-    sealed class SerializerMethodIdentifierAttribute : Attribute
-    {
-        public readonly SerializerMethodIdentifier Identifier;
+    public readonly SerializerMethodIdentifier Identifier;
 
-        public SerializerMethodIdentifierAttribute(SerializerMethodIdentifier identifier)
-        {
-            Identifier = identifier;
-        }
+    public SerializerMethodIdentifierAttribute(SerializerMethodIdentifier identifier)
+    {
+        Identifier = identifier;
     }
 }

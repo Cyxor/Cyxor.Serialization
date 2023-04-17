@@ -1,8 +1,7 @@
-﻿namespace Cyxor.Serialization
+﻿namespace Cyxor.Serialization;
+
+enum SerializerOperation
 {
-    enum SerializerOperation
-    {
-        Serialize,
-        Deserialize,
-    }
+    Serialize,
+    Deserialize,
 }
